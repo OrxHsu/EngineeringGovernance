@@ -78,6 +78,29 @@ describe('evidence verification', () => {
     expect(verifyEvidence(input, options).errors).toContain('RAW_ARTIFACT_DIGEST_MISMATCH:AC-01')
   })
 
+  it('rejects digest-matching artifacts that do not contain executed check records', async () => {
+    const input = await fixture()
+    const records = input.records as Array<{
+      rawArtifact: { path: string; sha256: string }
+      executedCheckIds: string[]
+    }>
+    records[0]!.rawArtifact = {
+      path: 'artifacts/test.json',
+      sha256: 'e5f1eb4d806641698a35efe20e098efd20d7d57a9b90ee69079d5bb650920726',
+    }
+    expect(verifyEvidence(input, options).errors).toContain(
+      'RAW_ARTIFACT_FORMAT_INVALID:AC-01',
+    )
+
+    const wrongIdentity = await fixture()
+    ;(wrongIdentity.records as Array<{ executedCheckIds: string[] }>)[0]!.executedCheckIds = [
+      'test:forged',
+    ]
+    expect(verifyEvidence(wrongIdentity, options).errors).toContain(
+      'EXECUTED_CHECK_ID_MISMATCH:AC-01',
+    )
+  })
+
   it('rejects missing, unexpected, and failed acceptance records', async () => {
     const missingOptions = { ...options, requiredAcceptanceIds: ['AC-01', 'AC-02'] }
     expect(verifyEvidence(await fixture(), missingOptions).errors).toContain('MISSING_ACCEPTANCE_ID:AC-02')

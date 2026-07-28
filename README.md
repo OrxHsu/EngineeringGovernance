@@ -24,7 +24,7 @@ Until a release is installed globally, invoke the CLI through pnpm:
 ```sh
 pnpm sop -- --help
 pnpm sop -- check /absolute/path/to/project --json
-pnpm sop -- adopt /absolute/path/to/project --json
+pnpm sop -- adopt /absolute/path/to/project --runner-bundle /absolute/path/to/engineering-governance-<version>.tgz --json
 ```
 
 Install the global Codex adapter and `delivery-sop` Skill with the same
@@ -43,8 +43,8 @@ print the exact planned writes and a SHA-256 plan digest. Apply only the same
 reviewed plan:
 
 ```sh
-pnpm sop -- adopt /absolute/path/to/project --json
-pnpm sop -- adopt /absolute/path/to/project --apply-plan <reviewed-sha256>
+pnpm sop -- adopt /absolute/path/to/project --runner-bundle /absolute/path/to/engineering-governance-<version>.tgz --json
+pnpm sop -- adopt /absolute/path/to/project --runner-bundle /absolute/path/to/engineering-governance-<version>.tgz --apply-plan <reviewed-sha256>
 ```
 
 Application is rejected if a managed file changes after planning. Existing

@@ -8,7 +8,7 @@ import { parse } from 'yaml'
 
 import { checkProject } from '../commands/check.js'
 import { applyAdoption } from '../commands/init.js'
-import { planAdoption } from '../commands/adopt.js'
+import { planAdoption, summarizeAdoptionPlan } from '../commands/adopt.js'
 import { startTask, type TaskStartInput } from '../commands/task-start.js'
 import {
   verifyCandidateEligibility,
@@ -35,6 +35,14 @@ function structuredFile<T>(path: string): T {
 }
 
 function writeJson(output: CliOutput, value: unknown): void {
+  if (
+    typeof value === 'object'
+    && value !== null
+    && 'valid' in value
+    && value.valid === false
+  ) {
+    process.exitCode = 1
+  }
   output.write(`${JSON.stringify(value, null, 2)}\n`)
 }
 
@@ -51,13 +59,19 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
     program.command(name)
       .argument('<project>')
       .option('--json')
+      .option('--runner-bundle <path>')
       .option('--apply-plan <digest>')
-      .action((project: string, options: { applyPlan?: string }) => {
-        const plan = name === 'upgrade' ? planUpgrade(project) : planAdoption(project)
+      .action((project: string, options: { applyPlan?: string; runnerBundle?: string }) => {
+        const planOptions = options.runnerBundle === undefined
+          ? {}
+          : { runnerBundlePath: options.runnerBundle }
+        const plan = name === 'upgrade'
+          ? planUpgrade(project, planOptions)
+          : planAdoption(project, planOptions)
         if (options.applyPlan) {
           writeJson(output, applyAdoption(plan, options.applyPlan))
         } else {
-          writeJson(output, plan)
+          writeJson(output, summarizeAdoptionPlan(plan))
         }
       })
   }

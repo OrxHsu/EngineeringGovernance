@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -11,6 +11,7 @@ import { verifyCandidateEligibility } from '../../src/commands/task-verify.js'
 import { verifyReviewEligibility } from '../../src/commands/task-review.js'
 import { verifyCloseEligibility } from '../../src/commands/task-close.js'
 import { buildProgram } from '../../src/cli/main.js'
+import { testRunnerBundle } from '../helpers/runner-bundle.js'
 
 const taskBase = {
   taskId: 'task-1',
@@ -36,15 +37,41 @@ describe('project command workflow', () => {
     const program = buildProgram({ write: (text) => { output += text } })
     await program.parseAsync(['node', 'sop', 'adopt', project, '--json'])
 
-    const parsed = JSON.parse(output) as { digest: string; writes: unknown[] }
+    const parsed = JSON.parse(output) as {
+      digest: string
+      writes: Array<Record<string, unknown>>
+    }
     expect(parsed.digest).toMatch(/^[a-f0-9]{64}$/)
     expect(parsed.writes.length).toBeGreaterThan(0)
+    expect(parsed.writes.every((write) => 'afterDigest' in write && !('after' in write))).toBe(true)
     expect(verifyAdoptedProject(project).errors).toContain('PROJECT_POLICY_MISSING')
+  })
+
+  it('includes the pinned runner in a bootstrap adoption plan', async () => {
+    const project = mkdtempSync(join(tmpdir(), 'governance-cli-runner-'))
+    const bundle = join(project, 'engineering-governance-0.1.0-dev.tgz')
+    writeFileSync(bundle, 'test runner archive\n')
+    let output = ''
+    await buildProgram({ write: (text) => { output += text } }).parseAsync([
+      'node',
+      'sop',
+      'adopt',
+      project,
+      '--runner-bundle',
+      bundle,
+      '--json',
+    ])
+    const plan = JSON.parse(output) as { writes: Array<{ path: string; after?: unknown }> }
+    expect(plan.writes.every((write) => write.after === undefined)).toBe(true)
+    expect(plan.writes.map((write) => write.path)).toContain(join(
+      project,
+      '.delivery/runtime/engineering-governance-0.1.0-dev.tgz',
+    ))
   })
 
   it('plans before applying and verifies the adopted project', () => {
     const project = mkdtempSync(join(tmpdir(), 'governance-cli-'))
-    const plan = planAdoption(project)
+    const plan = planAdoption(project, { runnerBundlePath: testRunnerBundle() })
 
     expect(plan.writes.map((write) => write.path.endsWith('policy.yaml'))).toContain(true)
     expect(verifyAdoptedProject(project).valid).toBe(false)
@@ -88,7 +115,7 @@ describe('task command workflow', () => {
       authorizationApproved: false,
     })).toEqual({
       valid: false,
-      errors: ['USER_AUTHORIZATION_REQUIRED'],
+      errors: ['CANDIDATE_VERIFICATION_REQUIRED', 'USER_AUTHORIZATION_REQUIRED'],
     })
   })
 

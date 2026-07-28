@@ -1,5 +1,5 @@
 import { planAdoption, type AdoptionPlan } from './adopt.js'
 
-export function planUpgrade(project: string): AdoptionPlan {
-  return planAdoption(project)
+export function planUpgrade(project: string, options: { runnerBundlePath?: string } = {}): AdoptionPlan {
+  return planAdoption(project, options)
 }

@@ -24,7 +24,7 @@ export interface SkillInstallPlan {
   digest: string
 }
 
-function sha256(input: string): string {
+function sha256(input: string | Uint8Array): string {
   return createHash('sha256').update(input).digest('hex')
 }
 

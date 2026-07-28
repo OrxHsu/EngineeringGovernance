@@ -51,6 +51,7 @@ describe('Codex global adapter', () => {
     applyCodexPlan(plan, plan.digest)
     const installed = await readFile(agentsPath, 'utf8')
     expect(installed.match(/engineering-governance:start/gu)).toHaveLength(1)
+    expect(installed).toContain('~/.codex/bin/sop')
     expect(installed.endsWith('# Existing instructions\n\nKeep this byte-for-byte.\n')).toBe(true)
     expect(verifyCodexInstall({ homeDirectory, identity })).toEqual({ valid: true, errors: [] })
 

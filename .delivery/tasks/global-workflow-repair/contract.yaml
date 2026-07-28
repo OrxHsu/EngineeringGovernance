@@ -1,0 +1,75 @@
+schemaVersion: 1
+taskId: global-workflow-repair
+sopVersion: 0.1.0-dev
+risk: R3
+state: DEFINED
+implementationOwner: codex
+objective: >-
+  Repair the Engineering Governance candidate so global and project gates fail
+  closed, evidence and Git identities are actually verified, unadopted projects
+  have a safe bootstrap path, and ProjTrav/NoMe adoption respects their canonical
+  authorities and dirty worktrees.
+scope:
+  - EngineeringGovernance CLI, policy, evidence, adapters, tests, and plans
+  - managed global Codex adapter and delivery-sop Skill
+  - read-only real-project adoption discovery for ProjTrav and NoMe
+  - governance-only project adoption after overlap checks pass
+nonGoals:
+  - application feature implementation
+  - Simulator or physical-device runtime testing
+  - deployment, migration, push, publishing, or external communication
+authorityInputs:
+  - docs/specs/2026-07-29-global-development-workflow-design.md
+  - docs/superpowers/plans/2026-07-29-governance-core-implementation.md
+  - docs/superpowers/plans/2026-07-29-agent-adapters-implementation.md
+  - docs/superpowers/plans/2026-07-29-project-adoption-implementation.md
+acceptance:
+  - id: GW-EXIT-01
+    observation: Every invalid check or task decision exits non-zero in the real CLI and portable gate.
+    positiveCases:
+      - valid adopted project exits zero
+    negativeCases:
+      - missing or drifted policy exits non-zero
+      - invalid candidate, review, or close input exits non-zero
+  - id: GW-EVIDENCE-01
+    observation: Candidate verification validates schemas, executed raw records, evidence kinds, contract digest, and implementation or closure Git identities.
+    positiveCases:
+      - supported machine artifact with matching executed test IDs passes
+    negativeCases:
+      - arbitrary self-authored artifact plus matching SHA is rejected
+      - forged, stale, cross-run, compiled-only, or wrong-commit evidence is rejected
+  - id: GW-BOOTSTRAP-01
+    observation: An unadopted project can perform an explicit dry-run-first bootstrap without weakening checks after adoption.
+    positiveCases:
+      - reviewed bootstrap plan installs policy, extension, runner, and canonical adapter
+    negativeCases:
+      - ordinary mutating task with missing policy remains blocked
+      - plan drift or dirty overlap is rejected
+  - id: GW-ADOPT-01
+    observation: ProjTrav and NoMe dry-runs target only their authoritative sources and new delivery files while preserving unrelated changes.
+    positiveCases:
+      - ProjTrav plans root Docs rule sources and three-repository generated targets
+      - NoMe plans its root authority without touching unrelated dirty files
+    negativeCases:
+      - generated targets are never authored directly
+      - overlapping dirty paths stop before writes
+  - id: GW-PILOT-01
+    observation: R1, R2 repair and independent acceptance, and R3 authorization pilots execute through the real CLI and fail closed.
+    positiveCases:
+      - each pilot reaches only its allowed state
+    negativeCases:
+      - self-review, missing authorization, and incomplete evidence cannot advance
+requiredGates:
+  - pnpm typecheck
+  - pnpm test
+  - pnpm build
+  - pnpm check:placeholders
+  - pnpm check:licenses
+  - real global install and check
+  - real ProjTrav and NoMe adoption dry-runs with zero mutation
+  - git diff --check
+openChoices:
+  - internal TypeScript module boundaries
+  - supported raw artifact adapter representation
+  - exact bootstrap command naming
+contractDigest: 4f8d13aa28ac8983987878883143bb398ad1ce6d0db1f54391ae658ff5019cc4

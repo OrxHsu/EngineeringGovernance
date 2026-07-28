@@ -29,6 +29,8 @@ describe('delivery-sop Skill', () => {
   it('stays operational and policy-free', async () => {
     const text = await readFile('skills/delivery-sop/SKILL.md', 'utf8')
     expect(text).toContain('sop check')
+    expect(text).toContain('~/.codex/bin/sop')
+    expect(text).toContain('bootstrap')
     expect(text).toContain('Read `.delivery/policy.yaml`')
     expect(text).toContain('Stop when the policy is missing')
     expect(text).not.toContain('Only services call transactions')

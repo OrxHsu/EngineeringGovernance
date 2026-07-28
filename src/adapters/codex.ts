@@ -34,7 +34,7 @@ interface CodexInstallOptions {
   ccSwitchSettingNames?: string[]
 }
 
-function sha256(input: string): string {
+function sha256(input: string | Uint8Array): string {
   return createHash('sha256').update(input).digest('hex')
 }
 
@@ -47,6 +47,7 @@ function planDigest(plan: Omit<CodexAdapterPlan, 'digest'>): string {
       path: write.path,
       beforeDigest: write.beforeDigest,
       afterDigest: sha256(write.after),
+      mode: write.mode,
     })),
   }))
 }
@@ -70,7 +71,7 @@ function assertNotManagerOwned(settingNames: string[]): void {
 function withoutNoOpWrites(writes: PlannedWrite[]): PlannedWrite[] {
   return writes.filter((write) => {
     const before = existsSync(write.path) ? readFileSync(write.path, 'utf8') : undefined
-    return before !== write.after
+    return typeof write.after !== 'string' || before !== write.after
   })
 }
 
@@ -84,7 +85,7 @@ export function planCodexInstall(options: CodexInstallOptions): CodexAdapterPlan
 
   const target = join(homeDirectory, '.codex', 'AGENTS.md')
   const writes = withoutNoOpWrites([
-    planManagedBlockWrite(target, renderCoreBlock(options.identity).trimEnd()),
+    planManagedBlockWrite(target, renderCoreBlock(options.identity, '~/.codex/bin/sop').trimEnd()),
   ])
   const unsigned = { action: 'install' as const, tool: 'codex' as const, target, writes }
   return { ...unsigned, digest: planDigest(unsigned) }
@@ -135,7 +136,7 @@ export function verifyCodexInstall(options: {
   const target = join(resolve(options.homeDirectory), '.codex', 'AGENTS.md')
   if (!existsSync(target)) return { valid: false, errors: ['CODEX_ADAPTER_MISSING'] }
   const existing = readFileSync(target, 'utf8')
-  const expected = renderCoreBlock(options.identity).trimEnd()
+  const expected = renderCoreBlock(options.identity, '~/.codex/bin/sop').trimEnd()
   const starts = existing.split(MANAGED_BLOCK_START).length - 1
   const errors = starts === 1 && existing.includes(expected) ? [] : ['CODEX_ADAPTER_DRIFTED']
   return { valid: errors.length === 0, errors }

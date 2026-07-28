@@ -1,11 +1,10 @@
-import { appendFile, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { appendFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
 import { afterEach, expect, it } from 'vitest'
 
-import { applyPortableGate, planPortableGate } from '../../src/adapters/ci.js'
 import { planAdoption } from '../../src/commands/adopt.js'
 import { applyAdoption } from '../../src/commands/init.js'
 
@@ -41,10 +40,20 @@ it('runs a checksum-pinned project gate offline and rejects a mutated runner', a
   expect(bundle.sha256).toMatch(/^[a-f0-9]{64}$/u)
 
   const projectRoot = await temporaryDirectory('sop-portable-project-')
-  const adoption = planAdoption(projectRoot)
+  const adoption = planAdoption(projectRoot, { runnerBundlePath: bundle.archivePath })
+  expect(adoption.writes.map((write) => write.path)).toContain(join(
+    projectRoot,
+    '.delivery',
+    'runtime',
+    `engineering-governance-${bundle.version}.tgz`,
+  ))
+  expect(adoption.writes.map((write) => write.path)).toContain(join(
+    projectRoot,
+    '.delivery',
+    'bin',
+    'check-delivery-policy.sh',
+  ))
   applyAdoption(adoption, adoption.digest)
-  const portable = planPortableGate({ projectRoot, bundlePath: bundle.archivePath })
-  applyPortableGate(portable, portable.digest)
 
   const wrapper = join(projectRoot, '.delivery', 'bin', 'check-delivery-policy.sh')
   const environment = {
@@ -55,6 +64,16 @@ it('runs a checksum-pinned project gate offline and rejects a mutated runner', a
   const accepted = spawnSync('sh', [wrapper], { encoding: 'utf8', env: environment })
   expect(accepted.status, accepted.stderr || accepted.stdout).toBe(0)
   expect(accepted.stdout).toContain('"valid": true')
+
+  const agentsPath = join(projectRoot, 'AGENTS.md')
+  const agents = await readFile(agentsPath, 'utf8')
+  await writeFile(
+    agentsPath,
+    agents.replace(/Governance digest: `[^`]+`/u, `Governance digest: \`${'f'.repeat(64)}\``),
+  )
+  const drifted = spawnSync('sh', [wrapper], { encoding: 'utf8', env: environment })
+  expect(drifted.stdout).toContain('"valid": false')
+  expect(drifted.status).not.toBe(0)
 
   const policy = await readFile(join(projectRoot, '.delivery', 'policy.yaml'), 'utf8')
   expect(policy).toContain(`sha256: ${bundle.sha256}`)
@@ -68,4 +87,4 @@ it('runs a checksum-pinned project gate offline and rejects a mutated runner', a
   const rejected = spawnSync('sh', [wrapper], { encoding: 'utf8', env: environment })
   expect(rejected.status).not.toBe(0)
   expect(rejected.stderr).toContain('RUNNER_DIGEST_MISMATCH')
-})
+}, 15_000)

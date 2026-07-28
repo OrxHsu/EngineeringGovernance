@@ -1,0 +1,15 @@
+schemaVersion: 1
+sopVersion: 0.1.0-dev
+sopDigest: e0242ef38e3d6e5c7bd537fa81108e1a20d7eb7417861e2383c3ec442af74c53
+projectId: engineering-governance
+adapters:
+  - tool: generic-agents
+    source: AGENTS.md
+    targets:
+      - AGENTS.md
+    digest: 59585f7ab0d004414a5484c94268616dc3094f6b0aeff8263f1a2eac96c0ed75
+artifactMapping: {}
+runner:
+  version: 0.1.0-dev
+  path: .delivery/runtime/engineering-governance-0.1.0-dev.tgz
+  sha256: b541e925883d8f859bdc59db358ca626f5578b2d327d5e30575478ca49c26d41

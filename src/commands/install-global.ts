@@ -3,6 +3,7 @@ import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { planCodexInstall, verifyCodexInstall } from '../adapters/codex.js'
+import { planLauncherInstall, verifyLauncherInstall } from '../adapters/launcher.js'
 import { planSkillInstall, verifySkillInstall } from '../adapters/skill.js'
 import type { ValidationResult } from '../model/types.js'
 import { applyPlannedWrites, type MutationResult, type PlannedWrite } from '../project/mutate.js'
@@ -17,7 +18,7 @@ export interface GlobalInstallPlan {
   digest: string
 }
 
-function sha256(input: string): string {
+function sha256(input: string | Uint8Array): string {
   return createHash('sha256').update(input).digest('hex')
 }
 
@@ -31,6 +32,7 @@ function planDigest(plan: Omit<GlobalInstallPlan, 'digest'>): string {
       path: write.path,
       beforeDigest: write.beforeDigest,
       afterDigest: sha256(write.after),
+      mode: write.mode,
     })),
   }))
 }
@@ -46,12 +48,13 @@ export function planGlobalInstall(options: {
   const skill = planSkillInstall({
     targetDirectory: join(homeDirectory, '.codex', 'skills', 'delivery-sop'),
   })
+  const launcher = planLauncherInstall({ homeDirectory })
   const unsigned = {
     tool: 'codex' as const,
     homeDirectory,
     governanceVersion: identity.version,
     governanceDigest: identity.digest,
-    writes: [...codex.writes, ...skill.writes],
+    writes: [...codex.writes, ...skill.writes, ...launcher],
   }
   return { ...unsigned, digest: planDigest(unsigned) }
 }
@@ -67,6 +70,7 @@ export function summarizeGlobalPlan(plan: GlobalInstallPlan): object {
       path: write.path,
       beforeDigest: write.beforeDigest,
       afterDigest: sha256(write.after),
+      ...(write.mode === undefined ? {} : { mode: write.mode }),
     })),
   }
 }
@@ -92,6 +96,7 @@ export function checkGlobalInstall(options: {
   const skill = verifySkillInstall({
     targetDirectory: join(homeDirectory, '.codex', 'skills', 'delivery-sop'),
   })
-  const errors = [...new Set([...codex.errors, ...skill.errors])].sort()
+  const launcher = verifyLauncherInstall({ homeDirectory })
+  const errors = [...new Set([...codex.errors, ...skill.errors, ...launcher.errors])].sort()
   return { valid: errors.length === 0, errors }
 }

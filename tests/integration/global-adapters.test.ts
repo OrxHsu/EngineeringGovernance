@@ -1,4 +1,5 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { constants } from 'node:fs'
+import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -44,6 +45,7 @@ it('keeps global Codex installation dry-run-first and digest-confirmed', async (
     join(homeDirectory, '.codex', 'skills', 'delivery-sop', 'SKILL.md'),
     join(homeDirectory, '.codex', 'skills', 'delivery-sop', 'agents', 'openai.yaml'),
     join(homeDirectory, '.codex', 'skills', 'delivery-sop', '.engineering-governance-skill.json'),
+    join(homeDirectory, '.codex', 'bin', 'sop'),
   ])
   expect(dryRun.writes.every((write) => 'afterDigest' in write && !('after' in write))).toBe(true)
   await expect(readFile(agentsPath, 'utf8')).resolves.toBe('# Local global instructions\n')
@@ -67,6 +69,9 @@ it('keeps global Codex installation dry-run-first and digest-confirmed', async (
     join(homeDirectory, '.codex', 'skills', 'delivery-sop', 'SKILL.md'),
     'utf8',
   )).resolves.toContain('name: delivery-sop')
+  const launcher = join(homeDirectory, '.codex', 'bin', 'sop')
+  await expect(readFile(launcher, 'utf8')).resolves.toContain('ENGINEERING_GOVERNANCE_ROOT')
+  await expect(access(launcher, constants.X_OK)).resolves.toBeUndefined()
 
   output = ''
   await buildProgram({ write: (text) => { output += text } }).parseAsync([

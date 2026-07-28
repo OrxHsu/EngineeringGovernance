@@ -25,8 +25,8 @@
         "repo": "cccccccccccccccccccccccccccccccccccccccc"
       },
       "rawArtifact": {
-        "path": "artifacts/test.json",
-        "sha256": "e5f1eb4d806641698a35efe20e098efd20d7d57a9b90ee69079d5bb650920726"
+        "path": "artifacts/test-results.json",
+        "sha256": "4c31ee747d96038d58240915750ac29630972cf51aeb1edfb1ad0da94a6a0bfe"
       },
       "observation": "Named test executed successfully."
     }

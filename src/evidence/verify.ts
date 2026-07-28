@@ -44,6 +44,12 @@ interface EvidenceDocument {
   summary: { passedIds: string[]; failedIds: string[] }
 }
 
+interface RawExecutionArtifact {
+  schemaVersion: 1
+  runId: string
+  checks: Array<{ id: string; status: 'passed' | 'failed' }>
+}
+
 export interface EvidenceVerificationOptions {
   requiredAcceptanceIds: string[]
   expectedContractDigest: string
@@ -122,9 +128,45 @@ function verifyRawArtifact(
       return `RAW_ARTIFACT_OUTSIDE_ROOT:${record.acceptanceId}`
     }
 
-    const digest = createHash('sha256').update(readFileSync(candidate)).digest('hex')
+    const raw = readFileSync(candidate)
+    const digest = createHash('sha256').update(raw).digest('hex')
     if (digest !== record.rawArtifact.sha256) {
       return `RAW_ARTIFACT_DIGEST_MISMATCH:${record.acceptanceId}`
+    }
+
+    let artifact: RawExecutionArtifact
+    try {
+      artifact = JSON.parse(raw.toString('utf8')) as RawExecutionArtifact
+    } catch {
+      return `RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`
+    }
+    if (
+      artifact.schemaVersion !== 1
+      || typeof artifact.runId !== 'string'
+      || !Array.isArray(artifact.checks)
+      || artifact.checks.length === 0
+      || artifact.checks.some((check) => (
+        typeof check !== 'object'
+        || check === null
+        || typeof check.id !== 'string'
+        || check.id.length === 0
+        || (check.status !== 'passed' && check.status !== 'failed')
+      ))
+      || new Set(artifact.checks.map((check) => check.id)).size !== artifact.checks.length
+    ) {
+      return `RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`
+    }
+    if (artifact.runId !== record.runId) {
+      return `RAW_ARTIFACT_RUN_MISMATCH:${record.acceptanceId}`
+    }
+    if (!sameStrings(artifact.checks.map((check) => check.id), record.executedCheckIds)) {
+      return `EXECUTED_CHECK_ID_MISMATCH:${record.acceptanceId}`
+    }
+    if (
+      record.exitCode === 0
+      && artifact.checks.some((check) => check.status !== 'passed')
+    ) {
+      return `RAW_EXECUTION_CHECK_FAILED:${record.acceptanceId}`
     }
     return undefined
   } catch {
