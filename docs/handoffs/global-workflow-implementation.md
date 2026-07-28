@@ -1,6 +1,6 @@
 # Global Workflow Implementation Handoff
 
-Status: Independently Accepted; Local Merge Pending
+Status: Completed Locally; Real-HOME Installation Pending Authorization
 Updated: 2026-07-29
 Implementation owner: Codex in task `019fa9ea-1ddb-7513-a2df-05b5585c10ba`
 
@@ -21,6 +21,25 @@ Implementation owner: Codex in task `019fa9ea-1ddb-7513-a2df-05b5585c10ba`
 - Evidence closure commit: `15a9adfa55ef29a61124b4f167b1150f1cbb10e9`
 - Governance digest: `f85636fecdfff9ff4729e5b8afcf684c060c0fe1fc1e221896f0482f14e23821`
 - Runner SHA-256: `f533b20f75d19421ae9a037e014caf6cecbdad4480ae9e215b83aa87423d2d99`
+
+## Local merge and R3 closure
+
+- The independently accepted branch was fast-forward merged into `main` at
+  accepted merge point `0ecead307c667958ecf157d183600d9986d965c7`.
+- The review invocation input was moved under `artifacts/` because its former
+  top-level `review-*.json` name was incorrectly classified as a review result
+  by the project gate. No implementation or accepted review content changed.
+- Main-only Node 22 verification passed: 25 test files and 107 tests passed,
+  with the explicitly gated real-project test skipped in that run.
+- The real ProjTrav/NoMe adoption dry-run then passed separately, 1/1.
+- Main policy, typecheck, build, placeholder, license, exact replay, and closure
+  checks all passed. `task close` returned `{ "valid": true, "errors": [] }`.
+- Closure artifact: `.delivery/tasks/global-workflow-repair/closure.json`
+- Closure SHA-256: `fa0c9f07fe02a14705dfacb7c7a4bba2007ec55ff2a10dbc5f5eaa78379e4e9e`
+- Closure commit: `6d31f445189344a85ba754640ae4b84aa9b44f9c`
+- A fresh real-HOME dry-run reproduced plan digest
+  `fca628a5ddcae3b2595b4b7badb4807f4aa9051fe06ac95d80305c6f9d23f2ae`.
+  No real-HOME write was performed.
 
 ## Exact cross-repository implementation identities
 
@@ -111,11 +130,13 @@ path both returned `{ "valid": true, "errors": [] }`.
 - The real global Codex home has not been mutated.
 - Current authorization expires at `2026-07-30T00:00:00Z` and does not include
   real-HOME installation.
+- The accepted evidence worktree and branch are intentionally retained because
+  the frozen candidate contains absolute paths to that worktree. Removing it
+  would make the accepted evidence non-replayable.
 
 ## Next permitted action
 
-Merge the accepted branch locally and run fresh main-branch policy, test, build,
-and closure checks. Real-HOME apply requires a new explicit authorization naming
-that exact mutation. Tagging,
-publishing, pushing, deployment, migration, and external communication remain
-unauthorized.
+Local implementation, project adoption, independent acceptance, main merge, and
+R3 closure are complete. Real-HOME apply requires a new explicit authorization
+naming that exact mutation and plan digest. Tagging, publishing, pushing,
+deployment, migration, and external communication remain unauthorized.
