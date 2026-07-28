@@ -67,4 +67,17 @@ it('keeps global Codex installation dry-run-first and digest-confirmed', async (
     join(homeDirectory, '.codex', 'skills', 'delivery-sop', 'SKILL.md'),
     'utf8',
   )).resolves.toContain('name: delivery-sop')
+
+  output = ''
+  await buildProgram({ write: (text) => { output += text } }).parseAsync([
+    'node',
+    'sop',
+    'global',
+    'check',
+    '--tool',
+    'codex',
+    '--home',
+    homeDirectory,
+  ])
+  expect(JSON.parse(output)).toEqual({ valid: true, errors: [] })
 })

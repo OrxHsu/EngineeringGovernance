@@ -19,6 +19,7 @@ import { verifyCloseEligibility, type CloseEligibilityInput } from '../commands/
 import { planUpgrade } from '../commands/upgrade.js'
 import {
   applyGlobalInstall,
+  checkGlobalInstall,
   planGlobalInstall,
   summarizeGlobalPlan,
 } from '../commands/install-global.js'
@@ -111,6 +112,15 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
           ? applyGlobalInstall(plan, options.applyPlan)
           : summarizeGlobalPlan(plan),
       )
+    })
+  global.command('check')
+    .requiredOption('--tool <tool>')
+    .option('--home <path>')
+    .action((options: { tool: string; home?: string }) => {
+      writeJson(output, checkGlobalInstall({
+        tool: options.tool,
+        ...(options.home === undefined ? {} : { homeDirectory: options.home }),
+      }))
     })
 
   return program
