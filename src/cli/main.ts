@@ -15,6 +15,11 @@ import {
 import { verifyReviewEligibility, type ReviewEligibilityInput } from '../commands/task-review.js'
 import { verifyCloseEligibility, type CloseEligibilityInput } from '../commands/task-close.js'
 import { planUpgrade } from '../commands/upgrade.js'
+import {
+  applyGlobalInstall,
+  planGlobalInstall,
+  summarizeGlobalPlan,
+} from '../commands/install-global.js'
 
 export interface CliOutput {
   write(text: string): void
@@ -28,6 +33,12 @@ function structuredFile<T>(path: string): T {
 
 function writeJson(output: CliOutput, value: unknown): void {
   output.write(`${JSON.stringify(value, null, 2)}\n`)
+}
+
+export function normalizeCliArguments(arguments_: string[]): string[] {
+  return arguments_[2] === '--'
+    ? [...arguments_.slice(0, 2), ...arguments_.slice(3)]
+    : arguments_
 }
 
 export function buildProgram(output: CliOutput = defaultOutput): Command {
@@ -82,9 +93,27 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
       writeJson(output, verifyCloseEligibility(structuredFile<CloseEligibilityInput>(options.input)))
     })
 
+  const global = program.command('global')
+  global.command('install')
+    .requiredOption('--tool <tool>')
+    .option('--home <path>')
+    .option('--apply-plan <digest>')
+    .action((options: { tool: string; home?: string; applyPlan?: string }) => {
+      const plan = planGlobalInstall({
+        tool: options.tool,
+        ...(options.home === undefined ? {} : { homeDirectory: options.home }),
+      })
+      writeJson(
+        output,
+        options.applyPlan
+          ? applyGlobalInstall(plan, options.applyPlan)
+          : summarizeGlobalPlan(plan),
+      )
+    })
+
   return program
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await buildProgram().parseAsync()
+  await buildProgram().parseAsync(normalizeCliArguments(process.argv))
 }

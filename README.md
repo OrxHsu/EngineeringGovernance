@@ -27,6 +27,17 @@ pnpm sop -- check /absolute/path/to/project --json
 pnpm sop -- adopt /absolute/path/to/project --json
 ```
 
+Install the global Codex adapter and `delivery-sop` Skill with the same
+dry-run/confirmed-digest protocol:
+
+```sh
+pnpm sop -- global install --tool codex
+pnpm sop -- global install --tool codex --apply-plan <reviewed-sha256>
+```
+
+The dry-run reports only target paths and before/after digests; it does not emit
+existing global instruction contents or CC Switch configuration values.
+
 `init`, `adopt`, and `upgrade` are dry-run-first. With no `--apply-plan`, they
 print the exact planned writes and a SHA-256 plan digest. Apply only the same
 reviewed plan:
