@@ -9,8 +9,25 @@
   "bin": {
     "sop": "dist/cli/main.js"
   },
+  "files": [
+    "adapters",
+    "dist",
+    "schemas",
+    "skills/delivery-sop",
+    "templates",
+    "CORE_INVARIANTS.md",
+    "DEVELOPMENT_SOP.md",
+    "RISK_CLASSIFICATION.md",
+    "VERSION"
+  ],
+  "bundleDependencies": [
+    "ajv",
+    "commander",
+    "yaml"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "bundle:runner": "node scripts/build-runner-bundle.mjs",
     "check:licenses": "node scripts/check-licenses.mjs",
     "check:placeholders": "node scripts/check-placeholders.mjs",
     "sop": "tsx src/cli/main.ts",

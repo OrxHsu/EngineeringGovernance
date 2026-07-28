@@ -19,7 +19,7 @@ const sourceDirectories = [
   'templates',
   'tests',
 ]
-const scannedExtensions = new Set(['.json', '.js', '.md', '.mjs', '.ts', '.yaml', '.yml'])
+const scannedExtensions = new Set(['.json', '.js', '.md', '.mjs', '.sh', '.ts', '.yaml', '.yml'])
 const markerWords = [
   ['TO', 'DO'].join(''),
   ['T', 'BD'].join(''),

@@ -60,6 +60,20 @@ pnpm sop -- task review --input /absolute/path/to/review.yaml
 pnpm sop -- task close --input /absolute/path/to/close.yaml
 ```
 
+Build a portable, dependency-bundled runner archive for project CI:
+
+```sh
+pnpm bundle:runner -- --output /absolute/path/to/output
+```
+
+The project adapter records that archive's version, project-relative path, and
+SHA-256 in `.delivery/policy.yaml`, then installs
+`.delivery/bin/check-delivery-policy.sh`. The wrapper verifies the digest before
+execution, installs only the local archive into a temporary prefix with npm
+offline mode enabled, runs the pinned `sop check`, and removes the temporary
+prefix. It does not write package state into the project or user-global npm
+configuration.
+
 R0 and R1 tasks do not create standalone contract artifacts by default. R2 and
 R3 return a frozen contract artifact; R2/R3 acceptance requires an independent
 reviewer. Evidence kinds are not interchangeable, and evidence is bound to the

@@ -31,7 +31,7 @@
       "required": ["version", "path", "sha256"],
       "properties": {
         "version": { "type": "string", "minLength": 1 },
-        "path": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "pattern": "^\\.delivery/runtime/engineering-governance-[A-Za-z0-9._-]+\\.tgz$" },
         "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     }

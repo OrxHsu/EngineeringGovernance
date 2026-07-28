@@ -1,5 +1,7 @@
-import { pathToFileURL } from 'node:url'
-import { readFileSync } from 'node:fs'
+#!/usr/bin/env node
+
+import { fileURLToPath } from 'node:url'
+import { readFileSync, realpathSync } from 'node:fs'
 
 import { Command } from 'commander'
 import { parse } from 'yaml'
@@ -114,6 +116,9 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
   return program
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1]
+  && realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1])
+) {
   await buildProgram().parseAsync(normalizeCliArguments(process.argv))
 }
