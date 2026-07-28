@@ -1,0 +1,4 @@
+interface:
+  display_name: "Delivery SOP"
+  short_description: "Run governed development tasks end to end"
+  default_prompt: "Use $delivery-sop to start and carry this development task through the adopted governance workflow."
