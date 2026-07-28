@@ -1,15 +1,15 @@
 schemaVersion: 1
 sopVersion: 1.0.0
-sopDigest: ea247f12a2f2cee2bcea67affd0f3e93fc9ee198ddd2036226015f10845ba26e
+sopDigest: f85636fecdfff9ff4729e5b8afcf684c060c0fe1fc1e221896f0482f14e23821
 projectId: engineering-governance
 adapters:
   - tool: generic-agents
     source: AGENTS.md
     targets:
       - AGENTS.md
-    digest: 9be030c8850ccdff52c8258d44885028591069357cb48d78eab43c485ed022c4
+    digest: f8d132198efacd266ad6b3cc40670791c66b67843974c9ecb708b0fccb391333
 artifactMapping: {}
 runner:
   version: 1.0.0
   path: .delivery/runtime/engineering-governance-1.0.0.tgz
-  sha256: 83aa693997938c9b2f01b12d81ea73af88dd227dd3701743de67052fcc8b985f
+  sha256: f533b20f75d19421ae9a037e014caf6cecbdad4480ae9e215b83aa87423d2d99
