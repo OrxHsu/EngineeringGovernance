@@ -1,6 +1,6 @@
 # Global Workflow Implementation Handoff
 
-Status: Third Independent Review Pending
+Status: Independently Accepted; Local Merge Pending
 Updated: 2026-07-29
 Implementation owner: Codex in task `019fa9ea-1ddb-7513-a2df-05b5585c10ba`
 
@@ -15,6 +15,8 @@ Implementation owner: Codex in task `019fa9ea-1ddb-7513-a2df-05b5585c10ba`
 - First review: `.delivery/tasks/global-workflow-repair/review.json`
 - Second review: `.delivery/tasks/global-workflow-repair/review-repair2.json`
 - Third review output: `.delivery/tasks/global-workflow-repair/review-repair3.json`
+- Third review decision: `ACCEPTED`, no findings
+- Third review SHA-256: `27bd105122c34b44e822be44753e13308c265ba55eff632abf6c945ec90c363d`
 - Implementation commit: `77866c9a78dd14bb76dc3b31239fee7abde98d9b`
 - Evidence closure commit: `15a9adfa55ef29a61124b4f167b1150f1cbb10e9`
 - Governance digest: `f85636fecdfff9ff4729e5b8afcf684c060c0fe1fc1e221896f0482f14e23821`
@@ -94,11 +96,11 @@ PATH="/opt/homebrew/opt/node@22/bin:$PATH" ./node_modules/.bin/tsx src/cli/main.
 PATH="/opt/homebrew/opt/node@22/bin:$PATH" ./node_modules/.bin/tsx src/cli/main.ts task verify --input .delivery/tasks/global-workflow-repair/candidate.json --approve-replay 99050046e585e0269a6c61ebb7bfd848a9a6f89e2f97b704264b6e8f38c82b3f
 ```
 
-The reviewer must inspect every command before approving the replay digest.
-The review artifact must include both the exact candidate canonical digest and
-the approved replay-plan digest, all five commit/tree identities, and a finding-
-free `ACCEPTED` decision or a consolidated `REPAIR_REQUIRED` finding set. It
-must be validated through the real artifact-bound `task review` path.
+The independent reviewer inspected every command before approving the replay
+digest. The review artifact includes the exact candidate canonical digest,
+approved replay-plan digest, and all five commit/tree identities. Independent
+and implementation-owner executions of the real artifact-bound `task review`
+path both returned `{ "valid": true, "errors": [] }`.
 
 ## Current workspace limits
 
@@ -112,8 +114,8 @@ must be validated through the real artifact-bound `task review` path.
 
 ## Next permitted action
 
-Obtain a third independent R3 review of this exact candidate. A finding-free
-review may advance to local merge and fresh main-branch checks. Real-HOME apply
-requires a new explicit authorization naming that exact mutation. Tagging,
+Merge the accepted branch locally and run fresh main-branch policy, test, build,
+and closure checks. Real-HOME apply requires a new explicit authorization naming
+that exact mutation. Tagging,
 publishing, pushing, deployment, migration, and external communication remain
 unauthorized.

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "taskId": "global-workflow-repair",
+  "contractDigest": "29398532b2deb3c9c2a50605f5dd1cf4e8324ea217b31c3d59f9e8a3d04df66a",
+  "candidateDigest": "2d96867cb32dc74d204360b81d27aa04219f2f48957d73131117c0bd8c5edbb9",
+  "replayPlanDigest": "99050046e585e0269a6c61ebb7bfd848a9a6f89e2f97b704264b6e8f38c82b3f",
+  "reviewedImplementation": [
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
+      "commit": "77866c9a78dd14bb76dc3b31239fee7abde98d9b",
+      "tree": "a528f2aa42141977440c1a67e9a28b1f4c51f9da"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
+      "commit": "65cd98a6a64109840b47c47a33d6bf7cddd8b8bd",
+      "tree": "d5f3c3e70b5445c847b6661789f2c928e3abaf0b"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
+      "commit": "c379baeccb46443f6d1b4602769268ed5777cc5c",
+      "tree": "fcf1490a7d91518fe316e1d1730da4026126680d"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
+      "commit": "d675c54d81f149681b6b642eaa0b6ec63884a91e",
+      "tree": "e687d82e72a673fd543c84a313db1a9f0c5b24e8"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
+      "commit": "1b41a9f205a59be4fee54a7588891e04307b902b",
+      "tree": "5c0c62d67238f38f782539f57a461b8c7e9c7712"
+    }
+  ],
+  "reviewer": "codex-independent-global-workflow-reviewer",
+  "decision": "ACCEPTED",
+  "findings": [],
+  "nextStage": "ACCEPTED -> local merge by the implementation owner codex, followed by fresh main-branch policy, test, build, and artifact-bound closure checks. Real-HOME installation, tagging, publishing, pushing, deployment, migration, and external communication remain outside this acceptance and require their stated authorization.",
+  "userActionRequired": false
+}
