@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": "global-workflow-repair",
+  "contractDigest": "29398532b2deb3c9c2a50605f5dd1cf4e8324ea217b31c3d59f9e8a3d04df66a",
+  "state": "ACCEPTED",
+  "replayPlanDigest": "99050046e585e0269a6c61ebb7bfd848a9a6f89e2f97b704264b6e8f38c82b3f",
+  "candidate": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-workflow-repair/candidate.json",
+    "sha256": "d2ea6ca662f22cf6080b3cc99adee2eb610a03d241cdda408e83f801a9da3faf"
+  },
+  "review": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-workflow-repair/review-repair3.json",
+    "sha256": "27bd105122c34b44e822be44753e13308c265ba55eff632abf6c945ec90c363d"
+  },
+  "projectPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+  "statusArtifacts": [
+    {
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-workflow-repair/status-main-closure.md",
+      "sha256": "0d72c7cdcbb13fc0e997385d3a90481b7073e96c0887b8c659120903cfacee38"
+    }
+  ],
+  "nextAction": "Obtain explicit authorization for real-HOME installation.",
+  "userActionRequired": true
+}
