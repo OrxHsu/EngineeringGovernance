@@ -56,7 +56,7 @@ describe('workflow health metrics', () => {
     })
   })
 
-  it('emits metrics only for a closable task', () => {
+  it('does not treat an artifact-free accepted declaration as closable', () => {
     const result = closeTaskWithMetrics({
       eligibility: {
         state: 'ACCEPTED',
@@ -65,7 +65,7 @@ describe('workflow health metrics', () => {
       },
       history: [],
     })
-    expect(result.eligibility.valid).toBe(true)
+    expect(result.eligibility.valid).toBe(false)
     expect(result.metrics.firstCandidateAcceptanceRate).toBe(0)
   })
 })

@@ -124,7 +124,9 @@ overlapping rule or `.delivery` path.
 Run: `pnpm sop -- adopt /Users/xgh/Documents/VibeCoding/ProjTrav_V1 --json`
 
 Expected: planned writes target root canonical `Docs/` rule sources and new root
-`.delivery` files; generated targets are identified but not directly authored.
+`.delivery` files; generated targets are identified with before-digest guards,
+included in the reviewed plan digest, and checked for dirty overlap in each of
+the root, server, and iOS Git repositories without being directly authored.
 
 - [ ] **Step 3: Apply the exact plan digest**
 

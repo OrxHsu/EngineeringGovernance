@@ -2,7 +2,7 @@
 ## Global Development Workflow
 
 Governance version: `1.0.0`
-Governance digest: `1557528236249c720f98df759ac7830364c6127348a7ca2fde12dd7aba3f2722`
+Governance digest: `ea247f12a2f2cee2bcea67affd0f3e93fc9ee198ddd2036226015f10845ba26e`
 
 Before mutating work, read `.delivery/policy.yaml` and its declared project extensions, then run `sop check <absolute-project-path>`. Derive the task risk and frozen artifact requirements through `sop task start --input <absolute-input-path>`.
 

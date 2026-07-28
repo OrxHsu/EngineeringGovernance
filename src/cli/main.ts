@@ -16,6 +16,7 @@ import {
 } from '../commands/task-verify.js'
 import { verifyReviewEligibility, type ReviewEligibilityInput } from '../commands/task-review.js'
 import { verifyCloseEligibility, type CloseEligibilityInput } from '../commands/task-close.js'
+import { captureCommandExecution, type CommandExecutionInput } from '../evidence/capture.js'
 import { planUpgrade } from '../commands/upgrade.js'
 import {
   applyGlobalInstall,
@@ -98,6 +99,13 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
         output,
         verifyCandidateEligibility(structuredFile<CandidateEligibilityInput>(options.input)),
       )
+    })
+  task.command('execute')
+    .requiredOption('--input <path>')
+    .action((options: { input: string }) => {
+      const artifact = captureCommandExecution(structuredFile<CommandExecutionInput>(options.input))
+      writeJson(output, artifact)
+      if (artifact.exitCode !== 0) process.exitCode = artifact.exitCode
     })
   task.command('review')
     .requiredOption('--input <path>')

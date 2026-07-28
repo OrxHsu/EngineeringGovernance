@@ -1,1 +1,30 @@
-{"schemaVersion":1,"runId":"run-1","checks":[{"id":"test:ac-01","status":"passed"}]}
+{
+  "schemaVersion": 1,
+  "artifactType": "sop-command-execution-v1",
+  "producer": {
+    "name": "@xgh/engineering-governance",
+    "version": "1.0.0"
+  },
+  "runId": "run-1",
+  "command": {
+    "executable": "pnpm",
+    "arguments": ["test"],
+    "cwd": "/tmp/project"
+  },
+  "startedAt": "2026-07-29T00:00:00Z",
+  "endedAt": "2026-07-29T00:00:01Z",
+  "exitCode": 0,
+  "environment": {
+    "node": "22.17.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "checks": [
+    {
+      "id": "test:ac-01",
+      "status": "passed"
+    }
+  ],
+  "stdout": "test:ac-01 passed\n",
+  "stderr": ""
+}

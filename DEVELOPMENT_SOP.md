@@ -85,6 +85,12 @@ sole proof of execution.
 Evidence kinds are explicit: static, compile, unit, integration, device, cloud,
 and production. One kind cannot be relabeled as another.
 
+Imported local execution evidence must use a supported machine format. The
+default format is a `task execute` receipt produced by the pinned runner from
+one exact executable invocation without a shell. Candidate verification rejects
+a caller-authored pass list, recomputes the receipt digest, and requires exact
+command, timing, exit, runner, commit, tree, and repository-set equality.
+
 The implementation identity and optional evidence-closure identity are separate.
 An evidence-only closure commit may change only contract-allowlisted evidence or
 status paths. Verification uses recorded commit and tree identities instead of
@@ -112,6 +118,10 @@ workflow.
 
 ACCEPTED means the exact candidate satisfied the applicable gate. CLOSED also
 requires coherent task, handoff/status, evidence, and next-action records.
+Review eligibility is derived from candidate and review files themselves;
+closure eligibility is derived from a digest-bound closure file. Caller-supplied
+owner names, accepted-state strings, booleans, or finding summaries are not
+acceptance or closure evidence.
 
 A closure report states the outcome, verified commands/results, exact commits,
 remaining risks or pending authorized runtime work, the next permitted stage,

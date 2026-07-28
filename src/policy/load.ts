@@ -8,8 +8,10 @@ import type { DocumentKind, ValidationResult } from '../model/types.js'
 const schemaPaths: Record<DocumentKind, URL> = {
   'project-policy': new URL('../../schemas/project-policy.schema.json', import.meta.url),
   'task-contract': new URL('../../schemas/task-contract.schema.json', import.meta.url),
+  candidate: new URL('../../schemas/candidate.schema.json', import.meta.url),
   evidence: new URL('../../schemas/evidence.schema.json', import.meta.url),
   review: new URL('../../schemas/review.schema.json', import.meta.url),
+  closure: new URL('../../schemas/closure.schema.json', import.meta.url),
   exception: new URL('../../schemas/exception.schema.json', import.meta.url),
   authorization: new URL('../../schemas/authorization.schema.json', import.meta.url),
 }

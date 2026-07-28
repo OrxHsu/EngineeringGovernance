@@ -56,9 +56,10 @@ Task commands consume explicit YAML inputs and emit deterministic JSON:
 
 ```sh
 pnpm sop -- task start --input /absolute/path/to/start.yaml
+pnpm sop -- task execute --input /absolute/path/to/command-execution.yaml
 pnpm sop -- task verify --input /absolute/path/to/candidate.yaml
-pnpm sop -- task review --input /absolute/path/to/review.yaml
-pnpm sop -- task close --input /absolute/path/to/close.yaml
+pnpm sop -- task review --input /absolute/path/to/review-eligibility.yaml
+pnpm sop -- task close --input /absolute/path/to/close-eligibility.yaml
 ```
 
 Build a portable, dependency-bundled runner archive for project CI:
@@ -77,8 +78,15 @@ configuration.
 
 R0 and R1 tasks do not create standalone contract artifacts by default. R2 and
 R3 return a frozen contract artifact; R2/R3 acceptance requires an independent
-reviewer. Evidence kinds are not interchangeable, and evidence is bound to the
-contract, runner version, raw artifact digest, run, and implementation identity.
+reviewer. `task execute` runs one exact executable without a shell and emits a
+runner-produced command receipt containing the command, environment, times,
+exit code, checks, stdout, and stderr. Evidence kinds are not interchangeable;
+candidate verification rejects handwritten PASS lists and binds every receipt
+to the contract, runner version, full commit/tree identity set, and exact Git
+closure set. Review eligibility loads both candidate and review artifacts and
+requires the review to match the candidate digest and full identity set. Closure
+eligibility loads a digest-bound closure artifact instead of trusting caller
+state strings or booleans.
 
 ## Scope and safety
 

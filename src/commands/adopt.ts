@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
-import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs'
-import { basename, join, resolve, sep } from 'node:path'
+import { execFileSync } from 'node:child_process'
+import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs'
+import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 
 import { parse, stringify } from 'yaml'
 
@@ -10,12 +11,13 @@ import { validateDocument, validateProjectPolicy } from '../policy/load.js'
 import { adoptionProfile } from '../project/adoption-profile.js'
 import { discoverProject, validateManagedPathOverlap } from '../project/discover.js'
 import { createManagedBlock, planManagedBlockWrite } from '../project/managed-block.js'
-import type { PlannedWrite } from '../project/mutate.js'
+import type { PlannedGuard, PlannedWrite } from '../project/mutate.js'
 import { MANAGED_BLOCK_END, MANAGED_BLOCK_START } from '../adapters/render.js'
 
 export interface AdoptionPlan {
   projectRoot: string
   writes: PlannedWrite[]
+  generatedTargets: PlannedGuard[]
   digest: string
 }
 
@@ -29,6 +31,7 @@ export function summarizeAdoptionPlan(plan: AdoptionPlan): object {
       afterDigest: sha256(write.after),
       ...(write.mode === undefined ? {} : { mode: write.mode }),
     })),
+    generatedTargets: plan.generatedTargets,
   }
 }
 
@@ -68,7 +71,11 @@ function planFileWrite(
   }
 }
 
-function planDigest(projectRoot: string, writes: PlannedWrite[]): string {
+function planDigest(
+  projectRoot: string,
+  writes: PlannedWrite[],
+  generatedTargets: PlannedGuard[],
+): string {
   return sha256(JSON.stringify({
     projectRoot,
     writes: writes.map((write) => ({
@@ -77,7 +84,57 @@ function planDigest(projectRoot: string, writes: PlannedWrite[]): string {
       afterDigest: sha256(write.after),
       mode: write.mode,
     })),
+    generatedTargets,
   }))
+}
+
+function targetGuard(path: string): PlannedGuard {
+  if (existsSync(path) && lstatSync(path).isSymbolicLink()) {
+    throw new Error(`MANAGED_PATH_IS_SYMLINK:${path}`)
+  }
+  return {
+    path,
+    beforeDigest: existsSync(path) ? sha256(readFileSync(path)) : null,
+  }
+}
+
+function repositoryRootForTarget(path: string): string {
+  const probe = existsSync(path) && lstatSync(path).isDirectory() ? path : dirname(path)
+  try {
+    return execFileSync('git', ['-C', probe, 'rev-parse', '--show-toplevel'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim()
+  } catch {
+    throw new Error(`GENERATED_TARGET_REPOSITORY_UNAVAILABLE:${path}`)
+  }
+}
+
+function canonicalTargetPath(path: string): string {
+  return existsSync(path)
+    ? realpathSync(path)
+    : join(realpathSync(dirname(path)), basename(path))
+}
+
+function dirtyRepositoryPaths(repositoryRoot: string): string[] {
+  return execFileSync(
+    'git',
+    ['-C', repositoryRoot, 'status', '--porcelain=v1', '-z'],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  )
+    .split('\0')
+    .filter(Boolean)
+    .map((entry) => entry.slice(3))
+}
+
+function generatedTargetOverlapErrors(projectRoot: string, targets: PlannedGuard[]): string[] {
+  return targets.flatMap((target) => {
+    const repositoryRoot = repositoryRootForTarget(target.path)
+    const repositoryPath = relative(realpathSync(repositoryRoot), canonicalTargetPath(target.path))
+    return dirtyRepositoryPaths(repositoryRoot).includes(repositoryPath)
+      ? [`DIRTY_MANAGED_PATH:${relative(projectRoot, target.path)}`]
+      : []
+  }).sort()
 }
 
 interface PolicyAdapter {
@@ -247,26 +304,63 @@ function taskArtifactErrors(projectRoot: string): string[] {
       errors.push(`TASK_CONTRACT_INVALID:${entry.name}:UNREADABLE`)
     }
 
-    const evidencePath = join(taskRoot, 'evidence.json')
-    if (existsSync(evidencePath)) {
+    const taskEntries = readdirSync(taskRoot, { withFileTypes: true })
+    for (const artifact of taskEntries.filter((candidate) => candidate.isSymbolicLink())) {
+      errors.push(`TASK_ARTIFACT_PATH_UNSAFE:${entry.name}:${artifact.name}`)
+    }
+    const artifactFiles = taskEntries
+      .filter((artifact) => artifact.isFile() && !artifact.isSymbolicLink())
+      .map((artifact) => artifact.name)
+      .sort()
+    for (const evidenceName of artifactFiles.filter((name) => /^evidence(?:-.+)?\.json$/u.test(name))) {
+      const evidencePath = join(taskRoot, evidenceName)
       try {
         const evidence = JSON.parse(readFileSync(evidencePath, 'utf8')) as unknown
         const schema = validateDocument('evidence', evidence)
-        errors.push(...schema.errors.map((error) => `TASK_EVIDENCE_INVALID:${entry.name}:${error}`))
+        errors.push(...schema.errors.map((error) => (
+          `TASK_EVIDENCE_INVALID:${entry.name}:${evidenceName}:${error}`
+        )))
       } catch {
-        errors.push(`TASK_EVIDENCE_INVALID:${entry.name}:UNREADABLE`)
+        errors.push(`TASK_EVIDENCE_INVALID:${entry.name}:${evidenceName}:UNREADABLE`)
       }
     }
 
-    for (const reviewName of ['review.yaml', 'review.json']) {
+    for (const candidateName of artifactFiles.filter((name) => /^candidate(?:-.+)?\.(?:yaml|json)$/u.test(name))) {
+      const candidatePath = join(taskRoot, candidateName)
+      try {
+        const candidate = parse(readFileSync(candidatePath, 'utf8')) as unknown
+        const schema = validateDocument('candidate', candidate)
+        errors.push(...schema.errors.map((error) => (
+          `TASK_CANDIDATE_INVALID:${entry.name}:${candidateName}:${error}`
+        )))
+      } catch {
+        errors.push(`TASK_CANDIDATE_INVALID:${entry.name}:${candidateName}:UNREADABLE`)
+      }
+    }
+
+    for (const reviewName of artifactFiles.filter((name) => /^review(?:-.+)?\.(?:yaml|json)$/u.test(name))) {
       const reviewPath = join(taskRoot, reviewName)
-      if (!existsSync(reviewPath)) continue
       try {
         const review = parse(readFileSync(reviewPath, 'utf8')) as unknown
         const schema = validateDocument('review', review)
-        errors.push(...schema.errors.map((error) => `TASK_REVIEW_INVALID:${entry.name}:${error}`))
+        errors.push(...schema.errors.map((error) => (
+          `TASK_REVIEW_INVALID:${entry.name}:${reviewName}:${error}`
+        )))
       } catch {
-        errors.push(`TASK_REVIEW_INVALID:${entry.name}:UNREADABLE`)
+        errors.push(`TASK_REVIEW_INVALID:${entry.name}:${reviewName}:UNREADABLE`)
+      }
+    }
+
+    for (const closureName of artifactFiles.filter((name) => /^closure(?:-.+)?\.(?:yaml|json)$/u.test(name))) {
+      const closurePath = join(taskRoot, closureName)
+      try {
+        const closure = parse(readFileSync(closurePath, 'utf8')) as unknown
+        const schema = validateDocument('closure', closure)
+        errors.push(...schema.errors.map((error) => (
+          `TASK_CLOSURE_INVALID:${entry.name}:${closureName}:${error}`
+        )))
+      } catch {
+        errors.push(`TASK_CLOSURE_INVALID:${entry.name}:${closureName}:UNREADABLE`)
       }
     }
   }
@@ -329,12 +423,19 @@ export function planAdoption(projectPath: string, options: {
       '.delivery/bin/check-delivery-policy.sh',
     ]),
   ]
+  const generatedTargets = profile.adapters.flatMap((adapter) => (
+    adapter.targets
+      .filter((target) => target !== adapter.source)
+      .map((target) => targetGuard(join(projectRoot, target)))
+  ))
   try {
     const overlap = validateManagedPathOverlap(discoverProject(projectRoot), managedPaths)
     if (!overlap.valid) throw new Error(overlap.errors.join('\n'))
   } catch (error) {
     if (error instanceof Error && error.message.startsWith('DIRTY_MANAGED_PATH:')) throw error
   }
+  const generatedTargetErrors = generatedTargetOverlapErrors(projectRoot, generatedTargets)
+  if (generatedTargetErrors.length > 0) throw new Error(generatedTargetErrors.join('\n'))
   const writes = [
     planFileWrite(join(projectRoot, '.delivery', 'policy.yaml'), stringify(policy)),
     planFileWrite(
@@ -347,7 +448,12 @@ export function planAdoption(projectPath: string, options: {
     ...(runnerWrite === undefined ? [] : [runnerWrite]),
     ...(wrapperWrite === undefined ? [] : [wrapperWrite]),
   ]
-  return { projectRoot, writes, digest: planDigest(projectRoot, writes) }
+  return {
+    projectRoot,
+    writes,
+    generatedTargets,
+    digest: planDigest(projectRoot, writes, generatedTargets),
+  }
 }
 
 export function verifyAdoptedProject(projectPath: string): ValidationResult {

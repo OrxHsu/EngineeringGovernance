@@ -349,6 +349,7 @@ sop adopt <project>
 sop check <project>
 sop upgrade <project>
 sop task start
+sop task execute
 sop task verify
 sop task review
 sop task close
@@ -364,14 +365,27 @@ Behavioral requirements:
 - `upgrade` previews policy and adapter changes before mutation.
 - `task start` classifies risk, establishes ownership, and creates only the
   artifacts required for that risk.
-- `task verify` executes or imports declared gates and derives candidate status.
-- `task review` records a fresh review of exact candidate identities.
-- `task close` refuses closure unless the required acceptance and project status
-  artifacts agree.
+- `task execute` runs one exact executable without a shell and writes a
+  runner-produced receipt with command, environment, timing, exit status,
+  stdout, stderr, and executed check IDs.
+- `task verify` imports only supported receipts, rejects handwritten PASS lists,
+  and derives candidate status from exact contract, commit, tree, and Git-set
+  equality.
+- `task review` reads the candidate and review artifacts, revalidates candidate
+  eligibility, and binds the decision to the candidate digest plus the complete
+  implementation identity set.
+- `task close` reads a closure artifact and refuses closure unless its candidate,
+  accepted review, adopted-project status, status-artifact digests, and next
+  action agree.
 
 All mutation commands support `--dry-run`. Existing dirty files outside the
 managed patch are preserved. An overlapping dirty managed file causes a safe
 stop with a patch preview; it is never reset, stashed, or overwritten.
+
+For authority-owned generated targets, the adoption plan lists exact paths and
+before-digests without authoring them directly. Those guards are part of the
+plan digest, are checked in each owning Git repository, and are rechecked before
+source writes. Project-native synchronization remains their only writer.
 
 Adapter removal only removes a managed block when its current digest matches a
 known installed version. Otherwise it stops for manual review.

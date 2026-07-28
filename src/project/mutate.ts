@@ -25,6 +25,11 @@ export interface MutationResult {
   applied: string[]
 }
 
+export interface PlannedGuard {
+  path: string
+  beforeDigest: string | null
+}
+
 function digest(content: string | Uint8Array): string {
   return createHash('sha256').update(content).digest('hex')
 }
@@ -33,6 +38,14 @@ function currentDigest(path: string): string | null {
   if (!existsSync(path)) return null
   if (lstatSync(path).isSymbolicLink()) throw new Error(`MANAGED_PATH_IS_SYMLINK:${path}`)
   return digest(readFileSync(path))
+}
+
+export function assertPlannedGuardsUnchanged(guards: PlannedGuard[]): void {
+  for (const guard of guards) {
+    if (currentDigest(guard.path) !== guard.beforeDigest) {
+      throw new Error(`MANAGED_FILE_CHANGED:${guard.path}`)
+    }
+  }
 }
 
 function atomicWrite(write: PlannedWrite): void {

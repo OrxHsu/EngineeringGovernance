@@ -15,7 +15,11 @@ async function fixture(): Promise<Record<string, unknown>> {
 const options = {
   requiredAcceptanceIds: ['AC-01'],
   expectedContractDigest: 'b'.repeat(64),
-  expectedImplementationIdentities: { repo: 'c'.repeat(40) },
+  expectedImplementationIdentities: [{
+    repository: 'repo',
+    commit: 'c'.repeat(40),
+    tree: 'd'.repeat(40),
+  }],
   requiredEvidenceKinds: { 'AC-01': 'unit' as const },
   expectedRunnerVersion: '1.0.0',
   verificationTime: new Date('2026-07-29T00:05:00Z'),
@@ -55,10 +59,14 @@ describe('evidence verification', () => {
     expect(verifyEvidence(crossRun, options).errors).toContain('CROSS_RUN_RECORD:AC-01')
 
     const wrongCommit = await fixture()
-    ;(wrongCommit.records as Array<Record<string, unknown>>)[0]!.implementationIdentities = {
-      repo: 'f'.repeat(40),
-    }
-    expect(verifyEvidence(wrongCommit, options).errors).toContain('IMPLEMENTATION_IDENTITY_MISMATCH:AC-01:repo')
+    ;(wrongCommit.records as Array<Record<string, unknown>>)[0]!.implementationIdentities = [{
+      repository: 'repo',
+      commit: 'f'.repeat(40),
+      tree: 'd'.repeat(40),
+    }]
+    expect(verifyEvidence(wrongCommit, options).errors).toContain(
+      'IMPLEMENTATION_IDENTITY_SET_MISMATCH:AC-01',
+    )
   })
 
   it('rejects a forged summary and evidence-kind substitution', async () => {
@@ -81,15 +89,16 @@ describe('evidence verification', () => {
   it('rejects digest-matching artifacts that do not contain executed check records', async () => {
     const input = await fixture()
     const records = input.records as Array<{
-      rawArtifact: { path: string; sha256: string }
+      rawArtifact: { path: string; sha256: string; format: string }
       executedCheckIds: string[]
     }>
     records[0]!.rawArtifact = {
       path: 'artifacts/test.json',
       sha256: 'e5f1eb4d806641698a35efe20e098efd20d7d57a9b90ee69079d5bb650920726',
+      format: 'sop-command-execution-v1',
     }
     expect(verifyEvidence(input, options).errors).toContain(
-      'RAW_ARTIFACT_FORMAT_INVALID:AC-01',
+      'RAW_ARTIFACT_FORMAT_UNSUPPORTED:AC-01',
     )
 
     const wrongIdentity = await fixture()

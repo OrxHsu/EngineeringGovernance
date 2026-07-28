@@ -8,6 +8,8 @@ import { describe, expect, it } from 'vitest'
 import { discoverProject, validateManagedPathOverlap } from '../../src/project/discover.js'
 import { createManagedBlock, planManagedBlockWrite } from '../../src/project/managed-block.js'
 import { applyPlannedWrites } from '../../src/project/mutate.js'
+import { planAdoption, summarizeAdoptionPlan } from '../../src/commands/adopt.js'
+import { applyAdoption } from '../../src/commands/init.js'
 
 function git(repository: string, ...args: string[]): string {
   return execFileSync('git', args, { cwd: repository, encoding: 'utf8' }).trim()
@@ -87,5 +89,54 @@ describe('safe project adoption', () => {
       target: 'AGENTS.md',
       owningSource: 'Docs/rules/agents.md',
     })
+  })
+
+  it('plans and guards ProjTrav generated targets across all three repositories', () => {
+    const project = repository()
+    for (const path of [
+      'Docs/AGENTS.md',
+      'Docs/rules/workspace-agent-entrypoint.md',
+      'Docs/rules/backend-agent-rules.md',
+      'Docs/rules/ios-agent-rules.md',
+    ]) {
+      mkdirSync(join(project, path, '..'), { recursive: true })
+      writeFileSync(join(project, path), `# ${path}\n`)
+    }
+    for (const nested of ['projtrav-server', 'projtrav-ios']) {
+      const nestedRoot = join(project, nested)
+      mkdirSync(nestedRoot, { recursive: true })
+      git(nestedRoot, 'init', '-b', 'main')
+      git(nestedRoot, 'config', 'user.email', 'test@example.com')
+      git(nestedRoot, 'config', 'user.name', 'Test')
+      writeFileSync(join(nestedRoot, 'AGENTS.md'), '# generated\n')
+      writeFileSync(join(nestedRoot, '.cursorrules'), '# generated\n')
+      git(nestedRoot, 'add', 'AGENTS.md', '.cursorrules')
+      git(nestedRoot, 'commit', '-m', 'baseline')
+    }
+    writeFileSync(join(project, 'AGENTS.md'), '# generated root\n')
+    git(project, 'add', 'Docs', 'AGENTS.md')
+    git(project, 'commit', '-m', 'baseline')
+
+    const plan = planAdoption(project)
+    expect(summarizeAdoptionPlan(plan)).toMatchObject({
+      generatedTargets: [
+        { path: join(project, 'AGENTS.md') },
+        { path: join(project, 'projtrav-server/AGENTS.md') },
+        { path: join(project, 'projtrav-server/.cursorrules') },
+        { path: join(project, 'projtrav-ios/AGENTS.md') },
+        { path: join(project, 'projtrav-ios/.cursorrules') },
+      ],
+    })
+
+    const guardedTarget = join(project, 'projtrav-ios/AGENTS.md')
+    writeFileSync(guardedTarget, '# changed after planning\n')
+    expect(() => applyAdoption(plan, plan.digest)).toThrow(`MANAGED_FILE_CHANGED:${guardedTarget}`)
+    writeFileSync(guardedTarget, '# generated\n')
+
+    writeFileSync(join(project, 'projtrav-server/AGENTS.md'), '# concurrent edit\n')
+    expect(git(join(project, 'projtrav-server'), 'status', '--porcelain')).toContain('AGENTS.md')
+    expect(() => planAdoption(project)).toThrow(
+      'DIRTY_MANAGED_PATH:projtrav-server/AGENTS.md',
+    )
   })
 })

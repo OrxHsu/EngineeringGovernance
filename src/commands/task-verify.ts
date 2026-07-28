@@ -5,6 +5,7 @@ import { parse } from 'yaml'
 import {
   verifyEvidence,
   type EvidenceKind,
+  type ImplementationIdentity,
   type EvidenceVerificationOptions,
 } from '../evidence/verify.js'
 import { verifyGitIdentity, type GitIdentityInput } from '../evidence/git-identity.js'
@@ -17,7 +18,7 @@ interface CandidateVerificationInput {
   evidencePath: string
   artifactRoot: string
   requiredEvidenceKinds: Record<string, EvidenceKind>
-  expectedImplementationIdentities: Record<string, string>
+  expectedImplementationIdentities: ImplementationIdentity[]
   maxEvidenceAgeMs: number
   gitIdentities: GitIdentityInput[]
 }
@@ -121,6 +122,18 @@ function verifyCandidateArtifacts(
   ) {
     errors.push('EVIDENCE_MAX_AGE_EXCEEDS_POLICY')
   }
+  if (
+    new Set(input.expectedImplementationIdentities.map((identity) => identity.repository)).size
+    !== input.expectedImplementationIdentities.length
+  ) {
+    errors.push('EXPECTED_IMPLEMENTATION_IDENTITIES_DUPLICATED')
+  }
+  if (
+    new Set(input.gitIdentities.map((identity) => identity.repository)).size
+    !== input.gitIdentities.length
+  ) {
+    errors.push('GIT_IDENTITIES_DUPLICATED')
+  }
   let contract: TaskContractDocument
   try {
     contract = parse(readFileSync(input.contractPath, 'utf8')) as TaskContractDocument
@@ -175,7 +188,17 @@ function verifyCandidateArtifacts(
   }
   errors.push(...verifyEvidence(evidence, evidenceOptions).errors)
 
-  if (input.gitIdentities.length === 0) errors.push('GIT_IDENTITY_REQUIRED')
+  const expectedGitIdentitySet = input.expectedImplementationIdentities
+    .map((identity) => `${identity.repository}\0${identity.commit}\0${identity.tree}`)
+    .sort()
+  const actualGitIdentitySet = input.gitIdentities
+    .map((identity) => (
+      `${identity.repository}\0${identity.implementationCommit}\0${identity.implementationTree}`
+    ))
+    .sort()
+  if (JSON.stringify(actualGitIdentitySet) !== JSON.stringify(expectedGitIdentitySet)) {
+    errors.push('GIT_IDENTITY_SET_MISMATCH')
+  }
   for (const identity of input.gitIdentities) {
     errors.push(...verifyGitIdentity(identity).errors)
   }
@@ -186,15 +209,18 @@ export function verifyCandidateEligibility(
   input: CandidateEligibilityInput,
   context: CandidateVerificationContext = {},
 ): ValidationResult {
-  const errors = [...(input.requiredGateErrors ?? [])]
-  if (input.risk === 'R2' || input.risk === 'R3') {
+  const candidateSchema = validateDocument('candidate', input)
+  const errors = candidateSchema.valid
+    ? [...(input.requiredGateErrors ?? [])]
+    : candidateSchema.errors.map((error) => `CANDIDATE_SCHEMA_INVALID:${error}`)
+  if (candidateSchema.valid && (input.risk === 'R2' || input.risk === 'R3')) {
     if (input.verification === undefined) {
       errors.push('CANDIDATE_VERIFICATION_REQUIRED')
     } else {
       errors.push(...verifyCandidateArtifacts(input.risk, input.verification, context))
     }
   }
-  errors.push(...verifyAuthorization(input, context))
+  if (candidateSchema.valid) errors.push(...verifyAuthorization(input, context))
   const uniqueErrors = [...new Set(errors)].sort()
   return { valid: uniqueErrors.length === 0, errors: uniqueErrors }
 }

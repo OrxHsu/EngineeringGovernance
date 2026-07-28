@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/candidate.schema.json",
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "tree"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["risk", "authorizationRequired", "authorizationApproved"],
+  "properties": {
+    "risk": { "enum": ["R0", "R1", "R2", "R3"] },
+    "requiredGateErrors": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "authorizationRequired": { "type": "boolean" },
+    "authorizationApproved": { "type": "boolean" },
+    "authorizationCheckTime": { "type": "string", "minLength": 1 },
+    "authorization": { "type": "object" },
+    "requestedAuthorizationScope": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractPath", "evidencePath", "artifactRoot", "requiredEvidenceKinds", "expectedImplementationIdentities", "maxEvidenceAgeMs", "gitIdentities"],
+      "properties": {
+        "contractPath": { "type": "string", "minLength": 1 },
+        "evidencePath": { "type": "string", "minLength": 1 },
+        "artifactRoot": { "type": "string", "minLength": 1 },
+        "requiredEvidenceKinds": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] }
+        },
+        "expectedImplementationIdentities": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/identity" }
+        },
+        "maxEvidenceAgeMs": { "type": "integer", "minimum": 1 },
+        "verificationTime": { "type": "string", "minLength": 1 },
+        "gitIdentities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["repository", "implementationCommit", "implementationTree", "closureCommit", "allowedClosurePaths"],
+            "properties": {
+              "repository": { "type": "string", "minLength": 1 },
+              "implementationCommit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+              "implementationTree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+              "closureCommit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+              "allowedClosurePaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

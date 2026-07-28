@@ -64,6 +64,27 @@ export npm_config_offline=true
 export npm_config_registry=http://127.0.0.1:9
 export npm_config_userconfig="$sop_temporary_prefix/npmrc"
 
+if [ -x /opt/homebrew/opt/node@22/bin/node ]; then
+  PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+  export PATH
+elif [ -x /usr/local/opt/node@22/bin/node ]; then
+  PATH="/usr/local/opt/node@22/bin:$PATH"
+  export PATH
+fi
+
+if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+  echo "NODE_22_RUNTIME_MISSING" >&2
+  exit 69
+fi
+sop_node_version=$(node -p 'process.versions.node')
+case "$sop_node_version" in
+  22.*) ;;
+  *)
+    echo "NODE_VERSION_UNSUPPORTED:$sop_node_version" >&2
+    exit 69
+    ;;
+esac
+
 npm install --offline --ignore-scripts --no-audit --no-fund \
   --prefix "$sop_temporary_prefix" "$sop_runner_path" >/dev/null
 

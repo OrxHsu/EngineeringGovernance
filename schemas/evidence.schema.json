@@ -35,19 +35,42 @@
           "acceptanceId": { "type": "string", "minLength": 1 },
           "runId": { "type": "string", "minLength": 1 },
           "executedCheckIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
-          "command": { "type": "string", "minLength": 1 },
+          "command": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["executable", "arguments", "cwd"],
+            "properties": {
+              "executable": { "type": "string", "minLength": 1 },
+              "arguments": { "type": "array", "items": { "type": "string" } },
+              "cwd": { "type": "string", "minLength": 1 }
+            }
+          },
           "exitCode": { "type": "integer" },
           "startedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
           "endedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
           "evidenceKind": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] },
-          "implementationIdentities": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" } },
+          "implementationIdentities": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["repository", "commit", "tree"],
+              "properties": {
+                "repository": { "type": "string", "minLength": 1 },
+                "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+                "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
+              }
+            }
+          },
           "rawArtifact": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["path", "sha256"],
+            "required": ["path", "sha256", "format"],
             "properties": {
               "path": { "type": "string", "minLength": 1 },
-              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "format": { "const": "sop-command-execution-v1" }
             }
           },
           "observation": { "type": "string", "minLength": 1 }

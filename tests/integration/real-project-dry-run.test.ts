@@ -9,6 +9,8 @@ import { planAdoption } from '../../src/commands/adopt.js'
 import { testRunnerBundle } from '../helpers/runner-bundle.js'
 
 const projTrav = '/Users/xgh/Documents/VibeCoding/ProjTrav_V1'
+const projTravServer = `${projTrav}/projtrav-server`
+const projTravIos = `${projTrav}/projtrav-ios`
 const noMe = '/Users/xgh/Documents/VibeCoding/NoMe_V2'
 
 function gitStatus(repository: string): string {
@@ -40,6 +42,10 @@ it.runIf(process.env.REAL_PROJECT_DRY_RUN === '1')(
       'Docs/rules/backend-agent-rules.md',
       'Docs/rules/ios-agent-rules.md',
       'AGENTS.md',
+      'projtrav-server/AGENTS.md',
+      'projtrav-server/.cursorrules',
+      'projtrav-ios/AGENTS.md',
+      'projtrav-ios/.cursorrules',
       '.delivery/policy.yaml',
       '.delivery/extensions.yaml',
       `.delivery/runtime/${runnerName}`,
@@ -54,6 +60,8 @@ it.runIf(process.env.REAL_PROJECT_DRY_RUN === '1')(
     ]
     const before = {
       projTrav: snapshot(projTrav, projTravPaths),
+      projTravServer: snapshot(projTravServer, ['AGENTS.md', '.cursorrules']),
+      projTravIos: snapshot(projTravIos, ['AGENTS.md', '.cursorrules']),
       noMe: snapshot(noMe, noMePaths),
     }
 
@@ -70,6 +78,13 @@ it.runIf(process.env.REAL_PROJECT_DRY_RUN === '1')(
       '.delivery/bin/check-delivery-policy.sh',
     ])
     expect(projTravPlan.writes.map((write) => write.path)).not.toContain(`${projTrav}/AGENTS.md`)
+    expect(projTravPlan.generatedTargets.map((target) => relative(projTrav, target.path))).toEqual([
+      'AGENTS.md',
+      'projtrav-server/AGENTS.md',
+      'projtrav-server/.cursorrules',
+      'projtrav-ios/AGENTS.md',
+      'projtrav-ios/.cursorrules',
+    ])
     expect(noMePlan.writes.map((write) => relative(noMe, write.path))).toEqual([
       '.delivery/policy.yaml',
       '.delivery/extensions.yaml',
@@ -80,6 +95,8 @@ it.runIf(process.env.REAL_PROJECT_DRY_RUN === '1')(
 
     expect({
       projTrav: snapshot(projTrav, projTravPaths),
+      projTravServer: snapshot(projTravServer, ['AGENTS.md', '.cursorrules']),
+      projTravIos: snapshot(projTravIos, ['AGENTS.md', '.cursorrules']),
       noMe: snapshot(noMe, noMePaths),
     }).toEqual(before)
   },

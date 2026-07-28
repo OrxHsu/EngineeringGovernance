@@ -16,17 +16,26 @@
       "acceptanceId": "AC-01",
       "runId": "run-1",
       "executedCheckIds": ["test:ac-01"],
-      "command": "pnpm test",
+      "command": {
+        "executable": "pnpm",
+        "arguments": ["test"],
+        "cwd": "/tmp/project"
+      },
       "exitCode": 0,
       "startedAt": "2026-07-29T00:00:00Z",
       "endedAt": "2026-07-29T00:00:01Z",
       "evidenceKind": "unit",
-      "implementationIdentities": {
-        "repo": "cccccccccccccccccccccccccccccccccccccccc"
-      },
+      "implementationIdentities": [
+        {
+          "repository": "repo",
+          "commit": "cccccccccccccccccccccccccccccccccccccccc",
+          "tree": "dddddddddddddddddddddddddddddddddddddddd"
+        }
+      ],
       "rawArtifact": {
         "path": "artifacts/test-results.json",
-        "sha256": "4c31ee747d96038d58240915750ac29630972cf51aeb1edfb1ad0da94a6a0bfe"
+        "sha256": "40b2202e7a6e3308c0108c95e4d6e9d172029a496f83a0ec5fd104c615f4618f",
+        "format": "sop-command-execution-v1"
       },
       "observation": "Named test executed successfully."
     }

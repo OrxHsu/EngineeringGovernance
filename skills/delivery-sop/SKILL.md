@@ -36,15 +36,19 @@ restate or invent global policy in this Skill.
 
 1. Run the project's required fresh checks in the evidence environments named
    by its frozen contract.
-2. Evaluate candidate eligibility with
+2. Capture supported local execution evidence with
+   `~/.codex/bin/sop task execute --input <absolute-input-path>`; name one exact
+   executable and argument vector and do not use a shell.
+3. Evaluate candidate eligibility with
    `~/.codex/bin/sop task verify --input <absolute-input-path>`.
-3. For an independent review, evaluate authority and blocking findings with
+4. For an independent review, point the eligibility input to both the candidate
+   and review artifacts, then evaluate it with
    `~/.codex/bin/sop task review --input <absolute-input-path>`.
-4. If repair is required, return one consolidated finding set to the recorded
+5. If repair is required, return one consolidated finding set to the recorded
    implementation owner and preserve the same contract.
-5. Evaluate closure with `~/.codex/bin/sop task close --input <absolute-input-path>` and
-   report the resulting state, exact identities, verified checks, remaining
-   unknowns, next stage, and whether user action is required.
+6. Evaluate closure with `~/.codex/bin/sop task close --input <absolute-input-path>`.
+   The input points to a closure artifact that digest-binds the candidate,
+   accepted review, project, status artifacts, and next action.
 
 Stop on a blocked authorization instead of performing the restricted action.
 Do not mutate production or external systems through this Skill.

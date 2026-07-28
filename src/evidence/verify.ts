@@ -13,23 +13,29 @@ export type EvidenceKind =
   | 'cloud'
   | 'production'
 
-interface ImplementationCommit {
+export interface ImplementationIdentity {
   repository: string
   commit: string
   tree: string
+}
+
+interface EvidenceCommand {
+  executable: string
+  arguments: string[]
+  cwd: string
 }
 
 interface EvidenceRecord {
   acceptanceId: string
   runId: string
   executedCheckIds: string[]
-  command: string
+  command: EvidenceCommand
   exitCode: number
   startedAt: string
   endedAt: string
   evidenceKind: EvidenceKind
-  implementationIdentities: Record<string, string>
-  rawArtifact: { path: string; sha256: string }
+  implementationIdentities: ImplementationIdentity[]
+  rawArtifact: { path: string; sha256: string; format: 'sop-command-execution-v1' }
   observation: string
 }
 
@@ -39,21 +45,30 @@ interface EvidenceDocument {
   contractDigest: string
   runId: string
   runnerVersion: string
-  implementationCommits: ImplementationCommit[]
+  implementationCommits: ImplementationIdentity[]
   records: EvidenceRecord[]
   summary: { passedIds: string[]; failedIds: string[] }
 }
 
 interface RawExecutionArtifact {
   schemaVersion: 1
+  artifactType: 'sop-command-execution-v1'
+  producer: { name: '@xgh/engineering-governance'; version: string }
   runId: string
+  command: EvidenceCommand
+  startedAt: string
+  endedAt: string
+  exitCode: number
+  environment: { node: string; platform: string; arch: string }
   checks: Array<{ id: string; status: 'passed' | 'failed' }>
+  stdout: string
+  stderr: string
 }
 
 export interface EvidenceVerificationOptions {
   requiredAcceptanceIds: string[]
   expectedContractDigest: string
-  expectedImplementationIdentities: Record<string, string>
+  expectedImplementationIdentities: ImplementationIdentity[]
   requiredEvidenceKinds: Record<string, EvidenceKind>
   expectedRunnerVersion: string
   verificationTime: Date
@@ -73,6 +88,14 @@ function canonical(values: string[]): string[] {
 
 function sameStrings(left: string[], right: string[]): boolean {
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right))
+}
+
+function canonicalIdentities(values: ImplementationIdentity[]): ImplementationIdentity[] {
+  return [...values].sort((left, right) => left.repository.localeCompare(right.repository))
+}
+
+function sameIdentities(left: ImplementationIdentity[], right: ImplementationIdentity[]): boolean {
+  return JSON.stringify(canonicalIdentities(left)) === JSON.stringify(canonicalIdentities(right))
 }
 
 const evidenceRecordKeys = [
@@ -119,6 +142,7 @@ function preflightEvidence(input: unknown): string[] {
 function verifyRawArtifact(
   record: EvidenceRecord,
   artifactRoot: string,
+  expectedRunnerVersion: string,
 ): string | undefined {
   try {
     const realRoot = realpathSync(artifactRoot)
@@ -140,9 +164,24 @@ function verifyRawArtifact(
     } catch {
       return `RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`
     }
+    if (artifact.artifactType !== 'sop-command-execution-v1') {
+      return `RAW_ARTIFACT_FORMAT_UNSUPPORTED:${record.acceptanceId}`
+    }
     if (
       artifact.schemaVersion !== 1
+      || artifact.producer?.name !== '@xgh/engineering-governance'
+      || artifact.producer.version !== expectedRunnerVersion
       || typeof artifact.runId !== 'string'
+      || typeof artifact.command?.executable !== 'string'
+      || !Array.isArray(artifact.command.arguments)
+      || artifact.command.arguments.some((argument) => typeof argument !== 'string')
+      || typeof artifact.command.cwd !== 'string'
+      || typeof artifact.startedAt !== 'string'
+      || typeof artifact.endedAt !== 'string'
+      || !Number.isInteger(artifact.exitCode)
+      || typeof artifact.environment?.node !== 'string'
+      || typeof artifact.environment.platform !== 'string'
+      || typeof artifact.environment.arch !== 'string'
       || !Array.isArray(artifact.checks)
       || artifact.checks.length === 0
       || artifact.checks.some((check) => (
@@ -153,11 +192,29 @@ function verifyRawArtifact(
         || (check.status !== 'passed' && check.status !== 'failed')
       ))
       || new Set(artifact.checks.map((check) => check.id)).size !== artifact.checks.length
+      || typeof artifact.stdout !== 'string'
+      || typeof artifact.stderr !== 'string'
     ) {
       return `RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`
     }
+    if (!/^22\./u.test(artifact.environment.node)) {
+      return `RAW_ARTIFACT_NODE_UNSUPPORTED:${record.acceptanceId}`
+    }
+    if (artifact.stdout.length === 0 && artifact.stderr.length === 0) {
+      return `RAW_ARTIFACT_OUTPUT_EMPTY:${record.acceptanceId}`
+    }
     if (artifact.runId !== record.runId) {
       return `RAW_ARTIFACT_RUN_MISMATCH:${record.acceptanceId}`
+    }
+    if (JSON.stringify(artifact.command) !== JSON.stringify(record.command)) {
+      return `RAW_ARTIFACT_COMMAND_MISMATCH:${record.acceptanceId}`
+    }
+    if (
+      artifact.startedAt !== record.startedAt
+      || artifact.endedAt !== record.endedAt
+      || artifact.exitCode !== record.exitCode
+    ) {
+      return `RAW_ARTIFACT_EXECUTION_MISMATCH:${record.acceptanceId}`
     }
     if (!sameStrings(artifact.checks.map((check) => check.id), record.executedCheckIds)) {
       return `EXECUTED_CHECK_ID_MISMATCH:${record.acceptanceId}`
@@ -195,9 +252,15 @@ export function verifyEvidence(
   const errors: string[] = []
   const seen = new Set<string>()
   const required = new Set(options.requiredAcceptanceIds)
-  const topLevelIdentities = Object.fromEntries(
-    evidence.implementationCommits.map((item) => [item.repository, item.commit]),
-  )
+  if (
+    new Set(evidence.implementationCommits.map((identity) => identity.repository)).size
+    !== evidence.implementationCommits.length
+  ) {
+    errors.push('IMPLEMENTATION_IDENTITIES_DUPLICATED')
+  }
+  if (!sameIdentities(evidence.implementationCommits, options.expectedImplementationIdentities)) {
+    errors.push('IMPLEMENTATION_IDENTITY_SET_MISMATCH')
+  }
 
   if (evidence.contractDigest !== options.expectedContractDigest) {
     errors.push('CONTRACT_DIGEST_MISMATCH')
@@ -226,6 +289,9 @@ export function verifyEvidence(
     if (Date.parse(record.startedAt) > Date.parse(record.endedAt)) {
       errors.push(`INVALID_EXECUTION_TIME_RANGE:${record.acceptanceId}`)
     }
+    if (!Number.isFinite(Date.parse(record.startedAt)) || !Number.isFinite(Date.parse(record.endedAt))) {
+      errors.push(`INVALID_EXECUTION_TIMESTAMP:${record.acceptanceId}`)
+    }
     const endedAt = Date.parse(record.endedAt)
     const age = options.verificationTime.getTime() - endedAt
     if (Number.isFinite(endedAt) && age > options.maxEvidenceAgeMs) {
@@ -238,7 +304,11 @@ export function verifyEvidence(
       errors.push(`REQUIRED_GATE_FAILED:${record.acceptanceId}`)
     }
 
-    const artifactError = verifyRawArtifact(record, options.artifactRoot)
+    const artifactError = verifyRawArtifact(
+      record,
+      options.artifactRoot,
+      options.expectedRunnerVersion,
+    )
     if (artifactError) errors.push(artifactError)
 
     const requiredKind = options.requiredEvidenceKinds[record.acceptanceId]
@@ -248,13 +318,14 @@ export function verifyEvidence(
       )
     }
 
-    for (const [repository, commit] of Object.entries(options.expectedImplementationIdentities)) {
-      if (
-        topLevelIdentities[repository] !== commit
-        || record.implementationIdentities[repository] !== commit
-      ) {
-        errors.push(`IMPLEMENTATION_IDENTITY_MISMATCH:${record.acceptanceId}:${repository}`)
-      }
+    if (!sameIdentities(record.implementationIdentities, options.expectedImplementationIdentities)) {
+      errors.push(`IMPLEMENTATION_IDENTITY_SET_MISMATCH:${record.acceptanceId}`)
+    }
+    if (
+      new Set(record.implementationIdentities.map((identity) => identity.repository)).size
+      !== record.implementationIdentities.length
+    ) {
+      errors.push(`IMPLEMENTATION_IDENTITIES_DUPLICATED:${record.acceptanceId}`)
     }
   }
 

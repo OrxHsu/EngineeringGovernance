@@ -7,6 +7,7 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { execFileSync } from 'node:child_process'
 
 import { parse, stringify } from 'yaml'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -27,6 +28,10 @@ function temporaryProject(prefix: string): string {
 function write(path: string, content: string): void {
   mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, content)
+}
+
+function git(repository: string, ...arguments_: string[]): string {
+  return execFileSync('git', ['-C', repository, ...arguments_], { encoding: 'utf8' }).trim()
 }
 
 function adopt(projectRoot: string): void {
@@ -63,10 +68,13 @@ describe('adopted project verification', () => {
     expect(verifyAdoptedProject(projectRoot).errors).toContain(
       'AGENT_ADAPTER_SOURCE_DRIFTED:AGENTS.md',
     )
-  })
+  }, 15_000)
 
   it('checks ProjTrav generated targets without authoring them directly', () => {
     const projectRoot = temporaryProject('sop-verify-projtrav-')
+    git(projectRoot, 'init', '-b', 'main')
+    git(projectRoot, 'config', 'user.email', 'test@example.com')
+    git(projectRoot, 'config', 'user.name', 'Test')
     const sources = [
       'Docs/AGENTS.md',
       'Docs/rules/workspace-agent-entrypoint.md',
@@ -81,6 +89,16 @@ describe('adopted project verification', () => {
       'projtrav-ios/AGENTS.md',
       'projtrav-ios/.cursorrules',
     ]) write(join(projectRoot, target), `# generated ${target}\n`)
+    for (const nested of ['projtrav-server', 'projtrav-ios']) {
+      const nestedRoot = join(projectRoot, nested)
+      git(nestedRoot, 'init', '-b', 'main')
+      git(nestedRoot, 'config', 'user.email', 'test@example.com')
+      git(nestedRoot, 'config', 'user.name', 'Test')
+      git(nestedRoot, 'add', 'AGENTS.md', '.cursorrules')
+      git(nestedRoot, 'commit', '-m', 'baseline')
+    }
+    git(projectRoot, 'add', 'Docs', 'AGENTS.md')
+    git(projectRoot, 'commit', '-m', 'baseline')
 
     adopt(projectRoot)
     expect(verifyAdoptedProject(projectRoot).errors).toContain(

@@ -14,8 +14,10 @@ export type TaskState =
 export type DocumentKind =
   | 'project-policy'
   | 'task-contract'
+  | 'candidate'
   | 'evidence'
   | 'review'
+  | 'closure'
   | 'exception'
   | 'authorization'
 

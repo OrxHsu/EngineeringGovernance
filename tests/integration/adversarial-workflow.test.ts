@@ -25,7 +25,11 @@ function options(requiredAcceptanceIds = ['AC-01']) {
   return {
     requiredAcceptanceIds,
     expectedContractDigest: 'b'.repeat(64),
-    expectedImplementationIdentities: { repo: 'c'.repeat(40) },
+    expectedImplementationIdentities: [{
+      repository: 'repo',
+      commit: 'c'.repeat(40),
+      tree: 'd'.repeat(40),
+    }],
     requiredEvidenceKinds: Object.fromEntries(
       requiredAcceptanceIds.map((id) => [id, 'unit' as const]),
     ),
@@ -92,10 +96,12 @@ describe('adversarial workflow rejection codes', () => {
     expect(errors(forged)).toContain('RAW_ARTIFACT_DIGEST_MISMATCH:AC-01')
 
     const wrongCommit = await fixture()
-    ;(wrongCommit.records as Array<Record<string, unknown>>)[0]!.implementationIdentities = {
-      repo: 'f'.repeat(40),
-    }
-    expect(errors(wrongCommit)).toContain('IMPLEMENTATION_IDENTITY_MISMATCH:AC-01:repo')
+    ;(wrongCommit.records as Array<Record<string, unknown>>)[0]!.implementationIdentities = [{
+      repository: 'repo',
+      commit: 'f'.repeat(40),
+      tree: 'd'.repeat(40),
+    }]
+    expect(errors(wrongCommit)).toContain('IMPLEMENTATION_IDENTITY_SET_MISMATCH:AC-01')
 
     const compiledOnly = await fixture()
     ;(compiledOnly.records as Array<Record<string, unknown>>)[0]!.evidenceKind = 'compile'
@@ -123,7 +129,7 @@ describe('adversarial workflow rejection codes', () => {
       implementationOwner: 'agent-a',
       reviewOwner: 'agent-a',
       blockingFindingIds: [],
-    }).errors).toContain('INDEPENDENT_REVIEW_REQUIRED')
+    } as never).errors).toContain('CANDIDATE_FILE_UNREADABLE')
   })
 
   it('rejects a managed-file overlap without changing the newer content', async () => {

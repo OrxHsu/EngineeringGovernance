@@ -1,4 +1,4 @@
-import { appendFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { appendFile, chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -88,3 +88,42 @@ it('runs a checksum-pinned project gate offline and rejects a mutated runner', a
   expect(rejected.status).not.toBe(0)
   expect(rejected.stderr).toContain('RUNNER_DIGEST_MISMATCH')
 }, 15_000)
+
+it('fails closed before npm install on an unsupported Node runtime', async () => {
+  const projectRoot = await temporaryDirectory('sop-portable-node-version-')
+  const buildOutput = await temporaryDirectory('sop-portable-node-bundle-')
+  const build = spawnSync(process.execPath, [
+    'scripts/build-runner-bundle.mjs',
+    '--output',
+    buildOutput,
+  ], { encoding: 'utf8' })
+  expect(build.status, build.stderr || build.stdout).toBe(0)
+  const bundle = JSON.parse(build.stdout) as { archivePath: string }
+  const adoption = planAdoption(projectRoot, { runnerBundlePath: bundle.archivePath })
+  applyAdoption(adoption, adoption.digest)
+
+  const fakeBin = await temporaryDirectory('sop-portable-fake-node-')
+  const fakeNode = join(fakeBin, 'node')
+  const fakeNpm = join(fakeBin, 'npm')
+  await writeFile(fakeNode, '#!/bin/sh\nif [ "$1" = "-p" ]; then echo 25.9.0; fi\nexit 0\n')
+  await writeFile(fakeNpm, '#!/bin/sh\nexit 0\n')
+  await chmod(fakeNode, 0o755)
+  await chmod(fakeNpm, 0o755)
+
+  const wrapper = join(projectRoot, '.delivery', 'bin', 'check-delivery-policy.sh')
+  const fallbackWrapper = join(projectRoot, '.delivery', 'bin', 'check-fallback-node.sh')
+  const wrapperText = await readFile(wrapper, 'utf8')
+  await writeFile(
+    fallbackWrapper,
+    wrapperText.replace(
+      /if \[ -x \/opt\/homebrew\/opt\/node@22\/bin\/node \]; then\n  PATH="\/opt\/homebrew\/opt\/node@22\/bin:\$PATH"\n  export PATH\nelif \[ -x \/usr\/local\/opt\/node@22\/bin\/node \]; then\n  PATH="\/usr\/local\/opt\/node@22\/bin:\$PATH"\n  export PATH\nfi\n\n/u,
+      '',
+    ),
+  )
+  const result = spawnSync('/bin/sh', [fallbackWrapper], {
+    encoding: 'utf8',
+    env: { ...process.env, PATH: `${fakeBin}:${process.env.PATH ?? ''}` },
+  })
+  expect(result.status).not.toBe(0)
+  expect(result.stderr).toContain('NODE_VERSION_UNSUPPORTED:25.9.0')
+})

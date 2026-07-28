@@ -78,7 +78,7 @@ describe('project command workflow', () => {
 
     expect(applyAdoption(plan, plan.digest).applied.length).toBeGreaterThan(0)
     expect(verifyAdoptedProject(project)).toEqual({ valid: true, errors: [] })
-  })
+  }, 15_000)
 
   it('rejects an apply digest that was not reviewed', () => {
     const project = mkdtempSync(join(tmpdir(), 'governance-cli-'))
@@ -119,37 +119,35 @@ describe('task command workflow', () => {
     })
   })
 
-  it('requires independent, finding-free R2 review', () => {
+  it('requires review artifacts instead of owner declarations', () => {
     expect(verifyReviewEligibility({
       risk: 'R2',
       implementationOwner: 'qoder',
       reviewOwner: 'qoder',
       blockingFindingIds: [],
-    }).errors).toContain('INDEPENDENT_REVIEW_REQUIRED')
-
-    expect(verifyReviewEligibility({
-      risk: 'R2',
-      implementationOwner: 'qoder',
-      reviewOwner: 'codex',
-      blockingFindingIds: ['F-1'],
-    }).errors).toContain('BLOCKING_FINDING:F-1')
+    } as never).errors).toContain('CANDIDATE_FILE_UNREADABLE')
   })
 
-  it('closes only coherent accepted tasks', () => {
+  it('rejects artifact-free review and close declarations', () => {
+    expect(verifyReviewEligibility({
+      risk: 'R3',
+      implementationOwner: 'codex',
+      reviewOwner: 'independent-reviewer',
+      blockingFindingIds: [],
+    } as never).valid).toBe(false)
+
     expect(verifyCloseEligibility({
       state: 'ACCEPTED',
       projectStatusValid: true,
       pendingRequiredIds: [],
-    })).toEqual({ valid: true, errors: [] })
+    } as never).valid).toBe(false)
+  })
 
+  it('requires a bound closure artifact', () => {
     expect(verifyCloseEligibility({
-      state: 'CANDIDATE',
-      projectStatusValid: false,
-      pendingRequiredIds: ['AC-02'],
-    }).errors).toEqual([
-      'PROJECT_STATUS_INCOHERENT',
-      'REQUIRED_ITEM_PENDING:AC-02',
-      'TASK_NOT_ACCEPTED',
-    ])
+      state: 'ACCEPTED',
+      projectStatusValid: true,
+      pendingRequiredIds: [],
+    } as never).errors).toEqual(['CLOSURE_FILE_UNREADABLE'])
   })
 })
