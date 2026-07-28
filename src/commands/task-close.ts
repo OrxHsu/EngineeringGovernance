@@ -1,4 +1,9 @@
 import type { TaskState, ValidationResult } from '../model/types.js'
+import {
+  deriveMetrics,
+  type TaskMetricRecord,
+  type WorkflowMetrics,
+} from '../metrics/derive.js'
 
 export interface CloseEligibilityInput {
   state: TaskState
@@ -13,4 +18,14 @@ export function verifyCloseEligibility(input: CloseEligibilityInput): Validation
   if (input.state !== 'ACCEPTED') errors.push('TASK_NOT_ACCEPTED')
   const uniqueErrors = [...new Set(errors)].sort()
   return { valid: uniqueErrors.length === 0, errors: uniqueErrors }
+}
+
+export function closeTaskWithMetrics(input: {
+  eligibility: CloseEligibilityInput
+  history: TaskMetricRecord[]
+}): { eligibility: ValidationResult; metrics: WorkflowMetrics } {
+  return {
+    eligibility: verifyCloseEligibility(input.eligibility),
+    metrics: deriveMetrics(input.history),
+  }
 }
