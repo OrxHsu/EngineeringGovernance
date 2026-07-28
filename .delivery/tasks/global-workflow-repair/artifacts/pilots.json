@@ -4,6 +4,7 @@
   "checks": [
     { "id": "r1-real-cli-pilot", "status": "passed" },
     { "id": "r2-repair-independent-review-pilot", "status": "passed" },
-    { "id": "r3-scoped-authorization-pilot", "status": "passed" }
+    { "id": "r3-scoped-authorization-pilot", "status": "passed" },
+    { "id": "r3-caller-clock-rejection", "status": "passed" }
   ]
 }

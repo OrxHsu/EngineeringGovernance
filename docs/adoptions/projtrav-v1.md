@@ -5,11 +5,11 @@ Date: 2026-07-29
 
 ## Candidate
 
-- Governance implementation commit: `39b2779fc0eed177e50e99a9899fcc3eb10dc996`
+- Governance implementation commit: `db0c8c3c937ec28cda2dff52630b26ac8aab7ada`
 - SOP version: `1.0.0`
 - SOP digest: `1557528236249c720f98df759ac7830364c6127348a7ca2fde12dd7aba3f2722`
-- Runner digest: `125cef7acb5aefe2958b708dc228b1a65cccd1af9e874f4ee37c6c84eb786535`
-- Reviewed `1.0.0` upgrade dry-run digest: `d4e36fdef7820cd2c03f4e2381704f3f1004d2c74ec986036b5875b32b27fca4`
+- Runner digest: `47223a057538e057d7fa24a5164123a13f82a4a34a58ccef8829dece1456cc8e`
+- Reviewed final runner refresh dry-run digest: `484a8353f524cbb949eae5778cfd64aaa8aa6f4d525b29835b24401c1275ad1c`
 
 ## Authority map
 
@@ -41,6 +41,8 @@ Date: 2026-07-29
   - Workspace: `872ddb4e15247a17d3141b455a59aac3ee5e60b8`
   - Server: `47754d1e14b2ea37521db282cc1e0488fe0c7d9c`
   - iOS: `59d9d20de0ca5aea389c3363499e6d3b81c7bb94`
+- Trusted-clock runner refresh:
+  - Workspace: `63206f629a2e52154a5182efa67380ad9e62e711`
 
 Only the planned governance files and generated adapters were staged. The pre-existing handoff and untracked files remain outside these commits.
 

@@ -7,13 +7,13 @@
   "implementationCommits": [
     {
       "repository": "engineering-governance",
-      "commit": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
-      "tree": "29ebde267820bc7c71a0bed24b7fafa3a1b6320d"
+      "commit": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+      "tree": "aaa68cde65120143c6e46d54cc51ebecca7d88ee"
     },
     {
       "repository": "projtrav-v1",
-      "commit": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
-      "tree": "76731a8ace4f3d1c0171ea59eb5d08dec7c1fd7d"
+      "commit": "63206f629a2e52154a5182efa67380ad9e62e711",
+      "tree": "683dfa2e3e77c814946822d64352fab55296a3a5"
     },
     {
       "repository": "projtrav-server",
@@ -27,8 +27,8 @@
     },
     {
       "repository": "nome-v2",
-      "commit": "f6abdd615726e3c8b643afd672090c12beab52f1",
-      "tree": "90065e96257244a543df9be2c2e34450bd866f6c"
+      "commit": "f666e28bec149bc3bc9f91c83aa7aee888d1331d",
+      "tree": "c40766745807dd9d88888937bc1259cdf996a0c3"
     }
   ],
   "records": [
@@ -42,15 +42,15 @@
       ],
       "command": "PATH=/opt/homebrew/opt/node@22/bin:$PATH pnpm check",
       "exitCode": 0,
-      "startedAt": "2026-07-28T21:15:35Z",
-      "endedAt": "2026-07-28T21:15:52Z",
+      "startedAt": "2026-07-28T21:27:25Z",
+      "endedAt": "2026-07-28T21:27:48Z",
       "evidenceKind": "integration",
       "implementationIdentities": {
-        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
-        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "engineering-governance": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+        "projtrav-v1": "63206f629a2e52154a5182efa67380ad9e62e711",
         "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
         "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
-        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+        "nome-v2": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
       },
       "rawArtifact": {
         "path": ".delivery/tasks/global-workflow-repair/artifacts/exit-behavior.json",
@@ -67,25 +67,28 @@
         "evidence-kind-validation",
         "git-implementation-tree-validation",
         "evidence-closure-path-validation",
-        "adversarial-evidence-rejection"
+        "adversarial-evidence-rejection",
+        "caller-authorization-clock-rejection",
+        "caller-evidence-clock-rejection",
+        "bounded-evidence-age-policy"
       ],
       "command": "PATH=/opt/homebrew/opt/node@22/bin:$PATH pnpm check",
       "exitCode": 0,
-      "startedAt": "2026-07-28T21:15:35Z",
-      "endedAt": "2026-07-28T21:15:52Z",
+      "startedAt": "2026-07-28T21:27:25Z",
+      "endedAt": "2026-07-28T21:27:48Z",
       "evidenceKind": "integration",
       "implementationIdentities": {
-        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
-        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "engineering-governance": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+        "projtrav-v1": "63206f629a2e52154a5182efa67380ad9e62e711",
         "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
         "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
-        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+        "nome-v2": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
       },
       "rawArtifact": {
         "path": ".delivery/tasks/global-workflow-repair/artifacts/evidence-validation.json",
-        "sha256": "643019d4de201ea9b231b1077adf54e29691fa63e5630d019cd1a5b012eefd37"
+        "sha256": "4aca47963de0a27ed83434dbb9afa94041f5154e9ad6f5e7790e70a450c502be"
       },
-      "observation": "Contract, raw execution, evidence kind, Git identity, closure-path, and adversarial mutation verification passed."
+      "observation": "Contract, raw execution, evidence kind, Git identity, closure-path, adversarial mutation, trusted-clock, and bounded-age verification passed."
     },
     {
       "acceptanceId": "GW-BOOTSTRAP-01",
@@ -100,15 +103,15 @@
       ],
       "command": "sop global install/check in isolated HOME; launcher with ENGINEERING_GOVERNANCE_ROOT; real HOME dry-run only",
       "exitCode": 0,
-      "startedAt": "2026-07-28T21:13:30Z",
-      "endedAt": "2026-07-28T21:15:20Z",
+      "startedAt": "2026-07-28T21:28:00Z",
+      "endedAt": "2026-07-28T21:28:13Z",
       "evidenceKind": "integration",
       "implementationIdentities": {
-        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
-        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "engineering-governance": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+        "projtrav-v1": "63206f629a2e52154a5182efa67380ad9e62e711",
         "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
         "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
-        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+        "nome-v2": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
       },
       "rawArtifact": {
         "path": ".delivery/tasks/global-workflow-repair/artifacts/bootstrap.json",
@@ -131,15 +134,15 @@
       ],
       "command": "real project dry-run test plus project-native sync, catalog, manifest, pinned-runner, and compile-only checks",
       "exitCode": 0,
-      "startedAt": "2026-07-28T21:06:30Z",
-      "endedAt": "2026-07-28T21:16:09Z",
+      "startedAt": "2026-07-28T21:25:30Z",
+      "endedAt": "2026-07-28T21:28:13Z",
       "evidenceKind": "integration",
       "implementationIdentities": {
-        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
-        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "engineering-governance": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+        "projtrav-v1": "63206f629a2e52154a5182efa67380ad9e62e711",
         "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
         "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
-        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+        "nome-v2": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
       },
       "rawArtifact": {
         "path": ".delivery/tasks/global-workflow-repair/artifacts/adoption.json",
@@ -153,25 +156,26 @@
       "executedCheckIds": [
         "r1-real-cli-pilot",
         "r2-repair-independent-review-pilot",
-        "r3-scoped-authorization-pilot"
+        "r3-scoped-authorization-pilot",
+        "r3-caller-clock-rejection"
       ],
       "command": "PATH=/opt/homebrew/opt/node@22/bin:$PATH pnpm vitest run tests/integration/pilots.test.ts",
       "exitCode": 0,
-      "startedAt": "2026-07-28T21:15:35Z",
-      "endedAt": "2026-07-28T21:15:52Z",
+      "startedAt": "2026-07-28T21:27:25Z",
+      "endedAt": "2026-07-28T21:27:48Z",
       "evidenceKind": "integration",
       "implementationIdentities": {
-        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
-        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "engineering-governance": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+        "projtrav-v1": "63206f629a2e52154a5182efa67380ad9e62e711",
         "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
         "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
-        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+        "nome-v2": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
       },
       "rawArtifact": {
         "path": ".delivery/tasks/global-workflow-repair/artifacts/pilots.json",
-        "sha256": "8e62ada90a782d86cc9b69a1ae930be09c0f94e6c5de977ce2cf328f3010b783"
+        "sha256": "8b6df1544af949cb8a9bb6f0a994c05a780a8f98ae3d5498e8ae8791e18b0c6f"
       },
-      "observation": "R1, R2 repair and independent-review enforcement, and R3 scoped-authorization pilots all passed through real CLI processes."
+      "observation": "R1, R2 repair and independent-review enforcement, R3 scoped authorization, and caller-clock rejection all passed through real CLI processes."
     }
   ],
   "summary": {

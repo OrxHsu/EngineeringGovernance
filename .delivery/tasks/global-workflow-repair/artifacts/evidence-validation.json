@@ -7,6 +7,9 @@
     { "id": "evidence-kind-validation", "status": "passed" },
     { "id": "git-implementation-tree-validation", "status": "passed" },
     { "id": "evidence-closure-path-validation", "status": "passed" },
-    { "id": "adversarial-evidence-rejection", "status": "passed" }
+    { "id": "adversarial-evidence-rejection", "status": "passed" },
+    { "id": "caller-authorization-clock-rejection", "status": "passed" },
+    { "id": "caller-evidence-clock-rejection", "status": "passed" },
+    { "id": "bounded-evidence-age-policy", "status": "passed" }
   ]
 }

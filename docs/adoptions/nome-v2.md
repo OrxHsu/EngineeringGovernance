@@ -5,11 +5,11 @@ Date: 2026-07-29
 
 ## Candidate
 
-- Governance implementation commit: `39b2779fc0eed177e50e99a9899fcc3eb10dc996`
+- Governance implementation commit: `db0c8c3c937ec28cda2dff52630b26ac8aab7ada`
 - SOP version: `1.0.0`
 - SOP digest: `1557528236249c720f98df759ac7830364c6127348a7ca2fde12dd7aba3f2722`
-- Runner digest: `125cef7acb5aefe2958b708dc228b1a65cccd1af9e874f4ee37c6c84eb786535`
-- Reviewed `1.0.0` upgrade dry-run digest: `fd75c324233559d59b40c2c45a69ddeab2db9cee06c17b3846599ffd6ca4672f`
+- Runner digest: `47223a057538e057d7fa24a5164123a13f82a4a34a58ccef8829dece1456cc8e`
+- Reviewed final runner refresh dry-run digest: `ac92b0dfc37d85e366cdbea42969eef28e13c88e29fca80cd904693d37c70b70`
 
 ## Authority map
 
@@ -29,6 +29,7 @@ Date: 2026-07-29
 
 - Initial development adoption: `f54cbd116e2f19d9bb9c28b86d62125e474084dd`
 - `1.0.0` upgrade: `f6abdd615726e3c8b643afd672090c12beab52f1`
+- Trusted-clock runner refresh: `f666e28bec149bc3bc9f91c83aa7aee888d1331d`
 
 Only `AGENTS.md` and the planned `.delivery` files were staged. During the adoption window an additional untracked acceptance file appeared under `Docs/acceptance/`; it was outside the managed scope and remains untracked.
 
@@ -45,6 +46,7 @@ Only `AGENTS.md` and the planned `.delivery` files were staged. During the adopt
 
 ## Remaining gate
 
-An independent reviewer must inspect commits `f54cbd1` and `f6abdd6` plus fresh
-verification before this R3 adoption can be called independently accepted.
-Runtime/UI evidence remains outside this governance-only change.
+An independent reviewer must inspect commits `f54cbd1`, `f6abdd6`, and
+`f666e28` plus fresh verification before this R3 adoption can be called
+independently accepted. Runtime/UI evidence remains outside this
+governance-only change.

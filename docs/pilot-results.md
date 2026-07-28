@@ -2,7 +2,16 @@
 
 Status: passed on implementation candidate; independent candidate review pending
 Date: 2026-07-29
-Candidate base: `39b2779fc0eed177e50e99a9899fcc3eb10dc996`
+Candidate base: `db0c8c3c937ec28cda2dff52630b26ac8aab7ada`
+
+## Candidate revision
+
+The earlier `39b2779` implementation / `072adba` evidence pair was superseded
+before independent review. A pre-handoff audit found that authorization and
+evidence verification clocks were caller-controlled, allowing expired approval
+or stale evidence to be replayed. Commit `481367f` moved both clocks to trusted
+process time, bounded evidence age to 24 hours, and added adversarial coverage;
+`db0c8c3` refreshed the pinned runner.
 
 ## Execution
 
@@ -40,13 +49,16 @@ The reviewer identity in this automated pilot tests authority enforcement. It is
 - An exact active user authorization for `temporary-project:r3-pilot` passed.
 - A different requested target was rejected with `AUTHORIZATION_SCOPE_MISMATCH`.
 - An authorization checked at its expiry boundary was rejected with `AUTHORIZATION_EXPIRED`.
+- Caller-supplied authorization and evidence verification clocks were rejected;
+  the CLI used process time, and evidence freshness could not be widened beyond
+  the 24-hour policy ceiling.
 
 No production system, external service, deployment, database, Simulator, or physical device was touched.
 
 ## Candidate-wide verification
 
 - Node 22 `pnpm check`: 24 test files passed, 1 environment-gated test skipped;
-  94 tests passed, 1 skipped; typecheck, build, placeholder, and license checks
+  96 tests passed, 1 skipped; typecheck, build, placeholder, and license checks
   passed.
 - `REAL_PROJECT_DRY_RUN=1` real-project integration: 1/1 passed against the
   current ProjTrav and NoMe repositories without mutation.
