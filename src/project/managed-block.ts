@@ -2,9 +2,13 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 
 import type { PlannedWrite } from './mutate.js'
+import {
+  MANAGED_BLOCK_END,
+  MANAGED_BLOCK_START,
+  renderCoreBlock,
+} from '../adapters/render.js'
 
-export const MANAGED_BLOCK_START = '<!-- engineering-governance:start -->'
-export const MANAGED_BLOCK_END = '<!-- engineering-governance:end -->'
+export { MANAGED_BLOCK_END, MANAGED_BLOCK_START }
 
 export interface ManagedBlockIdentity {
   version: string
@@ -16,17 +20,7 @@ function digest(text: string): string {
 }
 
 export function createManagedBlock(identity: ManagedBlockIdentity): string {
-  return [
-    MANAGED_BLOCK_START,
-    '## Global Development Workflow',
-    '',
-    `Governance version: \`${identity.version}\``,
-    `Governance digest: \`${identity.digest}\``,
-    '',
-    'Before mutating work, load the adopted project policy, classify risk, and keep one implementation owner.',
-    'Completion claims require fresh evidence; R2/R3 require independent review of the exact candidate.',
-    MANAGED_BLOCK_END,
-  ].join('\n')
+  return renderCoreBlock(identity).trimEnd()
 }
 
 function upsert(existing: string, block: string): string {
