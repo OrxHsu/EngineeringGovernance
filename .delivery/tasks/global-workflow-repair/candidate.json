@@ -1,0 +1,88 @@
+{
+  "risk": "R3",
+  "authorizationRequired": true,
+  "authorizationApproved": true,
+  "authorization": {
+    "schemaVersion": 1,
+    "authorizationId": "user-019fa9ea-global-workflow",
+    "approvedBy": "user",
+    "issuedAt": "2026-07-28T21:00:00Z",
+    "expiresAt": "2026-07-30T00:00:00Z",
+    "scope": [
+      "local:engineering-governance-candidate",
+      "local:projtrav-v1-governance-adoption",
+      "local:nome-v2-governance-adoption",
+      "local:isolated-codex-global-bootstrap"
+    ],
+    "status": "approved"
+  },
+  "requestedAuthorizationScope": [
+    "local:engineering-governance-candidate",
+    "local:projtrav-v1-governance-adoption",
+    "local:nome-v2-governance-adoption",
+    "local:isolated-codex-global-bootstrap"
+  ],
+  "verification": {
+    "contractPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/contract.yaml",
+    "evidencePath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/evidence.json",
+    "artifactRoot": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
+    "requiredEvidenceKinds": {
+      "GW-EXIT-01": "integration",
+      "GW-EVIDENCE-01": "integration",
+      "GW-BOOTSTRAP-01": "integration",
+      "GW-ADOPT-01": "integration",
+      "GW-PILOT-01": "integration"
+    },
+    "expectedImplementationIdentities": {
+      "engineering-governance": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+      "projtrav-v1": "63206f629a2e52154a5182efa67380ad9e62e711",
+      "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+      "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+      "nome-v2": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
+    },
+    "maxEvidenceAgeMs": 7200000,
+    "gitIdentities": [
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
+        "implementationCommit": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
+        "implementationTree": "aaa68cde65120143c6e46d54cc51ebecca7d88ee",
+        "closureCommit": "296943e110b349b162b2270375518504894ebe48",
+        "allowedClosurePaths": [
+          ".delivery/tasks/**",
+          "docs/adoptions/projtrav-v1.md",
+          "docs/adoptions/nome-v2.md",
+          "docs/pilot-results.md",
+          "docs/handoffs/global-workflow-implementation.md"
+        ]
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
+        "implementationCommit": "63206f629a2e52154a5182efa67380ad9e62e711",
+        "implementationTree": "683dfa2e3e77c814946822d64352fab55296a3a5",
+        "closureCommit": "63206f629a2e52154a5182efa67380ad9e62e711",
+        "allowedClosurePaths": []
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
+        "implementationCommit": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "implementationTree": "abd884bfc83735179b8954e302e908a2764c8ec9",
+        "closureCommit": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "allowedClosurePaths": []
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
+        "implementationCommit": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "implementationTree": "1fd4d398fbe84f1c1f479f86aea611aad3b88d5b",
+        "closureCommit": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "allowedClosurePaths": []
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
+        "implementationCommit": "f666e28bec149bc3bc9f91c83aa7aee888d1331d",
+        "implementationTree": "c40766745807dd9d88888937bc1259cdf996a0c3",
+        "closureCommit": "f666e28bec149bc3bc9f91c83aa7aee888d1331d",
+        "allowedClosurePaths": []
+      }
+    ]
+  }
+}
