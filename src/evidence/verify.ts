@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto'
+import { spawnSync } from 'node:child_process'
 import { readFileSync, realpathSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
 
 import { validateDocument } from '../policy/load.js'
+import { canonicalDigest } from '../model/digest.js'
+import { commandCheckId, type ExactCommand } from './capture.js'
 
 export type EvidenceKind =
   | 'static'
@@ -19,11 +22,7 @@ export interface ImplementationIdentity {
   tree: string
 }
 
-interface EvidenceCommand {
-  executable: string
-  arguments: string[]
-  cwd: string
-}
+type EvidenceCommand = ExactCommand
 
 interface EvidenceRecord {
   acceptanceId: string
@@ -74,6 +73,21 @@ export interface EvidenceVerificationOptions {
   verificationTime: Date
   maxEvidenceAgeMs: number
   artifactRoot: string
+  approvedReplayPlanDigest?: string
+  commandExecutor?: (command: EvidenceCommand) => {
+    exitCode: number
+    stdout: string
+    stderr: string
+  }
+}
+
+export function evidenceReplayPlanDigest(
+  records: Array<{ acceptanceId: string; command: EvidenceCommand }>,
+): string {
+  return canonicalDigest(records.map((record) => ({
+    acceptanceId: record.acceptanceId,
+    command: record.command,
+  })))
 }
 
 export interface EvidenceDecision {
@@ -139,33 +153,54 @@ function preflightEvidence(input: unknown): string[] {
   return []
 }
 
+function executeCommand(command: EvidenceCommand): {
+  exitCode: number
+  stdout: string
+  stderr: string
+} {
+  const result = spawnSync(command.executable, command.arguments, {
+    cwd: command.cwd,
+    encoding: 'utf8',
+    env: process.env,
+    maxBuffer: 64 * 1024 * 1024,
+    shell: false,
+  })
+  return {
+    exitCode: result.status ?? 70,
+    stdout: result.stdout ?? '',
+    stderr: result.stderr ?? result.error?.message ?? '',
+  }
+}
+
 function verifyRawArtifact(
   record: EvidenceRecord,
   artifactRoot: string,
   expectedRunnerVersion: string,
-): string | undefined {
+  commandExecutor: EvidenceVerificationOptions['commandExecutor'],
+): string[] {
+  const errors: string[] = []
   try {
     const realRoot = realpathSync(artifactRoot)
     const candidate = realpathSync(resolve(realRoot, record.rawArtifact.path))
     const relativePath = relative(realRoot, candidate)
     if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
-      return `RAW_ARTIFACT_OUTSIDE_ROOT:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_OUTSIDE_ROOT:${record.acceptanceId}`]
     }
 
     const raw = readFileSync(candidate)
     const digest = createHash('sha256').update(raw).digest('hex')
     if (digest !== record.rawArtifact.sha256) {
-      return `RAW_ARTIFACT_DIGEST_MISMATCH:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_DIGEST_MISMATCH:${record.acceptanceId}`]
     }
 
     let artifact: RawExecutionArtifact
     try {
       artifact = JSON.parse(raw.toString('utf8')) as RawExecutionArtifact
     } catch {
-      return `RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`]
     }
     if (artifact.artifactType !== 'sop-command-execution-v1') {
-      return `RAW_ARTIFACT_FORMAT_UNSUPPORTED:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_FORMAT_UNSUPPORTED:${record.acceptanceId}`]
     }
     if (
       artifact.schemaVersion !== 1
@@ -183,7 +218,7 @@ function verifyRawArtifact(
       || typeof artifact.environment.platform !== 'string'
       || typeof artifact.environment.arch !== 'string'
       || !Array.isArray(artifact.checks)
-      || artifact.checks.length === 0
+      || artifact.checks.length !== 1
       || artifact.checks.some((check) => (
         typeof check !== 'object'
         || check === null
@@ -195,39 +230,49 @@ function verifyRawArtifact(
       || typeof artifact.stdout !== 'string'
       || typeof artifact.stderr !== 'string'
     ) {
-      return `RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_FORMAT_INVALID:${record.acceptanceId}`]
     }
     if (!/^22\./u.test(artifact.environment.node)) {
-      return `RAW_ARTIFACT_NODE_UNSUPPORTED:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_NODE_UNSUPPORTED:${record.acceptanceId}`]
     }
     if (artifact.stdout.length === 0 && artifact.stderr.length === 0) {
-      return `RAW_ARTIFACT_OUTPUT_EMPTY:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_OUTPUT_EMPTY:${record.acceptanceId}`]
     }
     if (artifact.runId !== record.runId) {
-      return `RAW_ARTIFACT_RUN_MISMATCH:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_RUN_MISMATCH:${record.acceptanceId}`]
     }
     if (JSON.stringify(artifact.command) !== JSON.stringify(record.command)) {
-      return `RAW_ARTIFACT_COMMAND_MISMATCH:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_COMMAND_MISMATCH:${record.acceptanceId}`]
     }
     if (
       artifact.startedAt !== record.startedAt
       || artifact.endedAt !== record.endedAt
       || artifact.exitCode !== record.exitCode
     ) {
-      return `RAW_ARTIFACT_EXECUTION_MISMATCH:${record.acceptanceId}`
+      return [`RAW_ARTIFACT_EXECUTION_MISMATCH:${record.acceptanceId}`]
     }
-    if (!sameStrings(artifact.checks.map((check) => check.id), record.executedCheckIds)) {
-      return `EXECUTED_CHECK_ID_MISMATCH:${record.acceptanceId}`
+    const expectedCheckId = commandCheckId(record.command)
+    if (
+      record.executedCheckIds.length !== 1
+      || record.executedCheckIds[0] !== expectedCheckId
+      || artifact.checks[0]?.id !== expectedCheckId
+    ) {
+      errors.push(`EXECUTED_CHECK_ID_MISMATCH:${record.acceptanceId}`)
     }
     if (
-      record.exitCode === 0
-      && artifact.checks.some((check) => check.status !== 'passed')
+      artifact.checks[0]?.status !== (record.exitCode === 0 ? 'passed' : 'failed')
     ) {
-      return `RAW_EXECUTION_CHECK_FAILED:${record.acceptanceId}`
+      errors.push(`RAW_EXECUTION_CHECK_STATUS_MISMATCH:${record.acceptanceId}`)
     }
-    return undefined
+    if (commandExecutor !== undefined) {
+      const replay = commandExecutor(record.command)
+      if (replay.exitCode !== 0) {
+        errors.push(`RAW_EXECUTION_REPLAY_FAILED:${record.acceptanceId}:${replay.exitCode}`)
+      }
+    }
+    return errors
   } catch {
-    return `RAW_ARTIFACT_MISSING:${record.acceptanceId}`
+    return [`RAW_ARTIFACT_MISSING:${record.acceptanceId}`]
   }
 }
 
@@ -269,6 +314,12 @@ export function verifyEvidence(
     errors.push('RUNNER_VERSION_MISMATCH')
   }
 
+  const replayPlanDigest = evidenceReplayPlanDigest(evidence.records)
+  const replayApproved = options.approvedReplayPlanDigest === replayPlanDigest
+  if (!replayApproved) {
+    errors.push(`EVIDENCE_REPLAY_APPROVAL_REQUIRED:${replayPlanDigest}`)
+  }
+
   const recordOrder = evidence.records.map((record) => record.acceptanceId)
   if (JSON.stringify(recordOrder) !== JSON.stringify(options.requiredAcceptanceIds)) {
     errors.push('RECORD_ORDER_MISMATCH')
@@ -304,12 +355,12 @@ export function verifyEvidence(
       errors.push(`REQUIRED_GATE_FAILED:${record.acceptanceId}`)
     }
 
-    const artifactError = verifyRawArtifact(
+    errors.push(...verifyRawArtifact(
       record,
       options.artifactRoot,
       options.expectedRunnerVersion,
-    )
-    if (artifactError) errors.push(artifactError)
+      replayApproved ? (options.commandExecutor ?? executeCommand) : undefined,
+    ))
 
     const requiredKind = options.requiredEvidenceKinds[record.acceptanceId]
     if (requiredKind && record.evidenceKind !== requiredKind) {

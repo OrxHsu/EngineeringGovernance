@@ -87,9 +87,15 @@ and production. One kind cannot be relabeled as another.
 
 Imported local execution evidence must use a supported machine format. The
 default format is a `task execute` receipt produced by the pinned runner from
-one exact executable invocation without a shell. Candidate verification rejects
-a caller-authored pass list, recomputes the receipt digest, and requires exact
-command, timing, exit, runner, commit, tree, and repository-set equality.
+one exact executable invocation without a shell. The runner derives the single
+check identity from the normalized executable, arguments, and working directory;
+callers cannot name checks. Candidate verification rejects a caller-authored
+pass list and recomputes the receipt digest. It reports a canonical replay-plan
+digest before executing anything and freshly replays the exact local command
+only after the caller explicitly approves that digest. Verification then
+requires exact command, timing, exit, runner, commit, tree, and
+repository-set equality. A non-replayable external result needs a separately
+supported adapter and cannot be relabeled as a local command receipt.
 
 The implementation identity and optional evidence-closure identity are separate.
 An evidence-only closure commit may change only contract-allowlisted evidence or
@@ -101,6 +107,11 @@ requiring final HEAD to equal the earlier implementation commit.
 An R2/R3 reviewer inspects actual commits, diffs, files, repository state, and
 fresh evidence. The reviewer does not trust the implementation report and does
 not edit the candidate.
+
+Candidate and review binding uses the canonical structured-document digest, so
+formatting-only changes do not alter identity while semantic changes do. The
+accepted review and closure also bind the exact approved replay-plan digest.
+Closure artifact references additionally bind exact file bytes with SHA-256.
 
 A review decision is ACCEPTED or REPAIR_REQUIRED. Findings are ordered by
 severity and classified as:

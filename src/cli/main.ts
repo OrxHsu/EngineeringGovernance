@@ -94,10 +94,16 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
     })
   task.command('verify')
     .requiredOption('--input <path>')
-    .action((options: { input: string }) => {
+    .option('--approve-replay <digest>')
+    .action((options: { input: string; approveReplay?: string }) => {
       writeJson(
         output,
-        verifyCandidateEligibility(structuredFile<CandidateEligibilityInput>(options.input)),
+        verifyCandidateEligibility(
+          structuredFile<CandidateEligibilityInput>(options.input),
+          options.approveReplay === undefined
+            ? {}
+            : { evidenceReplayPlanDigest: options.approveReplay },
+        ),
       )
     })
   task.command('execute')

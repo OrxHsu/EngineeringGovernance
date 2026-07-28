@@ -16,6 +16,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { planAdoption } from '../../src/commands/adopt.js'
 import { applyAdoption } from '../../src/commands/init.js'
+import { canonicalDigest } from '../../src/model/digest.js'
 import { testRunnerBundle } from '../helpers/runner-bundle.js'
 
 const temporaryDirectories: string[] = []
@@ -35,6 +36,7 @@ interface CandidateState {
   verification: Record<string, unknown>
   identities: Array<{ repository: string; commit: string; tree: string }>
   taskRoot: string
+  replayPlanDigest: string
 }
 
 function sha256(input: string): string {
@@ -112,7 +114,6 @@ function closeEvidence(options: {
   const execution = runInput(['task', 'execute'], {
     schemaVersion: 1,
     runId: options.runId,
-    checkIds: [options.checkId],
     command: {
       executable: process.execPath,
       arguments: ['-e', `process.stdout.write(${JSON.stringify(`${options.checkId} passed\n`)})`],
@@ -127,6 +128,7 @@ function closeEvidence(options: {
     startedAt: string
     endedAt: string
     exitCode: number
+    checks: Array<{ id: string; status: 'passed' | 'failed' }>
   }
   const evidencePath = join(taskRoot, `evidence-${options.runId}.json`)
   const identities = [{
@@ -148,7 +150,7 @@ function closeEvidence(options: {
     records: [{
       acceptanceId: options.acceptanceId,
       runId: options.runId,
-      executedCheckIds: [options.checkId],
+      executedCheckIds: executionArtifact.checks.map((check) => check.id),
       command: executionArtifact.command,
       exitCode: executionArtifact.exitCode,
       startedAt: executionArtifact.startedAt,
@@ -173,6 +175,10 @@ function closeEvidence(options: {
     closureCommit,
     identities,
     taskRoot,
+    replayPlanDigest: canonicalDigest([{
+      acceptanceId: options.acceptanceId,
+      command: executionArtifact.command,
+    }]),
     verification: {
       contractPath,
       evidencePath,
@@ -227,7 +233,8 @@ function writeReview(options: {
     schemaVersion: 1,
     taskId: contract.taskId,
     contractDigest: contract.contractDigest,
-    candidateDigest: sha256(readFileSync(options.candidatePath, 'utf8')),
+    candidateDigest: canonicalDigest(JSON.parse(readFileSync(options.candidatePath, 'utf8'))),
+    replayPlanDigest: options.state.replayPlanDigest,
     reviewedImplementation: options.state.identities,
     reviewer: options.reviewer,
     decision: options.decision,
@@ -300,7 +307,15 @@ describe('real CLI workflow pilots', () => {
       evidenceKind: 'integration',
     })
     const firstCandidatePath = writeCandidate(firstCandidate, 'R2')
-    const candidate = runCli(['task', 'verify', '--input', firstCandidatePath])
+    const unapprovedCandidate = runCli(['task', 'verify', '--input', firstCandidatePath])
+    expect(unapprovedCandidate.status).not.toBe(0)
+    expect(unapprovedCandidate.json.errors).toContain(
+      `EVIDENCE_REPLAY_APPROVAL_REQUIRED:${firstCandidate.replayPlanDigest}`,
+    )
+    const candidate = runCli([
+      'task', 'verify', '--input', firstCandidatePath,
+      '--approve-replay', firstCandidate.replayPlanDigest,
+    ])
     expect(candidate.status, candidate.stderr).toBe(0)
 
     const selfReviewPath = writeReview({
@@ -313,6 +328,7 @@ describe('real CLI workflow pilots', () => {
     const selfReview = runInput(['task', 'review'], {
       candidatePath: firstCandidatePath,
       reviewPath: selfReviewPath,
+      replayPlanDigest: firstCandidate.replayPlanDigest,
     }, project)
     expect(selfReview.status).not.toBe(0)
     expect(selfReview.json.errors).toContain('INDEPENDENT_REVIEW_REQUIRED')
@@ -332,6 +348,7 @@ describe('real CLI workflow pilots', () => {
     const repairReview = runInput(['task', 'review'], {
       candidatePath: firstCandidatePath,
       reviewPath: repairReviewPath,
+      replayPlanDigest: firstCandidate.replayPlanDigest,
     }, project)
     expect(repairReview.status).not.toBe(0)
     expect(repairReview.json.errors).toContain('BLOCKING_FINDING:R2-F-01')
@@ -349,7 +366,10 @@ describe('real CLI workflow pilots', () => {
       evidenceKind: 'integration',
     })
     const repairedCandidatePath = writeCandidate(repairedCandidate, 'R2')
-    const repairedVerification = runCli(['task', 'verify', '--input', repairedCandidatePath])
+    const repairedVerification = runCli([
+      'task', 'verify', '--input', repairedCandidatePath,
+      '--approve-replay', repairedCandidate.replayPlanDigest,
+    ])
     expect(repairedVerification.status, repairedVerification.stderr).toBe(0)
 
     const acceptedReviewPath = writeReview({
@@ -359,16 +379,39 @@ describe('real CLI workflow pilots', () => {
       decision: 'ACCEPTED',
       findings: [],
     })
+    const wrongReplayReview = runInput(['task', 'review'], {
+      candidatePath: repairedCandidatePath,
+      reviewPath: acceptedReviewPath,
+      replayPlanDigest: 'f'.repeat(64),
+    }, project)
+    expect(wrongReplayReview.status).not.toBe(0)
+    expect(wrongReplayReview.json.errors).toContain(
+      `CANDIDATE_INVALID:EVIDENCE_REPLAY_APPROVAL_REQUIRED:${repairedCandidate.replayPlanDigest}`,
+    )
+    expect(wrongReplayReview.json.errors).toContain('REVIEW_REPLAY_PLAN_MISMATCH')
     const acceptedReview = runInput(['task', 'review'], {
       candidatePath: repairedCandidatePath,
       reviewPath: acceptedReviewPath,
+      replayPlanDigest: repairedCandidate.replayPlanDigest,
     }, project)
     expect(acceptedReview.status, acceptedReview.stderr).toBe(0)
     const candidateBytes = readFileSync(repairedCandidatePath, 'utf8')
     write(repairedCandidatePath, `${candidateBytes}\n`)
+    const reformattedCandidateReview = runInput(['task', 'review'], {
+      candidatePath: repairedCandidatePath,
+      reviewPath: acceptedReviewPath,
+      replayPlanDigest: repairedCandidate.replayPlanDigest,
+    }, project)
+    expect(reformattedCandidateReview.status, reformattedCandidateReview.stderr).toBe(0)
+    write(repairedCandidatePath, candidateBytes)
+
+    const candidateDocument = JSON.parse(candidateBytes) as { authorizationApproved: boolean }
+    candidateDocument.authorizationApproved = true
+    write(repairedCandidatePath, `${JSON.stringify(candidateDocument, null, 2)}\n`)
     const driftedCandidateReview = runInput(['task', 'review'], {
       candidatePath: repairedCandidatePath,
       reviewPath: acceptedReviewPath,
+      replayPlanDigest: repairedCandidate.replayPlanDigest,
     }, project)
     expect(driftedCandidateReview.status).not.toBe(0)
     expect(driftedCandidateReview.json.errors).toContain('REVIEW_CANDIDATE_DIGEST_MISMATCH')
@@ -383,6 +426,7 @@ describe('real CLI workflow pilots', () => {
     const driftedIdentityReview = runInput(['task', 'review'], {
       candidatePath: repairedCandidatePath,
       reviewPath: acceptedReviewPath,
+      replayPlanDigest: repairedCandidate.replayPlanDigest,
     }, project)
     expect(driftedIdentityReview.status).not.toBe(0)
     expect(driftedIdentityReview.json.errors).toContain(
@@ -405,6 +449,7 @@ describe('real CLI workflow pilots', () => {
       taskId: contract.taskId,
       contractDigest: contract.contractDigest,
       state: 'ACCEPTED',
+      replayPlanDigest: repairedCandidate.replayPlanDigest,
       candidate: {
         path: repairedCandidatePath,
         sha256: sha256(readFileSync(repairedCandidatePath, 'utf8')),
@@ -461,14 +506,15 @@ describe('real CLI workflow pilots', () => {
       requestedAuthorizationScope: ['temporary-project:r3-pilot'],
     }
 
-    const missing = runInput(['task', 'verify'], {
+    const replayCommand = ['task', 'verify', '--approve-replay', candidateState.replayPlanDigest]
+    const missing = runInput(replayCommand, {
       ...base,
       authorizationApproved: false,
     }, project)
     expect(missing.status).not.toBe(0)
     expect(missing.json.errors).toContain('USER_AUTHORIZATION_REQUIRED')
 
-    const booleanOnly = runInput(['task', 'verify'], {
+    const booleanOnly = runInput(replayCommand, {
       ...base,
       authorizationApproved: true,
     }, project)
@@ -482,14 +528,14 @@ describe('real CLI workflow pilots', () => {
     const authorizationNow = Date.now()
     authorization.issuedAt = new Date(authorizationNow - 60_000).toISOString()
     authorization.expiresAt = new Date(authorizationNow + 60_000).toISOString()
-    const scoped = runInput(['task', 'verify'], {
+    const scoped = runInput(replayCommand, {
       ...base,
       authorizationApproved: true,
       authorization,
     }, project)
     expect(scoped.status, scoped.stderr).toBe(0)
 
-    const drifted = runInput(['task', 'verify'], {
+    const drifted = runInput(replayCommand, {
       ...base,
       authorizationApproved: true,
       authorization,
@@ -498,7 +544,7 @@ describe('real CLI workflow pilots', () => {
     expect(drifted.status).not.toBe(0)
     expect(drifted.json.errors).toContain('AUTHORIZATION_SCOPE_MISMATCH')
 
-    const callerControlledClock = runInput(['task', 'verify'], {
+    const callerControlledClock = runInput(replayCommand, {
       ...base,
       authorizationApproved: true,
       authorization,
@@ -509,7 +555,7 @@ describe('real CLI workflow pilots', () => {
       'AUTHORIZATION_CHECK_TIME_CALLER_CONTROLLED',
     )
 
-    const expired = runInput(['task', 'verify'], {
+    const expired = runInput(replayCommand, {
       ...base,
       authorizationApproved: true,
       authorization: {

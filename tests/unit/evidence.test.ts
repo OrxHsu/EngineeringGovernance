@@ -4,6 +4,9 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 import { verifyEvidence } from '../../src/evidence/verify.js'
+import { canonicalDigest } from '../../src/model/digest.js'
+
+const fixtureCommand = { executable: 'pnpm', arguments: ['test'], cwd: '/tmp/project' }
 
 async function fixture(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(
@@ -25,6 +28,8 @@ const options = {
   verificationTime: new Date('2026-07-29T00:05:00Z'),
   maxEvidenceAgeMs: 10 * 60 * 1000,
   artifactRoot: fileURLToPath(new URL('../fixtures/evidence', import.meta.url)),
+  approvedReplayPlanDigest: canonicalDigest([{ acceptanceId: 'AC-01', command: fixtureCommand }]),
+  commandExecutor: () => ({ exitCode: 0, stdout: 'fresh pass\n', stderr: '' }),
 }
 
 describe('evidence verification', () => {
@@ -34,6 +39,23 @@ describe('evidence verification', () => {
       errors: [],
       passedIds: ['AC-01'],
     })
+  })
+
+  it('does not execute an unapproved replay plan', async () => {
+    let executions = 0
+    const result = verifyEvidence(await fixture(), {
+      ...options,
+      approvedReplayPlanDigest: undefined,
+      commandExecutor: () => {
+        executions += 1
+        return { exitCode: 0, stdout: 'fresh pass\n', stderr: '' }
+      },
+    })
+
+    expect(result.errors).toContain(
+      `EVIDENCE_REPLAY_APPROVAL_REQUIRED:${options.approvedReplayPlanDigest}`,
+    )
+    expect(executions).toBe(0)
   })
 
   it('rejects empty and partial records', async () => {

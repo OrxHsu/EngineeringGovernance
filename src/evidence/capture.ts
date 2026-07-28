@@ -3,16 +3,18 @@ import { existsSync, lstatSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 import { governanceIdentity } from '../commands/adopt.js'
+import { canonicalDigest } from '../model/digest.js'
+
+export interface ExactCommand {
+  executable: string
+  arguments: string[]
+  cwd: string
+}
 
 export interface CommandExecutionInput {
   schemaVersion: 1
   runId: string
-  checkIds: string[]
-  command: {
-    executable: string
-    arguments: string[]
-    cwd: string
-  }
+  command: ExactCommand
   outputPath: string
 }
 
@@ -21,7 +23,7 @@ export interface CommandExecutionArtifact {
   artifactType: 'sop-command-execution-v1'
   producer: { name: '@xgh/engineering-governance'; version: string }
   runId: string
-  command: { executable: string; arguments: string[]; cwd: string }
+  command: ExactCommand
   startedAt: string
   endedAt: string
   exitCode: number
@@ -31,11 +33,15 @@ export interface CommandExecutionArtifact {
   stderr: string
 }
 
+export function commandCheckId(command: ExactCommand): string {
+  return `command:${canonicalDigest(command)}`
+}
+
 export function captureCommandExecution(input: CommandExecutionInput): CommandExecutionArtifact {
   if (input.schemaVersion !== 1) throw new Error('COMMAND_EXECUTION_SCHEMA_INVALID')
   if (input.runId.trim().length === 0) throw new Error('COMMAND_EXECUTION_RUN_ID_REQUIRED')
-  if (input.checkIds.length === 0 || new Set(input.checkIds).size !== input.checkIds.length) {
-    throw new Error('COMMAND_EXECUTION_CHECK_IDS_INVALID')
+  if (Object.hasOwn(input, 'checkIds')) {
+    throw new Error('COMMAND_EXECUTION_CHECK_IDS_CALLER_CONTROLLED')
   }
   if (input.command.executable.trim().length === 0) {
     throw new Error('COMMAND_EXECUTION_EXECUTABLE_REQUIRED')
@@ -76,10 +82,10 @@ export function captureCommandExecution(input: CommandExecutionInput): CommandEx
     endedAt,
     exitCode,
     environment: { node: process.versions.node, platform: process.platform, arch: process.arch },
-    checks: input.checkIds.map((id) => ({
-      id,
+    checks: [{
+      id: commandCheckId(command),
       status: exitCode === 0 ? 'passed' : 'failed',
-    })),
+    }],
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? result.error?.message ?? '',
   }

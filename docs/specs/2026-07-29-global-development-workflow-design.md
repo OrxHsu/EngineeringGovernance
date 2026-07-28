@@ -365,15 +365,20 @@ Behavioral requirements:
 - `upgrade` previews policy and adapter changes before mutation.
 - `task start` classifies risk, establishes ownership, and creates only the
   artifacts required for that risk.
-- `task execute` runs one exact executable without a shell and writes a
-  runner-produced receipt with command, environment, timing, exit status,
-  stdout, stderr, and executed check IDs.
+- `task execute` runs one exact executable without a shell, derives one check ID
+  from the normalized executable, arguments, and working directory, and writes
+  a runner-produced receipt with command, environment, timing, exit status,
+  stdout, and stderr. Callers cannot declare executed check IDs.
 - `task verify` imports only supported receipts, rejects handwritten PASS lists,
-  and derives candidate status from exact contract, commit, tree, and Git-set
-  equality.
+  and first reports a canonical digest of the exact local replay plan without
+  executing it. Only an explicit caller approval of that exact digest permits
+  fresh replay. Candidate status then derives from the replay plus exact
+  contract, commit, tree, and Git-set equality. Non-replayable external results
+  require a distinct supported adapter.
 - `task review` reads the candidate and review artifacts, revalidates candidate
-  eligibility, and binds the decision to the candidate digest plus the complete
-  implementation identity set.
+  eligibility, and binds the decision to the canonical structured candidate
+  digest, approved replay-plan digest, and complete implementation identity set.
+  Formatting-only changes preserve the candidate digest; semantic changes do not.
 - `task close` reads a closure artifact and refuses closure unless its candidate,
   accepted review, adopted-project status, status-artifact digests, and next
   action agree.

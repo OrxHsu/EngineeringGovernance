@@ -6,6 +6,7 @@ import { parse } from 'yaml'
 import type { Risk, ValidationResult } from '../model/types.js'
 import { validateDocument } from '../policy/load.js'
 import { validateAcceptanceAuthority } from '../state/transitions.js'
+import { canonicalDigest } from '../model/digest.js'
 import { verifyCandidateEligibility, type CandidateEligibilityInput } from './task-verify.js'
 
 interface ReviewDocument {
@@ -13,6 +14,7 @@ interface ReviewDocument {
   taskId: string
   contractDigest: string
   candidateDigest: string
+  replayPlanDigest?: string
   reviewedImplementation: Array<{ repository: string; commit: string; tree: string }>
   reviewer: string
   decision: 'ACCEPTED' | 'REPAIR_REQUIRED'
@@ -31,6 +33,7 @@ interface ContractDocument {
 export interface ReviewEligibilityInput {
   candidatePath: string
   reviewPath: string
+  replayPlanDigest: string
 }
 
 function digest(content: string | Uint8Array): string {
@@ -58,10 +61,8 @@ function sameIdentities(
 export function verifyReviewEligibility(input: ReviewEligibilityInput): ValidationResult {
   const errors: string[] = []
   let candidate: CandidateEligibilityInput
-  let candidateRaw: Buffer
   try {
     const loaded = readStructured(input.candidatePath)
-    candidateRaw = loaded.raw
     candidate = loaded.value as CandidateEligibilityInput
   } catch {
     return { valid: false, errors: ['CANDIDATE_FILE_UNREADABLE'] }
@@ -74,7 +75,9 @@ export function verifyReviewEligibility(input: ReviewEligibilityInput): Validati
       errors: candidateSchema.errors.map((error) => `CANDIDATE_SCHEMA_INVALID:${error}`),
     }
   }
-  const candidateDecision = verifyCandidateEligibility(candidate)
+  const candidateDecision = verifyCandidateEligibility(candidate, {
+    evidenceReplayPlanDigest: input.replayPlanDigest,
+  })
   errors.push(...candidateDecision.errors.map((error) => `CANDIDATE_INVALID:${error}`))
   if (candidate.verification === undefined) {
     errors.push('CANDIDATE_VERIFICATION_REQUIRED')
@@ -104,7 +107,12 @@ export function verifyReviewEligibility(input: ReviewEligibilityInput): Validati
 
   if (review.taskId !== contract.taskId) errors.push('REVIEW_TASK_ID_MISMATCH')
   if (review.contractDigest !== contract.contractDigest) errors.push('REVIEW_CONTRACT_MISMATCH')
-  if (review.candidateDigest !== digest(candidateRaw)) errors.push('REVIEW_CANDIDATE_DIGEST_MISMATCH')
+  if (review.candidateDigest !== canonicalDigest(candidate)) {
+    errors.push('REVIEW_CANDIDATE_DIGEST_MISMATCH')
+  }
+  if (review.replayPlanDigest !== input.replayPlanDigest) {
+    errors.push('REVIEW_REPLAY_PLAN_MISMATCH')
+  }
   if (!sameIdentities(
     review.reviewedImplementation,
     candidate.verification.expectedImplementationIdentities,

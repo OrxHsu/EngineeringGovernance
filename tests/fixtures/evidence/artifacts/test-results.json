@@ -21,7 +21,7 @@
   },
   "checks": [
     {
-      "id": "test:ac-01",
+      "id": "command:449a73afca01e45f852ad3a8db7e0cbb7e0bafbcc99728e0c7eff20f55c6eda3",
       "status": "passed"
     }
   ],

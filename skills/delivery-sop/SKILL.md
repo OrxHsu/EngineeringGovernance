@@ -38,12 +38,20 @@ restate or invent global policy in this Skill.
    by its frozen contract.
 2. Capture supported local execution evidence with
    `~/.codex/bin/sop task execute --input <absolute-input-path>`; name one exact
-   executable and argument vector and do not use a shell.
+   executable and argument vector, omit caller-defined check IDs, and do not use
+   a shell. The runner derives the command check identity.
 3. Evaluate candidate eligibility with
-   `~/.codex/bin/sop task verify --input <absolute-input-path>`.
+   `~/.codex/bin/sop task verify --input <absolute-input-path>`. The first call
+   reports the exact replay-plan digest and executes nothing. Inspect every
+   command, then rerun with `--approve-replay <exact-digest>` only when all are
+   safe verification gates rather than deploy, migration, or other mutation
+   actions.
 4. For an independent review, point the eligibility input to both the candidate
    and review artifacts, then evaluate it with
    `~/.codex/bin/sop task review --input <absolute-input-path>`.
+   The eligibility input and review artifact bind that same approved replay-plan
+   digest. Review artifacts also bind the canonical structured candidate digest;
+   closure artifact references separately bind exact file bytes.
 5. If repair is required, return one consolidated finding set to the recorded
    implementation owner and preserve the same contract.
 6. Evaluate closure with `~/.codex/bin/sop task close --input <absolute-input-path>`.

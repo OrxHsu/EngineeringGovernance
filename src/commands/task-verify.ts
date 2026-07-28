@@ -46,6 +46,7 @@ export interface CandidateEligibilityInput {
 export interface CandidateVerificationContext {
   authorizationCheckTime?: Date
   evidenceVerificationTime?: Date
+  evidenceReplayPlanDigest?: string
 }
 
 const maximumEvidenceAgeMs = 24 * 60 * 60 * 1000
@@ -185,6 +186,9 @@ function verifyCandidateArtifacts(
       maximumEvidenceAgeMs,
     ),
     artifactRoot: input.artifactRoot,
+    ...(context.evidenceReplayPlanDigest === undefined
+      ? {}
+      : { approvedReplayPlanDigest: context.evidenceReplayPlanDigest }),
   }
   errors.push(...verifyEvidence(evidence, evidenceOptions).errors)
 

@@ -97,6 +97,7 @@ describe('workflow document schemas', () => {
       taskId: 'task-1',
       contractDigest: 'b'.repeat(64),
       candidateDigest: 'a'.repeat(64),
+      replayPlanDigest: 'f'.repeat(64),
       reviewedImplementation: [{
         repository: 'repo',
         commit: 'c'.repeat(40),

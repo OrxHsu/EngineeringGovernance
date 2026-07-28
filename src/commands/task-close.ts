@@ -18,6 +18,7 @@ interface ClosureDocument {
   taskId: string
   contractDigest: string
   state: 'ACCEPTED'
+  replayPlanDigest: string
   candidate: ClosureArtifactReference
   review: ClosureArtifactReference
   projectPath: string
@@ -83,6 +84,7 @@ export function verifyCloseEligibility(input: CloseEligibilityInput): Validation
     errors.push(...verifyReviewEligibility({
       candidatePath: closure.candidate.path,
       reviewPath: closure.review.path,
+      replayPlanDigest: closure.replayPlanDigest,
     }).errors.map((error) => `REVIEW_INVALID:${error}`))
   }
 

@@ -15,7 +15,7 @@
     {
       "acceptanceId": "AC-01",
       "runId": "run-1",
-      "executedCheckIds": ["test:ac-01"],
+      "executedCheckIds": ["command:449a73afca01e45f852ad3a8db7e0cbb7e0bafbcc99728e0c7eff20f55c6eda3"],
       "command": {
         "executable": "pnpm",
         "arguments": ["test"],
@@ -34,7 +34,7 @@
       ],
       "rawArtifact": {
         "path": "artifacts/test-results.json",
-        "sha256": "40b2202e7a6e3308c0108c95e4d6e9d172029a496f83a0ec5fd104c615f4618f",
+        "sha256": "aa8d73b3f85abdea2e6853bff510789c135a21bddcfbd033833087cb80b397c8",
         "format": "sop-command-execution-v1"
       },
       "observation": "Named test executed successfully."

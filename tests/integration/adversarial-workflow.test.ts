@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { verifyReviewEligibility } from '../../src/commands/task-review.js'
 import { verifyEvidence } from '../../src/evidence/verify.js'
+import { canonicalDigest } from '../../src/model/digest.js'
 import { validateException } from '../../src/policy/exceptions.js'
 import { applyPlannedWrites } from '../../src/project/mutate.js'
 
@@ -37,6 +38,11 @@ function options(requiredAcceptanceIds = ['AC-01']) {
     verificationTime: new Date('2026-07-29T00:05:00Z'),
     maxEvidenceAgeMs: 10 * 60 * 1000,
     artifactRoot: fixtureRoot,
+    approvedReplayPlanDigest: canonicalDigest([{
+      acceptanceId: 'AC-01',
+      command: { executable: 'pnpm', arguments: ['test'], cwd: '/tmp/project' },
+    }]),
+    commandExecutor: () => ({ exitCode: 0, stdout: 'fresh pass\n', stderr: '' }),
   }
 }
 
