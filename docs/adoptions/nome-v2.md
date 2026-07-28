@@ -5,11 +5,11 @@ Date: 2026-07-29
 
 ## Candidate
 
-- Governance implementation commit: `da5f19434740defa76c02ea74a3eed6f7d342266`
-- SOP version: `0.1.0-dev`
-- SOP digest: `e0242ef38e3d6e5c7bd537fa81108e1a20d7eb7417861e2383c3ec442af74c53`
-- Runner digest: `b541e925883d8f859bdc59db358ca626f5578b2d327d5e30575478ca49c26d41`
-- Reviewed dry-run digest: `ce56c5af73450c3d31d5f1aea85133f89da0951809055fbddf241141857b4778`
+- Governance implementation commit: `39b2779fc0eed177e50e99a9899fcc3eb10dc996`
+- SOP version: `1.0.0`
+- SOP digest: `1557528236249c720f98df759ac7830364c6127348a7ca2fde12dd7aba3f2722`
+- Runner digest: `125cef7acb5aefe2958b708dc228b1a65cccd1af9e874f4ee37c6c84eb786535`
+- Reviewed `1.0.0` upgrade dry-run digest: `fd75c324233559d59b40c2c45a69ddeab2db9cee06c17b3846599ffd6ca4672f`
 
 ## Authority map
 
@@ -25,19 +25,26 @@ Date: 2026-07-29
 - No NoMe Codex task was active; listed NoMe tasks were idle or not loaded.
 - The Qoder desktop process was running, but no managed-path overlap was present. Exact before-digest checks remained the final write guard.
 
-## Applied commit
+## Applied commits
 
-- `f54cbd116e2f19d9bb9c28b86d62125e474084dd`
+- Initial development adoption: `f54cbd116e2f19d9bb9c28b86d62125e474084dd`
+- `1.0.0` upgrade: `f6abdd615726e3c8b643afd672090c12beab52f1`
 
 Only `AGENTS.md` and the planned `.delivery` files were staged. During the adoption window an additional untracked acceptance file appeared under `Docs/acceptance/`; it was outside the managed scope and remains untracked.
 
 ## Verification
 
 - `.delivery/bin/check-delivery-policy.sh`: `{ "valid": true, "errors": [] }` before and after commit
-- `scripts/quick-check.sh`: `BUILD SUCCEEDED` using the project-defined `generic/platform=iOS` compile-only path
-- The repository pre-commit hook independently reran its compile check and passed.
+- The clean `42e93643` source plus governance upgrade was generated with XcodeGen
+  and compiled using `generic/platform=iOS`: `BUILD SUCCEEDED`.
+- The main worktree's concurrent WoMe candidate currently fails compilation
+  because two new Swift files are untracked and therefore absent from the
+  generated Xcode project. That separate business-worktree failure was not
+  hidden, repaired, staged, or included in the governance commit.
 - No Simulator or device was enumerated, launched, or used. No runtime/unit/UI test, deployment, push, or external operation was performed.
 
 ## Remaining gate
 
-An independent reviewer must inspect commit `f54cbd1` and fresh verification before this R3 adoption can be called independently accepted. Runtime/UI evidence remains outside this governance-only change.
+An independent reviewer must inspect commits `f54cbd1` and `f6abdd6` plus fresh
+verification before this R3 adoption can be called independently accepted.
+Runtime/UI evidence remains outside this governance-only change.

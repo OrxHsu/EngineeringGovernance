@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "runId": "global-workflow-repair-20260728T2117Z",
+  "checks": [
+    { "id": "contract-digest-validation", "status": "passed" },
+    { "id": "raw-execution-record-validation", "status": "passed" },
+    { "id": "evidence-kind-validation", "status": "passed" },
+    { "id": "git-implementation-tree-validation", "status": "passed" },
+    { "id": "evidence-closure-path-validation", "status": "passed" },
+    { "id": "adversarial-evidence-rejection", "status": "passed" }
+  ]
+}

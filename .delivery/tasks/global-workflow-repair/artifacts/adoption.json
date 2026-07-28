@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "runId": "global-workflow-repair-20260728T2117Z",
+  "checks": [
+    { "id": "real-project-adoption-dry-runs", "status": "passed" },
+    { "id": "projtrav-docs-sync", "status": "passed" },
+    { "id": "projtrav-physical-catalog", "status": "passed" },
+    { "id": "projtrav-entity-manifest", "status": "passed" },
+    { "id": "projtrav-pinned-runner", "status": "passed" },
+    { "id": "nome-pinned-runner", "status": "passed" },
+    { "id": "nome-clean-head-generic-ios-compile", "status": "passed" },
+    { "id": "unrelated-worktree-changes-preserved", "status": "passed" }
+  ]
+}

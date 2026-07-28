@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "runId": "global-workflow-repair-20260728T2117Z",
+  "checks": [
+    { "id": "cli-invalid-decision-exits-nonzero", "status": "passed" },
+    { "id": "portable-gate-drift-exits-nonzero", "status": "passed" },
+    { "id": "project-check-drift-exits-nonzero", "status": "passed" }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "runId": "global-workflow-repair-20260728T2117Z",
+  "checks": [
+    { "id": "r1-real-cli-pilot", "status": "passed" },
+    { "id": "r2-repair-independent-review-pilot", "status": "passed" },
+    { "id": "r3-scoped-authorization-pilot", "status": "passed" }
+  ]
+}

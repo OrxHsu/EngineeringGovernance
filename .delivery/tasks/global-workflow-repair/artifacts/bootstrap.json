@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "runId": "global-workflow-repair-20260728T2117Z",
+  "checks": [
+    { "id": "isolated-home-global-plan", "status": "passed" },
+    { "id": "isolated-home-global-apply", "status": "passed" },
+    { "id": "isolated-home-global-check", "status": "passed" },
+    { "id": "candidate-root-launcher-override", "status": "passed" },
+    { "id": "real-home-global-dry-run", "status": "passed" },
+    { "id": "dirty-managed-path-rejection", "status": "passed" }
+  ]
+}

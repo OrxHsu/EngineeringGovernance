@@ -5,11 +5,11 @@ Date: 2026-07-29
 
 ## Candidate
 
-- Governance implementation commit: `da5f19434740defa76c02ea74a3eed6f7d342266`
-- SOP version: `0.1.0-dev`
-- SOP digest: `e0242ef38e3d6e5c7bd537fa81108e1a20d7eb7417861e2383c3ec442af74c53`
-- Runner digest: `b541e925883d8f859bdc59db358ca626f5578b2d327d5e30575478ca49c26d41`
-- Reviewed dry-run digest: `e2c77cee8e54b307e18a8956db3e33dafa81aa42b82985ab04d508bbf6860b56`
+- Governance implementation commit: `39b2779fc0eed177e50e99a9899fcc3eb10dc996`
+- SOP version: `1.0.0`
+- SOP digest: `1557528236249c720f98df759ac7830364c6127348a7ca2fde12dd7aba3f2722`
+- Runner digest: `125cef7acb5aefe2958b708dc228b1a65cccd1af9e874f4ee37c6c84eb786535`
+- Reviewed `1.0.0` upgrade dry-run digest: `d4e36fdef7820cd2c03f4e2381704f3f1004d2c74ec986036b5875b32b27fca4`
 
 ## Authority map
 
@@ -33,9 +33,14 @@ Date: 2026-07-29
 
 ## Applied commits
 
-- Workspace: `a70b6b2c3327fdc47671f4c9d2c31ecbe0d5511b`
-- Server: `ec3d882fb318567ccb207537f0fb1b3db5ed9894`
-- iOS: `c19f9b858bee75e886c9d002a843ed4b5b888870`
+- Initial development adoption:
+  - Workspace: `a70b6b2c3327fdc47671f4c9d2c31ecbe0d5511b`
+  - Server: `ec3d882fb318567ccb207537f0fb1b3db5ed9894`
+  - iOS: `c19f9b858bee75e886c9d002a843ed4b5b888870`
+- `1.0.0` upgrade:
+  - Workspace: `872ddb4e15247a17d3141b455a59aac3ee5e60b8`
+  - Server: `47754d1e14b2ea37521db282cc1e0488fe0c7d9c`
+  - iOS: `59d9d20de0ca5aea389c3363499e6d3b81c7bb94`
 
 Only the planned governance files and generated adapters were staged. The pre-existing handoff and untracked files remain outside these commits.
 
@@ -50,4 +55,6 @@ Only the planned governance files and generated adapters were staged. The pre-ex
 
 ## Remaining gate
 
-An independent reviewer must inspect the exact three commits and fresh verification before this R3 adoption can be called independently accepted.
+An independent reviewer must inspect the exact cumulative adoption and `1.0.0`
+upgrade commits plus fresh verification before this R3 adoption can be called
+independently accepted.

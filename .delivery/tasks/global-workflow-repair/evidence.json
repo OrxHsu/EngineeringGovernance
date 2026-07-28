@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "taskId": "global-workflow-repair",
+  "contractDigest": "29398532b2deb3c9c2a50605f5dd1cf4e8324ea217b31c3d59f9e8a3d04df66a",
+  "runId": "global-workflow-repair-20260728T2117Z",
+  "runnerVersion": "1.0.0",
+  "implementationCommits": [
+    {
+      "repository": "engineering-governance",
+      "commit": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
+      "tree": "29ebde267820bc7c71a0bed24b7fafa3a1b6320d"
+    },
+    {
+      "repository": "projtrav-v1",
+      "commit": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+      "tree": "76731a8ace4f3d1c0171ea59eb5d08dec7c1fd7d"
+    },
+    {
+      "repository": "projtrav-server",
+      "commit": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+      "tree": "abd884bfc83735179b8954e302e908a2764c8ec9"
+    },
+    {
+      "repository": "projtrav-ios",
+      "commit": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+      "tree": "1fd4d398fbe84f1c1f479f86aea611aad3b88d5b"
+    },
+    {
+      "repository": "nome-v2",
+      "commit": "f6abdd615726e3c8b643afd672090c12beab52f1",
+      "tree": "90065e96257244a543df9be2c2e34450bd866f6c"
+    }
+  ],
+  "records": [
+    {
+      "acceptanceId": "GW-EXIT-01",
+      "runId": "global-workflow-repair-20260728T2117Z",
+      "executedCheckIds": [
+        "cli-invalid-decision-exits-nonzero",
+        "portable-gate-drift-exits-nonzero",
+        "project-check-drift-exits-nonzero"
+      ],
+      "command": "PATH=/opt/homebrew/opt/node@22/bin:$PATH pnpm check",
+      "exitCode": 0,
+      "startedAt": "2026-07-28T21:15:35Z",
+      "endedAt": "2026-07-28T21:15:52Z",
+      "evidenceKind": "integration",
+      "implementationIdentities": {
+        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
+        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+      },
+      "rawArtifact": {
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/exit-behavior.json",
+        "sha256": "3e5328dacd6dc6c64c26293d1abeedb10eada3514859f45b2dadd1c1192cb391"
+      },
+      "observation": "The Node 22 full suite exercised fail-closed CLI, project, and portable-gate paths; all required checks passed."
+    },
+    {
+      "acceptanceId": "GW-EVIDENCE-01",
+      "runId": "global-workflow-repair-20260728T2117Z",
+      "executedCheckIds": [
+        "contract-digest-validation",
+        "raw-execution-record-validation",
+        "evidence-kind-validation",
+        "git-implementation-tree-validation",
+        "evidence-closure-path-validation",
+        "adversarial-evidence-rejection"
+      ],
+      "command": "PATH=/opt/homebrew/opt/node@22/bin:$PATH pnpm check",
+      "exitCode": 0,
+      "startedAt": "2026-07-28T21:15:35Z",
+      "endedAt": "2026-07-28T21:15:52Z",
+      "evidenceKind": "integration",
+      "implementationIdentities": {
+        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
+        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+      },
+      "rawArtifact": {
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/evidence-validation.json",
+        "sha256": "643019d4de201ea9b231b1077adf54e29691fa63e5630d019cd1a5b012eefd37"
+      },
+      "observation": "Contract, raw execution, evidence kind, Git identity, closure-path, and adversarial mutation verification passed."
+    },
+    {
+      "acceptanceId": "GW-BOOTSTRAP-01",
+      "runId": "global-workflow-repair-20260728T2117Z",
+      "executedCheckIds": [
+        "isolated-home-global-plan",
+        "isolated-home-global-apply",
+        "isolated-home-global-check",
+        "candidate-root-launcher-override",
+        "real-home-global-dry-run",
+        "dirty-managed-path-rejection"
+      ],
+      "command": "sop global install/check in isolated HOME; launcher with ENGINEERING_GOVERNANCE_ROOT; real HOME dry-run only",
+      "exitCode": 0,
+      "startedAt": "2026-07-28T21:13:30Z",
+      "endedAt": "2026-07-28T21:15:20Z",
+      "evidenceKind": "integration",
+      "implementationIdentities": {
+        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
+        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+      },
+      "rawArtifact": {
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/bootstrap.json",
+        "sha256": "8e0aaa3c67b4acb2324dfe653af651c96517fdeb3112e99c7ebad5c05eda8bc5"
+      },
+      "observation": "Digest-confirmed isolated installation and check passed; the launcher executed against the candidate root, while the real home remained dry-run only."
+    },
+    {
+      "acceptanceId": "GW-ADOPT-01",
+      "runId": "global-workflow-repair-20260728T2117Z",
+      "executedCheckIds": [
+        "real-project-adoption-dry-runs",
+        "projtrav-docs-sync",
+        "projtrav-physical-catalog",
+        "projtrav-entity-manifest",
+        "projtrav-pinned-runner",
+        "nome-pinned-runner",
+        "nome-clean-head-generic-ios-compile",
+        "unrelated-worktree-changes-preserved"
+      ],
+      "command": "real project dry-run test plus project-native sync, catalog, manifest, pinned-runner, and compile-only checks",
+      "exitCode": 0,
+      "startedAt": "2026-07-28T21:06:30Z",
+      "endedAt": "2026-07-28T21:16:09Z",
+      "evidenceKind": "integration",
+      "implementationIdentities": {
+        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
+        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+      },
+      "rawArtifact": {
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/adoption.json",
+        "sha256": "01e8912ce9d8448eae5376808e4a0c6698dbe06e5050dfe2b2185785e2905116"
+      },
+      "observation": "ProjTrav and NoMe were upgraded through authority-aware plans, native checks passed, and unrelated dirty or untracked paths remained outside governance commits."
+    },
+    {
+      "acceptanceId": "GW-PILOT-01",
+      "runId": "global-workflow-repair-20260728T2117Z",
+      "executedCheckIds": [
+        "r1-real-cli-pilot",
+        "r2-repair-independent-review-pilot",
+        "r3-scoped-authorization-pilot"
+      ],
+      "command": "PATH=/opt/homebrew/opt/node@22/bin:$PATH pnpm vitest run tests/integration/pilots.test.ts",
+      "exitCode": 0,
+      "startedAt": "2026-07-28T21:15:35Z",
+      "endedAt": "2026-07-28T21:15:52Z",
+      "evidenceKind": "integration",
+      "implementationIdentities": {
+        "engineering-governance": "39b2779fc0eed177e50e99a9899fcc3eb10dc996",
+        "projtrav-v1": "872ddb4e15247a17d3141b455a59aac3ee5e60b8",
+        "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "nome-v2": "f6abdd615726e3c8b643afd672090c12beab52f1"
+      },
+      "rawArtifact": {
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/pilots.json",
+        "sha256": "8e62ada90a782d86cc9b69a1ae930be09c0f94e6c5de977ce2cf328f3010b783"
+      },
+      "observation": "R1, R2 repair and independent-review enforcement, and R3 scoped-authorization pilots all passed through real CLI processes."
+    }
+  ],
+  "summary": {
+    "passedIds": [
+      "GW-EXIT-01",
+      "GW-EVIDENCE-01",
+      "GW-BOOTSTRAP-01",
+      "GW-ADOPT-01",
+      "GW-PILOT-01"
+    ],
+    "failedIds": []
+  }
+}

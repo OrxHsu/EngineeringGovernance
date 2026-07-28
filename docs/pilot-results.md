@@ -2,7 +2,7 @@
 
 Status: passed on implementation candidate; independent candidate review pending
 Date: 2026-07-29
-Candidate base: `da5f19434740defa76c02ea74a3eed6f7d342266`
+Candidate base: `39b2779fc0eed177e50e99a9899fcc3eb10dc996`
 
 ## Execution
 
@@ -42,6 +42,21 @@ The reviewer identity in this automated pilot tests authority enforcement. It is
 - An authorization checked at its expiry boundary was rejected with `AUTHORIZATION_EXPIRED`.
 
 No production system, external service, deployment, database, Simulator, or physical device was touched.
+
+## Candidate-wide verification
+
+- Node 22 `pnpm check`: 24 test files passed, 1 environment-gated test skipped;
+  94 tests passed, 1 skipped; typecheck, build, placeholder, and license checks
+  passed.
+- `REAL_PROJECT_DRY_RUN=1` real-project integration: 1/1 passed against the
+  current ProjTrav and NoMe repositories without mutation.
+- Project-pinned runner checks passed for EngineeringGovernance, ProjTrav, and
+  NoMe.
+- A digest-confirmed global install and check passed in an isolated HOME.
+- The installed launcher executed successfully when
+  `ENGINEERING_GOVERNANCE_ROOT` named the candidate worktree.
+- The real user HOME global install remained dry-run only. The launcher's
+  default main-repository path is intentionally pending merge.
 
 ## Remaining gate
 
