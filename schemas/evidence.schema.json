@@ -29,9 +29,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["acceptanceId", "executedCheckIds", "command", "exitCode", "startedAt", "endedAt", "evidenceKind", "implementationIdentities", "rawArtifact", "observation"],
+        "required": ["acceptanceId", "runId", "executedCheckIds", "command", "exitCode", "startedAt", "endedAt", "evidenceKind", "implementationIdentities", "rawArtifact", "observation"],
         "properties": {
           "acceptanceId": { "type": "string", "minLength": 1 },
+          "runId": { "type": "string", "minLength": 1 },
           "executedCheckIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
           "command": { "type": "string", "minLength": 1 },
           "exitCode": { "type": "integer" },

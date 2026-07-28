@@ -70,6 +70,7 @@ describe('workflow document schemas', () => {
       implementationCommits: [{ repository: 'repo', commit: 'c'.repeat(40), tree: 'd'.repeat(40) }],
       records: [{
         acceptanceId: 'AC-01',
+        runId: 'run-1',
         executedCheckIds: ['test:ac-01'],
         command: 'pnpm test',
         exitCode: 0,

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task-1",
+  "contractDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "runId": "run-1",
+  "implementationCommits": [
+    {
+      "repository": "repo",
+      "commit": "cccccccccccccccccccccccccccccccccccccccc",
+      "tree": "dddddddddddddddddddddddddddddddddddddddd"
+    }
+  ],
+  "records": [
+    {
+      "acceptanceId": "AC-01",
+      "runId": "run-1",
+      "executedCheckIds": ["test:ac-01"],
+      "command": "pnpm test",
+      "exitCode": 0,
+      "startedAt": "2026-07-29T00:00:00Z",
+      "endedAt": "2026-07-29T00:00:01Z",
+      "evidenceKind": "unit",
+      "implementationIdentities": {
+        "repo": "cccccccccccccccccccccccccccccccccccccccc"
+      },
+      "rawArtifact": {
+        "path": "artifacts/test.json",
+        "sha256": "e5f1eb4d806641698a35efe20e098efd20d7d57a9b90ee69079d5bb650920726"
+      },
+      "observation": "Named test executed successfully."
+    }
+  ],
+  "summary": {
+    "passedIds": ["AC-01"],
+    "failedIds": []
+  }
+}
