@@ -110,6 +110,8 @@ function closeEvidence(options: {
   const artifactPath = join(taskRoot, 'artifacts', `${options.runId}.json`)
   write(artifactPath, rawArtifact)
   const evidencePath = join(taskRoot, 'evidence.json')
+  const evidenceEndedAt = new Date()
+  const evidenceStartedAt = new Date(evidenceEndedAt.getTime() - 1_000)
   write(evidencePath, `${JSON.stringify({
     schemaVersion: 1,
     taskId: options.taskId,
@@ -127,8 +129,8 @@ function closeEvidence(options: {
       executedCheckIds: [options.checkId],
       command: options.checkId,
       exitCode: 0,
-      startedAt: '2026-07-29T00:10:00Z',
-      endedAt: '2026-07-29T00:10:01Z',
+      startedAt: evidenceStartedAt.toISOString(),
+      endedAt: evidenceEndedAt.toISOString(),
       evidenceKind: options.evidenceKind,
       implementationIdentities: { 'pilot-repo': options.implementationCommit },
       rawArtifact: {
@@ -152,7 +154,6 @@ function closeEvidence(options: {
       artifactRoot: options.repositoryPath,
       requiredEvidenceKinds: { [options.acceptanceId]: options.evidenceKind },
       expectedImplementationIdentities: { 'pilot-repo': options.implementationCommit },
-      verificationTime: '2026-07-29T00:15:00Z',
       maxEvidenceAgeMs: 10 * 60 * 1000,
       gitIdentities: [{
         repository: options.repositoryPath,
@@ -309,7 +310,6 @@ describe('real CLI workflow pilots', () => {
       authorizationRequired: true,
       verification: candidateState.verification,
       requestedAuthorizationScope: ['temporary-project:r3-pilot'],
-      authorizationCheckTime: '2026-07-29T00:30:00Z',
     }
 
     const missing = runInput(['task', 'verify'], {
@@ -330,6 +330,9 @@ describe('real CLI workflow pilots', () => {
       'tests/pilots/r3-authorization/authorization.json',
       'utf8',
     )) as Record<string, unknown>
+    const authorizationNow = Date.now()
+    authorization.issuedAt = new Date(authorizationNow - 60_000).toISOString()
+    authorization.expiresAt = new Date(authorizationNow + 60_000).toISOString()
     const scoped = runInput(['task', 'verify'], {
       ...base,
       authorizationApproved: true,
@@ -346,11 +349,25 @@ describe('real CLI workflow pilots', () => {
     expect(drifted.status).not.toBe(0)
     expect(drifted.json.errors).toContain('AUTHORIZATION_SCOPE_MISMATCH')
 
-    const expired = runInput(['task', 'verify'], {
+    const callerControlledClock = runInput(['task', 'verify'], {
       ...base,
       authorizationApproved: true,
       authorization,
       authorizationCheckTime: '2026-07-29T01:00:00Z',
+    }, project)
+    expect(callerControlledClock.status).not.toBe(0)
+    expect(callerControlledClock.json.errors).toContain(
+      'AUTHORIZATION_CHECK_TIME_CALLER_CONTROLLED',
+    )
+
+    const expired = runInput(['task', 'verify'], {
+      ...base,
+      authorizationApproved: true,
+      authorization: {
+        ...authorization,
+        issuedAt: new Date(authorizationNow - 120_000).toISOString(),
+        expiresAt: new Date(authorizationNow - 60_000).toISOString(),
+      },
     }, project)
     expect(expired.status).not.toBe(0)
     expect(expired.json.errors).toContain('AUTHORIZATION_EXPIRED')

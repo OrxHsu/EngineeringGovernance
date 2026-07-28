@@ -18,7 +18,6 @@ interface CandidateVerificationInput {
   artifactRoot: string
   requiredEvidenceKinds: Record<string, EvidenceKind>
   expectedImplementationIdentities: Record<string, string>
-  verificationTime: string
   maxEvidenceAgeMs: number
   gitIdentities: GitIdentityInput[]
 }
@@ -41,20 +40,32 @@ export interface CandidateEligibilityInput {
   verification?: CandidateVerificationInput
   authorization?: CandidateAuthorizationInput
   requestedAuthorizationScope?: string[]
-  authorizationCheckTime?: string
 }
+
+export interface CandidateVerificationContext {
+  authorizationCheckTime?: Date
+  evidenceVerificationTime?: Date
+}
+
+const maximumEvidenceAgeMs = 24 * 60 * 60 * 1000
 
 function sameScope(left: string[], right: string[]): boolean {
   const canonical = (values: string[]): string[] => [...new Set(values)].sort()
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right))
 }
 
-function verifyAuthorization(input: CandidateEligibilityInput): string[] {
+function verifyAuthorization(
+  input: CandidateEligibilityInput,
+  context: CandidateVerificationContext,
+): string[] {
   if (!input.authorizationRequired) return []
-  if (!input.authorizationApproved) return ['USER_AUTHORIZATION_REQUIRED']
-  if (input.authorization === undefined) return ['AUTHORIZATION_RECORD_REQUIRED']
-
   const errors: string[] = []
+  if (Object.hasOwn(input, 'authorizationCheckTime')) {
+    errors.push('AUTHORIZATION_CHECK_TIME_CALLER_CONTROLLED')
+  }
+  if (!input.authorizationApproved) return [...errors, 'USER_AUTHORIZATION_REQUIRED']
+  if (input.authorization === undefined) return [...errors, 'AUTHORIZATION_RECORD_REQUIRED']
+
   const schema = validateDocument('authorization', input.authorization)
   if (!schema.valid) {
     errors.push(...schema.errors.map((error) => `AUTHORIZATION_SCHEMA_INVALID:${error}`))
@@ -69,11 +80,7 @@ function verifyAuthorization(input: CandidateEligibilityInput): string[] {
     errors.push('AUTHORIZATION_SCOPE_MISMATCH')
   }
 
-  if (input.authorizationCheckTime === undefined) {
-    errors.push('AUTHORIZATION_CHECK_TIME_REQUIRED')
-    return errors
-  }
-  const checkTime = Date.parse(input.authorizationCheckTime)
+  const checkTime = (context.authorizationCheckTime ?? new Date()).getTime()
   const issuedAt = Date.parse(input.authorization.issuedAt)
   const expiresAt = Date.parse(input.authorization.expiresAt)
   if (
@@ -101,8 +108,19 @@ interface TaskContractDocument {
 function verifyCandidateArtifacts(
   risk: Risk,
   input: CandidateVerificationInput,
+  context: CandidateVerificationContext,
 ): string[] {
   const errors: string[] = []
+  if (Object.hasOwn(input, 'verificationTime')) {
+    errors.push('EVIDENCE_VERIFICATION_TIME_CALLER_CONTROLLED')
+  }
+  if (
+    !Number.isInteger(input.maxEvidenceAgeMs)
+    || input.maxEvidenceAgeMs <= 0
+    || input.maxEvidenceAgeMs > maximumEvidenceAgeMs
+  ) {
+    errors.push('EVIDENCE_MAX_AGE_EXCEEDS_POLICY')
+  }
   let contract: TaskContractDocument
   try {
     contract = parse(readFileSync(input.contractPath, 'utf8')) as TaskContractDocument
@@ -137,7 +155,7 @@ function verifyCandidateArtifacts(
     errors.push('EVIDENCE_FILE_UNREADABLE')
     return errors
   }
-  const verificationTime = new Date(input.verificationTime)
+  const verificationTime = context.evidenceVerificationTime ?? new Date()
   if (!Number.isFinite(verificationTime.getTime())) {
     errors.push('VERIFICATION_TIME_INVALID')
     return errors
@@ -149,7 +167,10 @@ function verifyCandidateArtifacts(
     requiredEvidenceKinds: input.requiredEvidenceKinds,
     expectedRunnerVersion: contract.sopVersion,
     verificationTime,
-    maxEvidenceAgeMs: input.maxEvidenceAgeMs,
+    maxEvidenceAgeMs: Math.min(
+      Math.max(input.maxEvidenceAgeMs, 1),
+      maximumEvidenceAgeMs,
+    ),
     artifactRoot: input.artifactRoot,
   }
   errors.push(...verifyEvidence(evidence, evidenceOptions).errors)
@@ -161,16 +182,19 @@ function verifyCandidateArtifacts(
   return errors
 }
 
-export function verifyCandidateEligibility(input: CandidateEligibilityInput): ValidationResult {
+export function verifyCandidateEligibility(
+  input: CandidateEligibilityInput,
+  context: CandidateVerificationContext = {},
+): ValidationResult {
   const errors = [...(input.requiredGateErrors ?? [])]
   if (input.risk === 'R2' || input.risk === 'R3') {
     if (input.verification === undefined) {
       errors.push('CANDIDATE_VERIFICATION_REQUIRED')
     } else {
-      errors.push(...verifyCandidateArtifacts(input.risk, input.verification))
+      errors.push(...verifyCandidateArtifacts(input.risk, input.verification, context))
     }
   }
-  errors.push(...verifyAuthorization(input))
+  errors.push(...verifyAuthorization(input, context))
   const uniqueErrors = [...new Set(errors)].sort()
   return { valid: uniqueErrors.length === 0, errors: uniqueErrors }
 }

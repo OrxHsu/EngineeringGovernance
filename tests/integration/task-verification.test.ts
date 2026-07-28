@@ -30,6 +30,7 @@ function candidate(): {
   input: Parameters<typeof verifyCandidateEligibility>[0]
   artifactPath: string
   evidencePath: string
+  verificationTime: Date
 } {
   const repository = mkdtempSync(join(tmpdir(), 'sop-candidate-'))
   temporaryDirectories.push(repository)
@@ -120,7 +121,6 @@ function candidate(): {
         artifactRoot: repository,
         requiredEvidenceKinds: { 'AC-01': 'unit' },
         expectedImplementationIdentities: { repo: implementationCommit },
-        verificationTime: '2026-07-29T00:05:00Z',
         maxEvidenceAgeMs: 10 * 60 * 1000,
         gitIdentities: [{
           repository,
@@ -131,12 +131,14 @@ function candidate(): {
         }],
       },
     },
+    verificationTime: new Date('2026-07-29T00:05:00Z'),
   }
 }
 
 it('verifies R2 evidence and Git identity instead of trusting caller summaries', () => {
   const fixture = candidate()
-  expect(verifyCandidateEligibility(fixture.input)).toEqual({ valid: true, errors: [] })
+  const context = { evidenceVerificationTime: fixture.verificationTime }
+  expect(verifyCandidateEligibility(fixture.input, context)).toEqual({ valid: true, errors: [] })
 
   const forgedArtifact = '{"ok":true}\n'
   writeFileSync(fixture.artifactPath, forgedArtifact)
@@ -146,7 +148,20 @@ it('verifies R2 evidence and Git identity instead of trusting caller summaries',
   evidence.records[0]!.rawArtifact.sha256 = sha256(forgedArtifact)
   writeFileSync(fixture.evidencePath, `${JSON.stringify(evidence, null, 2)}\n`)
 
-  expect(verifyCandidateEligibility(fixture.input).errors).toContain(
+  expect(verifyCandidateEligibility(fixture.input, context).errors).toContain(
     'RAW_ARTIFACT_FORMAT_INVALID:AC-01',
   )
+})
+
+it('rejects caller-controlled evidence time and unbounded freshness windows', () => {
+  const fixture = candidate()
+  const verification = fixture.input.verification as unknown as Record<string, unknown>
+  verification.verificationTime = '2026-07-29T00:05:00Z'
+  verification.maxEvidenceAgeMs = 7 * 24 * 60 * 60 * 1000
+
+  const errors = verifyCandidateEligibility(fixture.input, {
+    evidenceVerificationTime: fixture.verificationTime,
+  }).errors
+  expect(errors).toContain('EVIDENCE_VERIFICATION_TIME_CALLER_CONTROLLED')
+  expect(errors).toContain('EVIDENCE_MAX_AGE_EXCEEDS_POLICY')
 })

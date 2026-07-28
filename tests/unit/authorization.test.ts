@@ -19,9 +19,8 @@ function decision(overrides: Record<string, unknown> = {}) {
     authorizationApproved: true,
     authorization: approvedAuthorization,
     requestedAuthorizationScope: ['temporary-project:r3-pilot'],
-    authorizationCheckTime: '2026-07-29T00:30:00Z',
     ...overrides,
-  })
+  }, { authorizationCheckTime: new Date('2026-07-29T00:30:00Z') })
 }
 
 describe('scoped user authorization', () => {
@@ -33,11 +32,23 @@ describe('scoped user authorization', () => {
     expect(decision({ authorization: undefined }).errors).toContain(
       'AUTHORIZATION_RECORD_REQUIRED',
     )
-    expect(decision({ authorizationCheckTime: '2026-07-29T01:00:00Z' }).errors).toContain(
+    expect(verifyCandidateEligibility({
+      risk: 'R1',
+      authorizationRequired: true,
+      authorizationApproved: true,
+      authorization: approvedAuthorization,
+      requestedAuthorizationScope: ['temporary-project:r3-pilot'],
+    }, { authorizationCheckTime: new Date('2026-07-29T01:00:00Z') }).errors).toContain(
       'AUTHORIZATION_EXPIRED',
     )
     expect(decision({
       requestedAuthorizationScope: ['temporary-project:other'],
     }).errors).toContain('AUTHORIZATION_SCOPE_MISMATCH')
+  })
+
+  it('rejects a caller-controlled authorization clock', () => {
+    expect(decision({ authorizationCheckTime: '2026-07-29T00:30:00Z' }).errors).toContain(
+      'AUTHORIZATION_CHECK_TIME_CALLER_CONTROLLED',
+    )
   })
 })
