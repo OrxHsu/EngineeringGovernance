@@ -1,0 +1,24 @@
+taskId: pilot-r3-authorization
+implementationOwner: codex-pilot
+objective: Prove a temporary high-risk action requires exact active user authorization.
+scope:
+  - temporary-target.txt
+nonGoals:
+  - production mutation
+authorityInputs:
+  - pilot-contract
+acceptance:
+  - id: R3-AC-01
+    observation: The authorized temporary-target check executes successfully.
+    positiveCases:
+      - exact active authorization scope
+    negativeCases:
+      - missing authorization
+      - expired authorization
+      - different target scope
+requiredGates:
+  - check:r3-temporary-target
+openChoices:
+  - temporary file content
+signals:
+  production: true

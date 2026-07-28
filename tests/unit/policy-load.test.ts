@@ -108,6 +108,15 @@ describe('workflow document schemas', () => {
       status: 'active',
       compensatingControls: ['manual independent review'],
     }],
+    ['authorization', {
+      schemaVersion: 1,
+      authorizationId: 'AUTH-1',
+      approvedBy: 'user',
+      issuedAt: '2026-07-29T00:00:00Z',
+      expiresAt: '2026-07-29T01:00:00Z',
+      scope: ['temporary-project:r3-pilot'],
+      status: 'approved',
+    }],
   ] as const)('accepts a minimal valid %s document', (kind, input) => {
     expect(validateDocument(kind, input)).toEqual({ valid: true, errors: [] })
   })

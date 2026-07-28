@@ -17,6 +17,7 @@ export type DocumentKind =
   | 'evidence'
   | 'review'
   | 'exception'
+  | 'authorization'
 
 export interface ValidationResult {
   valid: boolean

@@ -1,0 +1,22 @@
+taskId: pilot-r2-review
+implementationOwner: codex-pilot
+objective: Repair a cross-boundary candidate and require independent acceptance.
+scope:
+  - boundary.txt
+nonGoals:
+  - deployment
+authorityInputs:
+  - pilot-contract
+acceptance:
+  - id: R2-AC-01
+    observation: The repaired boundary check executes successfully.
+    positiveCases:
+      - repaired candidate
+    negativeCases:
+      - cross-boundary violation
+requiredGates:
+  - check:r2-boundary
+openChoices:
+  - repair wording
+signals:
+  crossModule: true

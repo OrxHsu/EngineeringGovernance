@@ -23,12 +23,71 @@ interface CandidateVerificationInput {
   gitIdentities: GitIdentityInput[]
 }
 
+interface CandidateAuthorizationInput {
+  schemaVersion: 1
+  authorizationId: string
+  approvedBy: 'user'
+  issuedAt: string
+  expiresAt: string
+  scope: string[]
+  status: 'approved'
+}
+
 export interface CandidateEligibilityInput {
   risk: Risk
   requiredGateErrors?: string[]
   authorizationRequired: boolean
   authorizationApproved: boolean
   verification?: CandidateVerificationInput
+  authorization?: CandidateAuthorizationInput
+  requestedAuthorizationScope?: string[]
+  authorizationCheckTime?: string
+}
+
+function sameScope(left: string[], right: string[]): boolean {
+  const canonical = (values: string[]): string[] => [...new Set(values)].sort()
+  return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right))
+}
+
+function verifyAuthorization(input: CandidateEligibilityInput): string[] {
+  if (!input.authorizationRequired) return []
+  if (!input.authorizationApproved) return ['USER_AUTHORIZATION_REQUIRED']
+  if (input.authorization === undefined) return ['AUTHORIZATION_RECORD_REQUIRED']
+
+  const errors: string[] = []
+  const schema = validateDocument('authorization', input.authorization)
+  if (!schema.valid) {
+    errors.push(...schema.errors.map((error) => `AUTHORIZATION_SCHEMA_INVALID:${error}`))
+    return errors
+  }
+  if (
+    input.requestedAuthorizationScope === undefined
+    || input.requestedAuthorizationScope.length === 0
+  ) {
+    errors.push('AUTHORIZATION_SCOPE_REQUIRED')
+  } else if (!sameScope(input.authorization.scope, input.requestedAuthorizationScope)) {
+    errors.push('AUTHORIZATION_SCOPE_MISMATCH')
+  }
+
+  if (input.authorizationCheckTime === undefined) {
+    errors.push('AUTHORIZATION_CHECK_TIME_REQUIRED')
+    return errors
+  }
+  const checkTime = Date.parse(input.authorizationCheckTime)
+  const issuedAt = Date.parse(input.authorization.issuedAt)
+  const expiresAt = Date.parse(input.authorization.expiresAt)
+  if (
+    !Number.isFinite(checkTime)
+    || !Number.isFinite(issuedAt)
+    || !Number.isFinite(expiresAt)
+    || issuedAt >= expiresAt
+  ) {
+    errors.push('AUTHORIZATION_TIME_RANGE_INVALID')
+  } else {
+    if (checkTime < issuedAt) errors.push('AUTHORIZATION_NOT_YET_VALID')
+    if (checkTime >= expiresAt) errors.push('AUTHORIZATION_EXPIRED')
+  }
+  return errors
 }
 
 interface TaskContractDocument {
@@ -111,9 +170,7 @@ export function verifyCandidateEligibility(input: CandidateEligibilityInput): Va
       errors.push(...verifyCandidateArtifacts(input.risk, input.verification))
     }
   }
-  if (input.authorizationRequired && !input.authorizationApproved) {
-    errors.push('USER_AUTHORIZATION_REQUIRED')
-  }
+  errors.push(...verifyAuthorization(input))
   const uniqueErrors = [...new Set(errors)].sort()
   return { valid: uniqueErrors.length === 0, errors: uniqueErrors }
 }

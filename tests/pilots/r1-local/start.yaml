@@ -1,0 +1,24 @@
+taskId: pilot-r1-local
+implementationOwner: codex-pilot
+objective: Make one local reversible behavior change with a fresh test.
+scope:
+  - behavior.mjs
+  - behavior.test.mjs
+nonGoals:
+  - deployment
+authorityInputs:
+  - pilot-contract
+acceptance:
+  - id: R1-AC-01
+    observation: The named Node test executes successfully.
+    positiveCases:
+      - expected local behavior
+    negativeCases:
+      - incorrect local behavior
+requiredGates:
+  - node --test behavior.test.mjs
+openChoices:
+  - local function name
+signals:
+  localEdit: true
+  classificationComplete: true

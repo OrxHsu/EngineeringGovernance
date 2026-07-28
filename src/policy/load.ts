@@ -11,6 +11,7 @@ const schemaPaths: Record<DocumentKind, URL> = {
   evidence: new URL('../../schemas/evidence.schema.json', import.meta.url),
   review: new URL('../../schemas/review.schema.json', import.meta.url),
   exception: new URL('../../schemas/exception.schema.json', import.meta.url),
+  authorization: new URL('../../schemas/authorization.schema.json', import.meta.url),
 }
 
 const ajv = new Ajv2020({ allErrors: true, strict: true })

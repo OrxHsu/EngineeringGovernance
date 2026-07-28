@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "authorizationId": "AUTH-R3-PILOT-1",
+  "approvedBy": "user",
+  "issuedAt": "2026-07-29T00:00:00Z",
+  "expiresAt": "2026-07-29T01:00:00Z",
+  "scope": ["temporary-project:r3-pilot"],
+  "status": "approved"
+}
