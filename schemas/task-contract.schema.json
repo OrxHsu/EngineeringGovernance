@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/task-contract.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "sopVersion", "contractDigest", "risk", "state", "implementationOwner", "objective", "scope", "nonGoals", "authorityInputs", "acceptance", "requiredGates", "openChoices"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "taskId": { "type": "string", "minLength": 1 },
+    "sopVersion": { "type": "string", "minLength": 1 },
+    "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "risk": { "enum": ["R0", "R1", "R2", "R3"] },
+    "state": { "enum": ["DEFINED", "IN_PROGRESS", "CANDIDATE", "ACCEPTED", "CLOSED", "REPAIR_REQUIRED", "BLOCKED", "CANCELLED", "SUPERSEDED"] },
+    "implementationOwner": { "type": "string", "minLength": 1 },
+    "objective": { "type": "string", "minLength": 1 },
+    "scope": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "nonGoals": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "authorityInputs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "observation", "positiveCases", "negativeCases"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "observation": { "type": "string", "minLength": 1 },
+          "positiveCases": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "negativeCases": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "requiredGates": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "openChoices": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+  }
+}
