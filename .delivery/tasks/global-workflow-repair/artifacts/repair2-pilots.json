@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "sop-command-execution-v1",
+  "producer": {
+    "name": "@xgh/engineering-governance",
+    "version": "1.0.0"
+  },
+  "runId": "global-workflow-repair2-20260728T2218Z",
+  "command": {
+    "executable": "/opt/homebrew/bin/pnpm",
+    "arguments": [
+      "vitest",
+      "run",
+      "tests/integration/pilots.test.ts"
+    ],
+    "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
+  },
+  "startedAt": "2026-07-28T22:20:56.064Z",
+  "endedAt": "2026-07-28T22:21:08.187Z",
+  "exitCode": 0,
+  "environment": {
+    "node": "22.23.1",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "checks": [
+    {
+      "id": "r1-real-cli-pilot",
+      "status": "passed"
+    },
+    {
+      "id": "r2-artifact-bound-independent-review-pilot",
+      "status": "passed"
+    },
+    {
+      "id": "r2-digest-and-tree-drift-rejection",
+      "status": "passed"
+    },
+    {
+      "id": "r2-artifact-bound-closure-pilot",
+      "status": "passed"
+    },
+    {
+      "id": "r3-scoped-authorization-pilot",
+      "status": "passed"
+    }
+  ],
+  "stdout": "\n RUN  v3.2.4 /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n\n ✓ tests/integration/pilots.test.ts (3 tests) 11066ms\n   ✓ real CLI workflow pilots > keeps R1 lightweight while requiring a fresh local test  819ms\n   ✓ real CLI workflow pilots > forces R2 repair by the original owner before independent acceptance  7040ms\n   ✓ real CLI workflow pilots > keeps R3 blocked without an exact active scoped authorization  3206ms\n\n Test Files  1 passed (1)\n      Tests  3 passed (3)\n   Start at  06:20:56\n   Duration  11.50s (transform 115ms, setup 0ms, collect 169ms, tests 11.07s, environment 0ms, prepare 38ms)\n\n",
+  "stderr": ""
+}

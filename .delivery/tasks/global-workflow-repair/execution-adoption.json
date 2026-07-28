@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "runId": "global-workflow-repair2-20260728T2218Z",
+  "checkIds": [
+    "real-project-zero-mutation-dry-runs",
+    "projtrav-generated-target-plan",
+    "projtrav-three-repository-status-snapshot",
+    "nome-governance-boundary-snapshot"
+  ],
+  "command": {
+    "executable": "/usr/bin/env",
+    "arguments": [
+      "REAL_PROJECT_DRY_RUN=1",
+      "/opt/homebrew/bin/pnpm",
+      "vitest",
+      "run",
+      "tests/integration/real-project-dry-run.test.ts"
+    ],
+    "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
+  },
+  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair2-adoption.json"
+}

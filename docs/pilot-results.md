@@ -2,16 +2,16 @@
 
 Status: passed on implementation candidate; independent candidate review pending
 Date: 2026-07-29
-Candidate base: `db0c8c3c937ec28cda2dff52630b26ac8aab7ada`
+Candidate base: `5ee1a70bdbd32a5c5e9044c522757801e0d43df1`
 
 ## Candidate revision
 
-The earlier `39b2779` implementation / `072adba` evidence pair was superseded
-before independent review. A pre-handoff audit found that authorization and
-evidence verification clocks were caller-controlled, allowing expired approval
-or stale evidence to be replayed. Commit `481367f` moved both clocks to trusted
-process time, bounded evidence age to 24 hours, and added adversarial coverage;
-`db0c8c3` refreshed the pinned runner.
+The independent review of the preceding `db0c8c3` candidate returned
+`REPAIR_REQUIRED`. It found that evidence could still be authored as a PASS
+list, candidate/review/closure decisions trusted caller summaries, generated
+ProjTrav targets were absent from adoption guards, and the portable launcher
+could continue under unsupported Node versions. Commit `5ee1a70` repaired all
+four boundaries and added permanent adversarial coverage.
 
 ## Execution
 
@@ -33,7 +33,7 @@ Result: 3 pilot tests passed. Each pilot spawned the real `src/cli/main.ts` proc
 ## R2 review and repair pilot
 
 - `task start` derived `R2` and emitted a frozen contract.
-- A first implementation commit and evidence-only closure commit passed candidate artifact and Git identity verification.
+- A first implementation commit and evidence-only closure commit passed candidate artifact and exact Git commit/tree identity verification.
 - Self-review was rejected with `INDEPENDENT_REVIEW_REQUIRED`.
 - A distinct review identity reported `R2-F-01`; advancement was rejected with `BLOCKING_FINDING:R2-F-01`.
 - The original implementation owner created the repair commit, regenerated raw execution evidence, and created a new evidence-only closure commit.
@@ -57,8 +57,8 @@ No production system, external service, deployment, database, Simulator, or phys
 
 ## Candidate-wide verification
 
-- Node 22 `pnpm check`: 24 test files passed, 1 environment-gated test skipped;
-  96 tests passed, 1 skipped; typecheck, build, placeholder, and license checks
+- Node 22 `pnpm check`: 25 test files passed, 1 environment-gated test skipped;
+  102 tests passed, 1 skipped; typecheck, build, placeholder, and license checks
   passed.
 - `REAL_PROJECT_DRY_RUN=1` real-project integration: 1/1 passed against the
   current ProjTrav and NoMe repositories without mutation.
@@ -67,8 +67,13 @@ No production system, external service, deployment, database, Simulator, or phys
 - A digest-confirmed global install and check passed in an isolated HOME.
 - The installed launcher executed successfully when
   `ENGINEERING_GOVERNANCE_ROOT` named the candidate worktree.
-- The real user HOME global install remained dry-run only. The launcher's
-  default main-repository path is intentionally pending merge.
+- The real user HOME global install remained dry-run only. Plan digest
+  `4e53f7fa3a54f16878382a129e6e3395db37f3196015d74a66df6ddf6a1309d`
+  was recorded and every managed-path digest remained unchanged.
+- All acceptance observations are bound to runner-produced
+  `sop-command-execution-v1` receipts. Handwritten PASS lists, forged trees,
+  reduced repository identity sets, drifted candidate/review digests, and
+  incoherent closure inputs are rejected.
 
 ## Remaining gate
 

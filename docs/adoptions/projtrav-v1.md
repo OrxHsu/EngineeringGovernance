@@ -5,11 +5,11 @@ Date: 2026-07-29
 
 ## Candidate
 
-- Governance implementation commit: `db0c8c3c937ec28cda2dff52630b26ac8aab7ada`
+- Governance implementation commit: `5ee1a70bdbd32a5c5e9044c522757801e0d43df1`
+- Governance implementation tree: `25ba5efaaecf2a2ebdcd72e776d722035f22dce2`
 - SOP version: `1.0.0`
-- SOP digest: `1557528236249c720f98df759ac7830364c6127348a7ca2fde12dd7aba3f2722`
-- Runner digest: `47223a057538e057d7fa24a5164123a13f82a4a34a58ccef8829dece1456cc8e`
-- Reviewed final runner refresh dry-run digest: `484a8353f524cbb949eae5778cfd64aaa8aa6f4d525b29835b24401c1275ad1c`
+- SOP digest: `ea247f12a2f2cee2bcea67affd0f3e93fc9ee198ddd2036226015f10845ba26e`
+- Runner digest: `83aa693997938c9b2f01b12d81ea73af88dd227dd3701743de67052fcc8b985f`
 
 ## Authority map
 
@@ -43,6 +43,10 @@ Date: 2026-07-29
   - iOS: `59d9d20de0ca5aea389c3363499e6d3b81c7bb94`
 - Trusted-clock runner refresh:
   - Workspace: `63206f629a2e52154a5182efa67380ad9e62e711`
+- Artifact-binding and generated-target repair refresh:
+  - Workspace: `3ad83efe6ccc3c48a0404033388722d3a64f3de0`
+  - Server: `b6c58b35584353fe0b6badd38587ed743f667865`
+  - iOS: `ee7ab323d872c9bb39163236fec27282d997f6ad`
 
 Only the planned governance files and generated adapters were staged. The pre-existing handoff and untracked files remain outside these commits.
 
@@ -52,11 +56,12 @@ Only the planned governance files and generated adapters were staged. The pre-ex
 - `scripts/sync-docs.sh --check`: exit 0 before and after commits
 - `node scripts/generate-physical-catalog.mjs --check`: PASS, 233 tables, digest `69c77bf60898366e6ad4002f6b71ef62aca9ad9bfbc4c762c0946ef90789ce0c`
 - `node scripts/check-entity-contract-manifest.mjs --check`: PASS, 326 entities and 233 operations, digest `a9323f876740788f7dbf4e89cf5396810d525385238eae24a5523ba8ae0cf621`
-- `.delivery/bin/check-delivery-policy.sh`: `{ "valid": true, "errors": [] }` before and after commits
+- `.delivery/bin/check-delivery-policy.sh`: `{ "valid": true, "errors": [] }` after the final refresh in all three repositories
+- The fresh real-project dry-run recorded all five generated targets in the adoption plan, checked their owning-repository dirty state and before-digests, and observed zero mutation.
 - No Simulator, device enumeration, runtime test, database migration, deployment, push, or external operation was performed.
 
 ## Remaining gate
 
-An independent reviewer must inspect the exact cumulative adoption and `1.0.0`
-upgrade commits plus fresh verification before this R3 adoption can be called
-independently accepted.
+An independent reviewer must inspect the exact final commits and trees recorded
+in the repair candidate plus fresh machine execution receipts before this R3
+adoption can be called independently accepted.

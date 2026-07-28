@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "runId": "global-workflow-repair2-20260728T2218Z",
+  "checkIds": [
+    "isolated-home-plan-apply-check",
+    "real-home-dry-run",
+    "real-home-zero-mutation"
+  ],
+  "command": {
+    "executable": "/opt/homebrew/opt/node@22/bin/node",
+    "arguments": [
+      ".delivery/tasks/global-workflow-repair/artifacts/verify-bootstrap.mjs"
+    ],
+    "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
+  },
+  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair2-bootstrap.json"
+}

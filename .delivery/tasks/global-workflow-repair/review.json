@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "taskId": "global-workflow-repair",
+  "contractDigest": "29398532b2deb3c9c2a50605f5dd1cf4e8324ea217b31c3d59f9e8a3d04df66a",
+  "reviewedImplementation": [
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
+      "commit": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
+      "commit": "63206f629a2e52154a5182efa67380ad9e62e711"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
+      "commit": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
+      "commit": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
+      "commit": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
+    }
+  ],
+  "reviewer": "codex-independent-global-workflow-reviewer",
+  "decision": "REPAIR_REQUIRED",
+  "findings": [
+    {
+      "id": "GW-R3-F-001",
+      "severity": "P1",
+      "classification": "contract_violation",
+      "observation": "GW-EVIDENCE-01 is not enforced. src/evidence/verify.ts:47-50 and src/evidence/verify.ts:119-171 define a SHA-matching caller-authored list of {id,status} values as raw execution; the candidate artifact .delivery/tasks/global-workflow-repair/artifacts/evidence-validation.json:1-15 is exactly such a handwritten PASS list and contains neither environment identity nor observed command output. src/evidence/verify.ts:198-200 and src/evidence/verify.ts:251-258 compare commits but discard the recorded tree fields, while src/commands/task-verify.ts:178-181 verifies only whatever non-empty Git-identity subset the caller supplies. Fresh adversarial review retained valid:true after changing the EngineeringGovernance evidence tree to forty f characters and after reducing Git verification from five repositories to one. The real executions and the claimed absence of Simulator, device, runtime, or external mutation therefore cannot be independently established."
+    },
+    {
+      "id": "GW-R3-F-002",
+      "severity": "P1",
+      "classification": "contract_violation",
+      "observation": "GW-EXIT-01 and GW-PILOT-01 do not fail closed across review and closure. src/commands/task-review.ts:4-22 accepts only caller-supplied owner strings and blocking IDs; it does not load a review artifact, contract digest, candidate identities, finding classifications, or prior candidate decision. src/commands/task-close.ts:8-20 trusts caller-supplied state:ACCEPTED, projectStatusValid, and pending IDs, and src/cli/main.ts:102-110 exposes those artifact-free decisions directly. Fresh real-CLI checks returned exit 0 and valid:true for an arbitrary distinct R3 reviewer with no candidate and for a close request with no contract, evidence, or review. Incomplete evidence can therefore advance, and exact independent R2/R3 acceptance is not enforced."
+    },
+    {
+      "id": "GW-R3-F-003",
+      "severity": "P2",
+      "classification": "contract_violation",
+      "observation": "GW-ADOPT-01 does not cover the ProjTrav three-repository generated-target boundary. src/project/adoption-profile.ts:74-81 declares the server and iOS generated targets, but src/commands/adopt.ts:323-350 includes only adapter sources in the overlap guard and planned writes. tests/integration/real-project-dry-run.test.ts:37-47 likewise snapshots no projtrav-server or projtrav-ios generated target. A fresh ProjTrav-shaped repository with a dirty projtrav-server/AGENTS.md still produced a successful plan containing only root .delivery files and Docs rule sources, with no generated target operation. The frozen observation that three-repository targets are planned and overlapping dirty paths stop before writes is therefore not met; a later native sync can overwrite an unguarded concurrent target edit."
+    },
+    {
+      "id": "GW-R3-F-004",
+      "severity": "P2",
+      "classification": "newly_discovered_defect",
+      "observation": "The portable project gate reports compliance on an unsupported Node runtime. package.json:6-8 restricts the runner to Node 22, but templates/ci/check-delivery-policy.sh:67-70 invokes ambient npm and node without selecting or validating that runtime. A fresh pinned-policy check under the shell's Node 25.9.0 emitted npm EBADENGINE and then returned valid:true. The global launcher does prefer /opt/homebrew/opt/node@22/bin, but the portable gate does not, weakening clean-machine reproducibility and allowing runtime drift to pass silently."
+    }
+  ],
+  "nextStage": "REPAIR_REQUIRED -> IN_PROGRESS under the existing implementation owner codex. Repair the same frozen contract across the evidence/Git trust boundary, artifact-bound review and closure chain, ProjTrav generated-target planning and overlap guard, and portable Node runtime gate; regenerate fresh machine-derived evidence and exact candidate identities, then obtain a new independent R3 review before merge or any real global installation.",
+  "userActionRequired": false
+}
