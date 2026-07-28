@@ -1,6 +1,6 @@
 # Global Workflow Implementation Handoff
 
-Status: Review Pending
+Status: Independent Re-review Pending
 Updated: 2026-07-29
 Implementation owner: Codex in task `019fa9ea-1ddb-7513-a2df-05b5585c10ba`
 
@@ -14,57 +14,78 @@ push, deployment, migration, or external communication.
 - Frozen contract: `.delivery/tasks/global-workflow-repair/contract.yaml`
 - Contract digest: `29398532b2deb3c9c2a50605f5dd1cf4e8324ea217b31c3d59f9e8a3d04df66a`
 - Candidate input: `.delivery/tasks/global-workflow-repair/candidate.json`
+- Candidate digest: `bbcfd9aaae2f0d7c6ca554c975c5fff95d06d0046441e442059fc631b562d055`
 - Evidence: `.delivery/tasks/global-workflow-repair/evidence.json`
-- Implementation commit: `db0c8c3c937ec28cda2dff52630b26ac8aab7ada`
-- Evidence closure commit: `296943e110b349b162b2270375518504894ebe48`
-- Runner SHA-256: `47223a057538e057d7fa24a5164123a13f82a4a34a58ccef8829dece1456cc8e`
+- Historical repair-required review: `.delivery/tasks/global-workflow-repair/review.json`
+- New review output: `.delivery/tasks/global-workflow-repair/review-repair2.json`
+- Implementation commit: `5ee1a70bdbd32a5c5e9044c522757801e0d43df1`
+- Evidence closure commit: `9c30f40f5966c458780a478d18ffbc63dc5be1c4`
+- Governance digest: `ea247f12a2f2cee2bcea67affd0f3e93fc9ee198ddd2036226015f10845ba26e`
+- Runner SHA-256: `83aa693997938c9b2f01b12d81ea73af88dd227dd3701743de67052fcc8b985f`
 
 ## Exact cross-repository candidate
 
 | Repository | Commit | Tree |
 | --- | --- | --- |
-| EngineeringGovernance | `db0c8c3c937ec28cda2dff52630b26ac8aab7ada` | `aaa68cde65120143c6e46d54cc51ebecca7d88ee` |
-| ProjTrav workspace | `63206f629a2e52154a5182efa67380ad9e62e711` | `683dfa2e3e77c814946822d64352fab55296a3a5` |
-| ProjTrav server | `47754d1e14b2ea37521db282cc1e0488fe0c7d9c` | `abd884bfc83735179b8954e302e908a2764c8ec9` |
-| ProjTrav iOS | `59d9d20de0ca5aea389c3363499e6d3b81c7bb94` | `1fd4d398fbe84f1c1f479f86aea611aad3b88d5b` |
-| NoMe V2 | `f666e28bec149bc3bc9f91c83aa7aee888d1331d` | `c40766745807dd9d88888937bc1259cdf996a0c3` |
+| EngineeringGovernance | `5ee1a70bdbd32a5c5e9044c522757801e0d43df1` | `25ba5efaaecf2a2ebdcd72e776d722035f22dce2` |
+| ProjTrav workspace | `3ad83efe6ccc3c48a0404033388722d3a64f3de0` | `4dce6b5b05bc7812f54586ad76c073966b21f9aa` |
+| ProjTrav server | `b6c58b35584353fe0b6badd38587ed743f667865` | `342ea17f979f9b53998537b6c97815f26d8094ae` |
+| ProjTrav iOS | `ee7ab323d872c9bb39163236fec27282d997f6ad` | `819b73e7b63504d4b7e7e882e0d4a38e36466722` |
+| NoMe V2 | `2910996bf942ce1d5f06f62736d0a1bee9c92c5b` | `f737ae6e81eb12241f1c6961c454efb7e653deee` |
+
+## Prior review and repairs
+
+The first independent R3 review returned `REPAIR_REQUIRED`. The same frozen
+contract remained in force. Commit `5ee1a70` repaired the four findings:
+
+1. `GW-R3-F-001`: evidence is now runner-produced command execution data with
+   exact commit/tree sets; handwritten PASS lists, forged trees, and reduced
+   repository sets are rejected.
+2. `GW-R3-F-002`: review and closure now load and revalidate artifact chains,
+   candidate digests, reviewer independence, exact identities, status, and
+   next-action equality.
+3. `GW-R3-F-003`: ProjTrav generated adapters are planned and guarded in their
+   owning Git repositories, but remain sync-produced rather than directly
+   authored.
+4. `GW-R3-F-004`: the portable gate selects Node 22 from supported Homebrew
+   paths or exits 69 before npm under an unsupported ambient runtime.
 
 ## Fresh verification
 
-- Node 22 `pnpm check`: 24 test files passed, 1 skipped; 96 tests passed,
+- Node 22 `pnpm check`: 25 test files passed, 1 skipped; 102 tests passed,
   1 skipped; typecheck, build, placeholder, and license checks passed.
-- `REAL_PROJECT_DRY_RUN=1` integration: 1/1 passed without mutation.
-- EngineeringGovernance, ProjTrav, and NoMe pinned runner checks returned
-  `{ "valid": true, "errors": [] }`.
+- Focused artifact-binding suite: 8 tests passed.
+- R1/R2/R3 real-CLI pilots: 3/3 passed.
+- `REAL_PROJECT_DRY_RUN=1` integration: 1/1 passed without mutation and
+  included the five ProjTrav generated targets.
 - ProjTrav docs sync passed; physical catalog passed with 233 tables and digest
   `69c77bf60898366e6ad4002f6b71ef62aca9ad9bfbc4c762c0946ef90789ce0c`;
   entity manifest passed with 326 entities, 233 tables, 233 operations, and
   digest `a9323f876740788f7dbf4e89cf5396810d525385238eae24a5523ba8ae0cf621`.
-- NoMe clean source at the governance adoption boundary compiled successfully
-  for `generic/platform=iOS` after XcodeGen generation. No Simulator or device
-  was enumerated or used.
-- Isolated-HOME global install/check passed. The launcher executed with
-  `ENGINEERING_GOVERNANCE_ROOT` pointing to the candidate worktree.
-- Real HOME global install remained dry-run only, plan digest
-  `a1b80d9b7a09a6af2dcb8c155bca25a20f994c47854879449b03d772ffa0b5df`.
-- `sop task verify --input .delivery/tasks/global-workflow-repair/candidate.json`
-  returned `{ "valid": true, "errors": [] }` before this handoff commit.
+- Project-pinned runner checks passed for EngineeringGovernance, ProjTrav, and
+  NoMe.
+- The NoMe governance commit's compile-only pre-commit check passed. No
+  Simulator or device was enumerated or used.
+- Isolated-HOME plan, digest-confirmed apply, and global check passed.
+- Real HOME remained dry-run only with plan digest
+  `4e53f7fa3a54f16878382a129e6e3395db37f3196015d74a66df6ddf6a1309d`;
+  managed-path digests were unchanged.
 
-## Review focus
+Machine receipts and SHA-256 values:
 
-The independent reviewer must inspect the exact commits and rerun the frozen
-contract, with particular attention to:
+| Acceptance | Receipt | SHA-256 |
+| --- | --- | --- |
+| `GW-EXIT-01` | `artifacts/repair2-exit.json` | `d2988124a24231713ad09b91b7045061a5f74d5705dcbbde9a2f495396d93b0a` |
+| `GW-EVIDENCE-01` | `artifacts/repair2-evidence.json` | `311af4bb1db14eb581d5fe9e696ba6805bc785cd8f3abd468b8440803fc2b890` |
+| `GW-BOOTSTRAP-01` | `artifacts/repair2-bootstrap.json` | `eecf1c683166837b89bd0a4e10f08dbf1db6f28b7819cff987252154044459f9` |
+| `GW-ADOPT-01` | `artifacts/repair2-adoption.json` | `f1d3c82f16cc3d20dfdc8929d3a5212a9829c25bc5a1974016f30478ad212c66` |
+| `GW-PILOT-01` | `artifacts/repair2-pilots.json` | `13c96587478637d5b9d530ba438c80effc0a4acd74c468c9aabcbe58b0128e7b` |
 
-1. invalid CLI decisions and project drift exiting non-zero;
-2. evidence schema, raw executed IDs, evidence kinds, commit/tree identities,
-   and evidence-only closure paths;
-3. rejection of caller-controlled authorization/evidence clocks and the
-   24-hour maximum evidence age;
-4. authority-aware ProjTrav synchronization across three Git repositories;
-5. preservation of NoMe and ProjTrav unrelated dirty or untracked paths;
-6. the post-merge global launcher defaulting to the main governance repository.
+## Independent re-review focus
 
-Run from the governance worktree:
+The reviewer must inspect the exact identities above, the historical findings,
+the repair diff, and the runner-produced receipts. Run from the governance
+worktree:
 
 ```sh
 PATH="/opt/homebrew/opt/node@22/bin:$PATH" pnpm check
@@ -72,10 +93,10 @@ PATH="/opt/homebrew/opt/node@22/bin:$PATH" REAL_PROJECT_DRY_RUN=1 pnpm vitest ru
 PATH="/opt/homebrew/opt/node@22/bin:$PATH" ./node_modules/.bin/tsx src/cli/main.ts task verify --input .delivery/tasks/global-workflow-repair/candidate.json
 ```
 
-The implementation owner must not issue the acceptance decision. A finding-free
-independent review may advance to local merge. Any blocking finding returns the
-same implementation owner to repair and requires fresh evidence and a new exact
-candidate.
+The implementation owner must not issue the acceptance decision. The reviewer
+must write a schema-valid artifact at
+`.delivery/tasks/global-workflow-repair/review-repair2.json` and validate it
+through `task review` against the exact candidate.
 
 ## Current workspace state and limits
 
@@ -83,20 +104,17 @@ candidate.
   `.worktrees/global-workflow-implementation`.
 - ProjTrav retains the pre-existing dirty Phase 2B handoff, server evidence/test
   copies, and iOS Qoder/Xcode/TestResults paths outside governance commits.
-- NoMe retains an active dirty WoMe candidate. Its main worktree currently
-  cannot compile because two untracked Swift files are absent from the generated
-  Xcode project; this separate business candidate was not edited or staged by
-  the governance work.
+- NoMe retains untracked handoff and planning documents outside the governance
+  commit.
 - The real global Codex home has not been mutated by this candidate.
-- The recorded user authorization expires at `2026-07-30T00:00:00Z`. A review
-  after that time requires fresh user authorization; the CLI uses process time
-  and does not accept caller-provided clock values.
+- The recorded authorization expires at `2026-07-30T00:00:00Z` and does not
+  include real-HOME installation. The CLI uses process time and rejects stale
+  or caller-timed authorization.
 
 ## Next permitted action
 
-Obtain an independent R3 review of the exact candidate. If and only if it is
-accepted: merge the governance branch locally, rerun the full checks from main,
-perform a new real-HOME global dry-run, apply only that exact reviewed digest,
-run `sop global check --tool codex`, and then record closure. Tagging, publishing,
-pushing, deployment, migration, or external communication still requires its
-own authorization.
+Obtain an independent R3 re-review of the exact repair candidate. A
+finding-free review may advance to local merge and fresh main-branch checks.
+Applying the reviewed plan to the real Codex home requires a new explicit
+authorization whose scope names that exact mutation. Tagging, publishing,
+pushing, deployment, migration, or external communication remain unauthorized.

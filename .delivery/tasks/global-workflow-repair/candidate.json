@@ -33,20 +33,40 @@
       "GW-ADOPT-01": "integration",
       "GW-PILOT-01": "integration"
     },
-    "expectedImplementationIdentities": {
-      "engineering-governance": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
-      "projtrav-v1": "63206f629a2e52154a5182efa67380ad9e62e711",
-      "projtrav-server": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
-      "projtrav-ios": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
-      "nome-v2": "f666e28bec149bc3bc9f91c83aa7aee888d1331d"
-    },
+    "expectedImplementationIdentities": [
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
+        "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
+        "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
+        "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
+        "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
+        "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
+        "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
+        "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
+        "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+      },
+      {
+        "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
+        "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
+        "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+      }
+    ],
     "maxEvidenceAgeMs": 7200000,
     "gitIdentities": [
       {
         "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
-        "implementationCommit": "db0c8c3c937ec28cda2dff52630b26ac8aab7ada",
-        "implementationTree": "aaa68cde65120143c6e46d54cc51ebecca7d88ee",
-        "closureCommit": "296943e110b349b162b2270375518504894ebe48",
+        "implementationCommit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
+        "implementationTree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2",
+        "closureCommit": "9c30f40f5966c458780a478d18ffbc63dc5be1c4",
         "allowedClosurePaths": [
           ".delivery/tasks/**",
           "docs/adoptions/projtrav-v1.md",
@@ -57,30 +77,30 @@
       },
       {
         "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
-        "implementationCommit": "63206f629a2e52154a5182efa67380ad9e62e711",
-        "implementationTree": "683dfa2e3e77c814946822d64352fab55296a3a5",
-        "closureCommit": "63206f629a2e52154a5182efa67380ad9e62e711",
+        "implementationCommit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
+        "implementationTree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa",
+        "closureCommit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
         "allowedClosurePaths": []
       },
       {
         "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
-        "implementationCommit": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
-        "implementationTree": "abd884bfc83735179b8954e302e908a2764c8ec9",
-        "closureCommit": "47754d1e14b2ea37521db282cc1e0488fe0c7d9c",
+        "implementationCommit": "b6c58b35584353fe0b6badd38587ed743f667865",
+        "implementationTree": "342ea17f979f9b53998537b6c97815f26d8094ae",
+        "closureCommit": "b6c58b35584353fe0b6badd38587ed743f667865",
         "allowedClosurePaths": []
       },
       {
         "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
-        "implementationCommit": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
-        "implementationTree": "1fd4d398fbe84f1c1f479f86aea611aad3b88d5b",
-        "closureCommit": "59d9d20de0ca5aea389c3363499e6d3b81c7bb94",
+        "implementationCommit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
+        "implementationTree": "819b73e7b63504d4b7e7e882e0d4a38e36466722",
+        "closureCommit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
         "allowedClosurePaths": []
       },
       {
         "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
-        "implementationCommit": "f666e28bec149bc3bc9f91c83aa7aee888d1331d",
-        "implementationTree": "c40766745807dd9d88888937bc1259cdf996a0c3",
-        "closureCommit": "f666e28bec149bc3bc9f91c83aa7aee888d1331d",
+        "implementationCommit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
+        "implementationTree": "f737ae6e81eb12241f1c6961c454efb7e653deee",
+        "closureCommit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
         "allowedClosurePaths": []
       }
     ]
