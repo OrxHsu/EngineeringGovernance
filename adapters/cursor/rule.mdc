@@ -1,0 +1,8 @@
+---
+description: Enforce the adopted global development workflow
+alwaysApply: true
+---
+
+Read and follow the project-root `AGENTS.md` as the owning source.
+
+{{CORE_BLOCK}}
