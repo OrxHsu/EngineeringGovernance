@@ -3,12 +3,13 @@
   "$id": "https://engineering-governance.local/schemas/evidence.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "taskId", "contractDigest", "runId", "implementationCommits", "records", "summary"],
+  "required": ["schemaVersion", "taskId", "contractDigest", "runId", "runnerVersion", "implementationCommits", "records", "summary"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "taskId": { "type": "string", "minLength": 1 },
     "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "runId": { "type": "string", "minLength": 1 },
+    "runnerVersion": { "type": "string", "minLength": 1 },
     "implementationCommits": {
       "type": "array",
       "minItems": 1,

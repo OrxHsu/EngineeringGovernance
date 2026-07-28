@@ -17,6 +17,9 @@ const options = {
   expectedContractDigest: 'b'.repeat(64),
   expectedImplementationIdentities: { repo: 'c'.repeat(40) },
   requiredEvidenceKinds: { 'AC-01': 'unit' as const },
+  expectedRunnerVersion: '0.1.0-dev',
+  verificationTime: new Date('2026-07-29T00:05:00Z'),
+  maxEvidenceAgeMs: 10 * 60 * 1000,
   artifactRoot: fileURLToPath(new URL('../fixtures/evidence', import.meta.url)),
 }
 
@@ -32,11 +35,11 @@ describe('evidence verification', () => {
   it('rejects empty and partial records', async () => {
     const empty = await fixture()
     empty.records = []
-    expect(verifyEvidence(empty, options).errors.some((error) => error.startsWith('SCHEMA_INVALID'))).toBe(true)
+    expect(verifyEvidence(empty, options).errors).toContain('EVIDENCE_RECORDS_EMPTY')
 
     const partial = await fixture()
     delete (partial.records as Array<Record<string, unknown>>)[0]?.rawArtifact
-    expect(verifyEvidence(partial, options).errors.some((error) => error.startsWith('SCHEMA_INVALID'))).toBe(true)
+    expect(verifyEvidence(partial, options).errors).toContain('EVIDENCE_RECORD_PARTIAL:AC-01')
   })
 
   it('rejects duplicated acceptance IDs', async () => {

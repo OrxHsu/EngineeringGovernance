@@ -11,10 +11,12 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "check:licenses": "node scripts/check-licenses.mjs",
+    "check:placeholders": "node scripts/check-placeholders.mjs",
     "sop": "tsx src/cli/main.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "check": "pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm typecheck && pnpm test && pnpm build && pnpm check:placeholders && pnpm check:licenses"
   },
   "dependencies": {
     "ajv": "8.17.1",

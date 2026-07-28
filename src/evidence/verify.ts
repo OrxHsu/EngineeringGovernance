@@ -38,6 +38,7 @@ interface EvidenceDocument {
   taskId: string
   contractDigest: string
   runId: string
+  runnerVersion: string
   implementationCommits: ImplementationCommit[]
   records: EvidenceRecord[]
   summary: { passedIds: string[]; failedIds: string[] }
@@ -48,6 +49,9 @@ export interface EvidenceVerificationOptions {
   expectedContractDigest: string
   expectedImplementationIdentities: Record<string, string>
   requiredEvidenceKinds: Record<string, EvidenceKind>
+  expectedRunnerVersion: string
+  verificationTime: Date
+  maxEvidenceAgeMs: number
   artifactRoot: string
 }
 
@@ -63,6 +67,47 @@ function canonical(values: string[]): string[] {
 
 function sameStrings(left: string[], right: string[]): boolean {
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right))
+}
+
+const evidenceRecordKeys = [
+  'acceptanceId',
+  'runId',
+  'executedCheckIds',
+  'command',
+  'exitCode',
+  'startedAt',
+  'endedAt',
+  'evidenceKind',
+  'implementationIdentities',
+  'rawArtifact',
+  'observation',
+] as const
+
+function preflightEvidence(input: unknown): string[] {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) return []
+  const document = input as Record<string, unknown>
+  if (!Object.hasOwn(document, 'runnerVersion') || document.runnerVersion === '') {
+    return ['RUNNER_VERSION_MISSING']
+  }
+  if (!Object.hasOwn(document, 'records')) return ['EVIDENCE_RECORDS_MISSING']
+  if (Array.isArray(document.records)) {
+    if (document.records.length === 0) return ['EVIDENCE_RECORDS_EMPTY']
+    const partial = document.records.findIndex((candidate) => {
+      if (typeof candidate !== 'object' || candidate === null || Array.isArray(candidate)) {
+        return true
+      }
+      return evidenceRecordKeys.some((key) => !Object.hasOwn(candidate, key))
+    })
+    if (partial >= 0) {
+      const candidate = document.records[partial]
+      const acceptanceId = typeof candidate === 'object' && candidate !== null
+        && 'acceptanceId' in candidate && typeof candidate.acceptanceId === 'string'
+        ? candidate.acceptanceId
+        : `index-${partial}`
+      return [`EVIDENCE_RECORD_PARTIAL:${acceptanceId}`]
+    }
+  }
+  return []
 }
 
 function verifyRawArtifact(
@@ -91,6 +136,10 @@ export function verifyEvidence(
   input: unknown,
   options: EvidenceVerificationOptions,
 ): EvidenceDecision {
+  const preflightErrors = preflightEvidence(input)
+  if (preflightErrors.length > 0) {
+    return { valid: false, errors: preflightErrors, passedIds: [] }
+  }
   const schema = validateDocument('evidence', input)
   if (!schema.valid) {
     return {
@@ -111,6 +160,14 @@ export function verifyEvidence(
   if (evidence.contractDigest !== options.expectedContractDigest) {
     errors.push('CONTRACT_DIGEST_MISMATCH')
   }
+  if (evidence.runnerVersion !== options.expectedRunnerVersion) {
+    errors.push('RUNNER_VERSION_MISMATCH')
+  }
+
+  const recordOrder = evidence.records.map((record) => record.acceptanceId)
+  if (JSON.stringify(recordOrder) !== JSON.stringify(options.requiredAcceptanceIds)) {
+    errors.push('RECORD_ORDER_MISMATCH')
+  }
 
   for (const record of evidence.records) {
     if (seen.has(record.acceptanceId)) {
@@ -126,6 +183,14 @@ export function verifyEvidence(
     }
     if (Date.parse(record.startedAt) > Date.parse(record.endedAt)) {
       errors.push(`INVALID_EXECUTION_TIME_RANGE:${record.acceptanceId}`)
+    }
+    const endedAt = Date.parse(record.endedAt)
+    const age = options.verificationTime.getTime() - endedAt
+    if (Number.isFinite(endedAt) && age > options.maxEvidenceAgeMs) {
+      errors.push(`STALE_EVIDENCE:${record.acceptanceId}`)
+    }
+    if (Number.isFinite(endedAt) && age < 0) {
+      errors.push(`EVIDENCE_TIME_IN_FUTURE:${record.acceptanceId}`)
     }
     if (record.exitCode !== 0) {
       errors.push(`REQUIRED_GATE_FAILED:${record.acceptanceId}`)
