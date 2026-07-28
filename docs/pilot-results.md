@@ -2,16 +2,19 @@
 
 Status: passed on implementation candidate; independent candidate review pending
 Date: 2026-07-29
-Candidate base: `5ee1a70bdbd32a5c5e9044c522757801e0d43df1`
+Candidate base: `77866c9a78dd14bb76dc3b31239fee7abde98d9b`
 
 ## Candidate revision
 
-The independent review of the preceding `db0c8c3` candidate returned
-`REPAIR_REQUIRED`. It found that evidence could still be authored as a PASS
-list, candidate/review/closure decisions trusted caller summaries, generated
-ProjTrav targets were absent from adoption guards, and the portable launcher
-could continue under unsupported Node versions. Commit `5ee1a70` repaired all
-four boundaries and added permanent adversarial coverage.
+The first independent review of `db0c8c3` returned `REPAIR_REQUIRED`; commit
+`5ee1a70` repaired its four findings. The second review then found two remaining
+P1 trust-boundary defects: a full receipt could still be hand-authored while
+caller-declared check IDs inherited one aggregate exit code, and `task review`
+used a raw-file digest instead of the frozen canonical candidate digest.
+Commit `77866c9` replaced caller IDs with a single command-derived identity,
+requires explicit approval of the exact replay-plan digest before any fresh
+execution, replays the approved command, and uses one canonical candidate digest
+through candidate, review, and closure.
 
 ## Execution
 
@@ -58,7 +61,7 @@ No production system, external service, deployment, database, Simulator, or phys
 ## Candidate-wide verification
 
 - Node 22 `pnpm check`: 25 test files passed, 1 environment-gated test skipped;
-  102 tests passed, 1 skipped; typecheck, build, placeholder, and license checks
+  107 tests passed, 1 skipped; typecheck, build, placeholder, and license checks
   passed.
 - `REAL_PROJECT_DRY_RUN=1` real-project integration: 1/1 passed against the
   current ProjTrav and NoMe repositories without mutation.
@@ -68,12 +71,15 @@ No production system, external service, deployment, database, Simulator, or phys
 - The installed launcher executed successfully when
   `ENGINEERING_GOVERNANCE_ROOT` named the candidate worktree.
 - The real user HOME global install remained dry-run only. Plan digest
-  `4e53f7fa3a54f16878382a129e6e3395db37f3196015d74a66df6ddf6a1309d`
+  `fca628a5ddcae3b2595b4b7badb4807f4aa9051fe06ac95d80305c6f9d23f2ae`
   was recorded and every managed-path digest remained unchanged.
-- All acceptance observations are bound to runner-produced
-  `sop-command-execution-v1` receipts. Handwritten PASS lists, forged trees,
-  reduced repository identity sets, drifted candidate/review digests, and
-  incoherent closure inputs are rejected.
+- All acceptance observations are bound to one command-derived check identity
+  per `sop-command-execution-v1` receipt. Verification executes nothing until
+  the caller approves exact replay plan
+  `99050046e585e0269a6c61ebb7bfd848a9a6f89e2f97b704264b6e8f38c82b3f`,
+  then freshly replays those commands. Handwritten PASS lists, failed static
+  receipts, forged trees, reduced repository identity sets, semantic candidate
+  drift, replay-plan drift, and incoherent closure inputs are rejected.
 
 ## Remaining gate
 

@@ -1,12 +1,6 @@
 {
   "schemaVersion": 1,
-  "runId": "global-workflow-repair2-20260728T2218Z",
-  "checkIds": [
-    "real-project-zero-mutation-dry-runs",
-    "projtrav-generated-target-plan",
-    "projtrav-three-repository-status-snapshot",
-    "nome-governance-boundary-snapshot"
-  ],
+  "runId": "global-workflow-repair3-20260728T2257Z",
   "command": {
     "executable": "/usr/bin/env",
     "arguments": [
@@ -18,5 +12,5 @@
     ],
     "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
   },
-  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair2-adoption.json"
+  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair3-adoption.json"
 }

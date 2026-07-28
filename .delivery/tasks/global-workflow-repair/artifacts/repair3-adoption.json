@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "sop-command-execution-v1",
+  "producer": {
+    "name": "@xgh/engineering-governance",
+    "version": "1.0.0"
+  },
+  "runId": "global-workflow-repair3-20260728T2257Z",
+  "command": {
+    "executable": "/usr/bin/env",
+    "arguments": [
+      "REAL_PROJECT_DRY_RUN=1",
+      "/opt/homebrew/bin/pnpm",
+      "vitest",
+      "run",
+      "tests/integration/real-project-dry-run.test.ts"
+    ],
+    "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
+  },
+  "startedAt": "2026-07-28T22:59:06.681Z",
+  "endedAt": "2026-07-28T22:59:10.331Z",
+  "exitCode": 0,
+  "environment": {
+    "node": "22.23.1",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "checks": [
+    {
+      "id": "command:eb3019012905859c32b9a53738901dfd75595bf6fde95425605a670c3dbf59e6",
+      "status": "passed"
+    }
+  ],
+  "stdout": "\n RUN  v3.2.4 /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n\n ✓ tests/integration/real-project-dry-run.test.ts (1 test) 2501ms\n   ✓ plans real project adoption through canonical sources without mutation  2500ms\n\n Test Files  1 passed (1)\n      Tests  1 passed (1)\n   Start at  06:59:07\n   Duration  2.95s (transform 124ms, setup 0ms, collect 164ms, tests 2.50s, environment 0ms, prepare 41ms)\n\n",
+  "stderr": ""
+}

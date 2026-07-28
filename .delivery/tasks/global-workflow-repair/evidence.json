@@ -2,44 +2,41 @@
   "schemaVersion": 1,
   "taskId": "global-workflow-repair",
   "contractDigest": "29398532b2deb3c9c2a50605f5dd1cf4e8324ea217b31c3d59f9e8a3d04df66a",
-  "runId": "global-workflow-repair2-20260728T2218Z",
+  "runId": "global-workflow-repair3-20260728T2257Z",
   "runnerVersion": "1.0.0",
   "implementationCommits": [
     {
       "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
-      "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
-      "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+      "commit": "77866c9a78dd14bb76dc3b31239fee7abde98d9b",
+      "tree": "a528f2aa42141977440c1a67e9a28b1f4c51f9da"
     },
     {
       "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
-      "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
-      "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+      "commit": "65cd98a6a64109840b47c47a33d6bf7cddd8b8bd",
+      "tree": "d5f3c3e70b5445c847b6661789f2c928e3abaf0b"
     },
     {
       "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
-      "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
-      "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+      "commit": "c379baeccb46443f6d1b4602769268ed5777cc5c",
+      "tree": "fcf1490a7d91518fe316e1d1730da4026126680d"
     },
     {
       "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
-      "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
-      "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+      "commit": "d675c54d81f149681b6b642eaa0b6ec63884a91e",
+      "tree": "e687d82e72a673fd543c84a313db1a9f0c5b24e8"
     },
     {
       "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
-      "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
-      "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+      "commit": "1b41a9f205a59be4fee54a7588891e04307b902b",
+      "tree": "5c0c62d67238f38f782539f57a461b8c7e9c7712"
     }
   ],
   "records": [
     {
       "acceptanceId": "GW-EXIT-01",
-      "runId": "global-workflow-repair2-20260728T2218Z",
+      "runId": "global-workflow-repair3-20260728T2257Z",
       "executedCheckIds": [
-        "full-node22-check",
-        "invalid-cli-decision-nonzero",
-        "portable-node-version-fail-closed",
-        "artifact-free-review-close-rejected"
+        "command:8435b84cf2e201c73aef35a418310a47ce2d1bd6016b1ee68ad932385db94036"
       ],
       "command": {
         "executable": "/opt/homebrew/bin/pnpm",
@@ -49,54 +46,48 @@
         "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
       },
       "exitCode": 0,
-      "startedAt": "2026-07-28T22:19:45.634Z",
-      "endedAt": "2026-07-28T22:20:04.146Z",
+      "startedAt": "2026-07-28T22:58:08.183Z",
+      "endedAt": "2026-07-28T22:58:29.221Z",
       "evidenceKind": "integration",
       "implementationIdentities": [
         {
           "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
-          "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
-          "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+          "commit": "77866c9a78dd14bb76dc3b31239fee7abde98d9b",
+          "tree": "a528f2aa42141977440c1a67e9a28b1f4c51f9da"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
-          "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
-          "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+          "commit": "65cd98a6a64109840b47c47a33d6bf7cddd8b8bd",
+          "tree": "d5f3c3e70b5445c847b6661789f2c928e3abaf0b"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
-          "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
-          "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+          "commit": "c379baeccb46443f6d1b4602769268ed5777cc5c",
+          "tree": "fcf1490a7d91518fe316e1d1730da4026126680d"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
-          "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
-          "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+          "commit": "d675c54d81f149681b6b642eaa0b6ec63884a91e",
+          "tree": "e687d82e72a673fd543c84a313db1a9f0c5b24e8"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
-          "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
-          "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+          "commit": "1b41a9f205a59be4fee54a7588891e04307b902b",
+          "tree": "5c0c62d67238f38f782539f57a461b8c7e9c7712"
         }
       ],
       "rawArtifact": {
-        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair2-exit.json",
-        "sha256": "d2988124a24231713ad09b91b7045061a5f74d5705dcbbde9a2f495396d93b0a",
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair3-exit.json",
+        "sha256": "4b618fa27b061705344cb55be7bcbbcf1c4b37b45de442a549f501abd351c89d",
         "format": "sop-command-execution-v1"
       },
-      "observation": "The complete Node 22 gate passed 102 tests, typecheck, build, placeholder, and license checks; invalid CLI review/close and unsupported portable Node paths exited non-zero in permanent tests."
+      "observation": "The complete Node 22 gate passed 107 tests with one environment-gated skip, plus typecheck, build, placeholder, and license checks. The permanent suite covers non-zero invalid CLI decisions, explicit replay-plan approval, canonical candidate digests, and portable Node fail-closed behavior."
     },
     {
       "acceptanceId": "GW-EVIDENCE-01",
-      "runId": "global-workflow-repair2-20260728T2218Z",
+      "runId": "global-workflow-repair3-20260728T2257Z",
       "executedCheckIds": [
-        "runner-command-receipt",
-        "handwritten-pass-list-rejection",
-        "exact-commit-tree-set-binding",
-        "git-identity-set-binding",
-        "candidate-digest-review-binding",
-        "review-identity-binding",
-        "closure-artifact-binding"
+        "command:be7df4456e1cb2f03cdcf282f831e3ce443d8ddcdf972555bc6a49e1d7d4dca4"
       ],
       "command": {
         "executable": "/opt/homebrew/bin/pnpm",
@@ -104,56 +95,55 @@
           "vitest",
           "run",
           "tests/unit/evidence-capture.test.ts",
+          "tests/unit/evidence.test.ts",
           "tests/integration/task-verification.test.ts",
           "tests/integration/pilots.test.ts"
         ],
         "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
       },
       "exitCode": 0,
-      "startedAt": "2026-07-28T22:20:10.502Z",
-      "endedAt": "2026-07-28T22:20:22.702Z",
+      "startedAt": "2026-07-28T22:58:38.465Z",
+      "endedAt": "2026-07-28T22:58:53.153Z",
       "evidenceKind": "integration",
       "implementationIdentities": [
         {
           "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
-          "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
-          "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+          "commit": "77866c9a78dd14bb76dc3b31239fee7abde98d9b",
+          "tree": "a528f2aa42141977440c1a67e9a28b1f4c51f9da"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
-          "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
-          "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+          "commit": "65cd98a6a64109840b47c47a33d6bf7cddd8b8bd",
+          "tree": "d5f3c3e70b5445c847b6661789f2c928e3abaf0b"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
-          "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
-          "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+          "commit": "c379baeccb46443f6d1b4602769268ed5777cc5c",
+          "tree": "fcf1490a7d91518fe316e1d1730da4026126680d"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
-          "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
-          "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+          "commit": "d675c54d81f149681b6b642eaa0b6ec63884a91e",
+          "tree": "e687d82e72a673fd543c84a313db1a9f0c5b24e8"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
-          "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
-          "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+          "commit": "1b41a9f205a59be4fee54a7588891e04307b902b",
+          "tree": "5c0c62d67238f38f782539f57a461b8c7e9c7712"
         }
       ],
       "rawArtifact": {
-        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair2-evidence.json",
-        "sha256": "311af4bb1db14eb581d5fe9e696ba6805bc785cd8f3abd468b8440803fc2b890",
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair3-evidence.json",
+        "sha256": "ab221e6a8e9349ca52a321d5c8294722a7a8249b479339c4bbca371a0c7626f7",
         "format": "sop-command-execution-v1"
       },
-      "observation": "Runner-produced command receipts, exact repository commit/tree sets, candidate digest review binding, and artifact-bound closure all passed; handwritten PASS lists, forged trees, reduced Git sets, and digest drift were rejected."
+      "observation": "The focused evidence suite passed 21 tests. Caller-defined check IDs are rejected, each receipt has one command-derived identity, unapproved replay plans execute nothing, approved exact plans replay fresh commands, full-format false receipts fail on replay, and exact repository commit/tree sets remain bound."
     },
     {
       "acceptanceId": "GW-BOOTSTRAP-01",
-      "runId": "global-workflow-repair2-20260728T2218Z",
+      "runId": "global-workflow-repair3-20260728T2257Z",
       "executedCheckIds": [
-        "isolated-home-plan-apply-check",
-        "real-home-dry-run",
-        "real-home-zero-mutation"
+        "command:2ba90caba6b947368e4aac19292236b31804b8cc0bf2090b1c12203b3253b87b"
       ],
       "command": {
         "executable": "/opt/homebrew/opt/node@22/bin/node",
@@ -163,51 +153,48 @@
         "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
       },
       "exitCode": 0,
-      "startedAt": "2026-07-28T22:20:36.050Z",
-      "endedAt": "2026-07-28T22:20:36.243Z",
+      "startedAt": "2026-07-28T22:58:59.066Z",
+      "endedAt": "2026-07-28T22:58:59.251Z",
       "evidenceKind": "integration",
       "implementationIdentities": [
         {
           "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
-          "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
-          "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+          "commit": "77866c9a78dd14bb76dc3b31239fee7abde98d9b",
+          "tree": "a528f2aa42141977440c1a67e9a28b1f4c51f9da"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
-          "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
-          "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+          "commit": "65cd98a6a64109840b47c47a33d6bf7cddd8b8bd",
+          "tree": "d5f3c3e70b5445c847b6661789f2c928e3abaf0b"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
-          "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
-          "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+          "commit": "c379baeccb46443f6d1b4602769268ed5777cc5c",
+          "tree": "fcf1490a7d91518fe316e1d1730da4026126680d"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
-          "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
-          "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+          "commit": "d675c54d81f149681b6b642eaa0b6ec63884a91e",
+          "tree": "e687d82e72a673fd543c84a313db1a9f0c5b24e8"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
-          "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
-          "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+          "commit": "1b41a9f205a59be4fee54a7588891e04307b902b",
+          "tree": "5c0c62d67238f38f782539f57a461b8c7e9c7712"
         }
       ],
       "rawArtifact": {
-        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair2-bootstrap.json",
-        "sha256": "eecf1c683166837b89bd0a4e10f08dbf1db6f28b7819cff987252154044459f9",
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair3-bootstrap.json",
+        "sha256": "4b8da5a91ce31fe352ca28ef18937076a067c014b29eca9af363f9c8360d292c",
         "format": "sop-command-execution-v1"
       },
-      "observation": "An isolated Codex home completed plan, digest-confirmed apply, and global check. The real user home produced plan digest 4e53f7fa3a54f16878382a129e6e3395db37f3196015d74a66df6ddf6a1309d and all managed-path digests remained unchanged."
+      "observation": "An isolated Codex home completed plan, digest-confirmed apply, and global check. The real user home produced plan digest fca628a5ddcae3b2595b4b7badb4807f4aa9051fe06ac95d80305c6f9d23f2ae and every managed path remained unchanged."
     },
     {
       "acceptanceId": "GW-ADOPT-01",
-      "runId": "global-workflow-repair2-20260728T2218Z",
+      "runId": "global-workflow-repair3-20260728T2257Z",
       "executedCheckIds": [
-        "real-project-zero-mutation-dry-runs",
-        "projtrav-generated-target-plan",
-        "projtrav-three-repository-status-snapshot",
-        "nome-governance-boundary-snapshot"
+        "command:eb3019012905859c32b9a53738901dfd75595bf6fde95425605a670c3dbf59e6"
       ],
       "command": {
         "executable": "/usr/bin/env",
@@ -221,52 +208,48 @@
         "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
       },
       "exitCode": 0,
-      "startedAt": "2026-07-28T22:20:43.684Z",
-      "endedAt": "2026-07-28T22:20:47.178Z",
+      "startedAt": "2026-07-28T22:59:06.681Z",
+      "endedAt": "2026-07-28T22:59:10.331Z",
       "evidenceKind": "integration",
       "implementationIdentities": [
         {
           "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
-          "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
-          "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+          "commit": "77866c9a78dd14bb76dc3b31239fee7abde98d9b",
+          "tree": "a528f2aa42141977440c1a67e9a28b1f4c51f9da"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
-          "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
-          "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+          "commit": "65cd98a6a64109840b47c47a33d6bf7cddd8b8bd",
+          "tree": "d5f3c3e70b5445c847b6661789f2c928e3abaf0b"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
-          "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
-          "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+          "commit": "c379baeccb46443f6d1b4602769268ed5777cc5c",
+          "tree": "fcf1490a7d91518fe316e1d1730da4026126680d"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
-          "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
-          "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+          "commit": "d675c54d81f149681b6b642eaa0b6ec63884a91e",
+          "tree": "e687d82e72a673fd543c84a313db1a9f0c5b24e8"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
-          "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
-          "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+          "commit": "1b41a9f205a59be4fee54a7588891e04307b902b",
+          "tree": "5c0c62d67238f38f782539f57a461b8c7e9c7712"
         }
       ],
       "rawArtifact": {
-        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair2-adoption.json",
-        "sha256": "f1d3c82f16cc3d20dfdc8929d3a5212a9829c25bc5a1974016f30478ad212c66",
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair3-adoption.json",
+        "sha256": "ec136caee5c14c60dc4bd67dde8005d91c2084650c373b831cfc6d84415ca7ed",
         "format": "sop-command-execution-v1"
       },
-      "observation": "Fresh real-project dry-runs listed all five ProjTrav generated targets, snapshotted root/server/iOS statuses and file digests, verified NoMe governance paths, and observed zero mutation."
+      "observation": "The fresh real-project dry-run passed and observed zero mutation while including all five ProjTrav generated targets and the current NoMe governance boundary."
     },
     {
       "acceptanceId": "GW-PILOT-01",
-      "runId": "global-workflow-repair2-20260728T2218Z",
+      "runId": "global-workflow-repair3-20260728T2257Z",
       "executedCheckIds": [
-        "r1-real-cli-pilot",
-        "r2-artifact-bound-independent-review-pilot",
-        "r2-digest-and-tree-drift-rejection",
-        "r2-artifact-bound-closure-pilot",
-        "r3-scoped-authorization-pilot"
+        "command:23356b9510367533697fde787d635f04478d57a7df110cdb54353c25cbf51988"
       ],
       "command": {
         "executable": "/opt/homebrew/bin/pnpm",
@@ -278,42 +261,42 @@
         "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
       },
       "exitCode": 0,
-      "startedAt": "2026-07-28T22:20:56.064Z",
-      "endedAt": "2026-07-28T22:21:08.187Z",
+      "startedAt": "2026-07-28T22:59:16.118Z",
+      "endedAt": "2026-07-28T22:59:30.568Z",
       "evidenceKind": "integration",
       "implementationIdentities": [
         {
           "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
-          "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
-          "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+          "commit": "77866c9a78dd14bb76dc3b31239fee7abde98d9b",
+          "tree": "a528f2aa42141977440c1a67e9a28b1f4c51f9da"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
-          "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
-          "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+          "commit": "65cd98a6a64109840b47c47a33d6bf7cddd8b8bd",
+          "tree": "d5f3c3e70b5445c847b6661789f2c928e3abaf0b"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
-          "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
-          "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+          "commit": "c379baeccb46443f6d1b4602769268ed5777cc5c",
+          "tree": "fcf1490a7d91518fe316e1d1730da4026126680d"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
-          "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
-          "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+          "commit": "d675c54d81f149681b6b642eaa0b6ec63884a91e",
+          "tree": "e687d82e72a673fd543c84a313db1a9f0c5b24e8"
         },
         {
           "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
-          "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
-          "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+          "commit": "1b41a9f205a59be4fee54a7588891e04307b902b",
+          "tree": "5c0c62d67238f38f782539f57a461b8c7e9c7712"
         }
       ],
       "rawArtifact": {
-        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair2-pilots.json",
-        "sha256": "13c96587478637d5b9d530ba438c80effc0a4acd74c468c9aabcbe58b0128e7b",
+        "path": ".delivery/tasks/global-workflow-repair/artifacts/repair3-pilots.json",
+        "sha256": "2a77e7c632a1b75af5f6d98288e62e073a1b42e854a2659b230f0b44164ba4d5",
         "format": "sop-command-execution-v1"
       },
-      "observation": "R1 remained lightweight; R2 rejected self-review, repair findings, candidate digest drift, implementation-tree drift, and incoherent closure before accepting the exact independent artifact chain; R3 enforced active scoped authorization."
+      "observation": "R1 remained lightweight; R2 required explicit exact replay approval, rejected self-review, binding drift, and incoherent closure before independent acceptance; R3 enforced active scoped authorization."
     }
   ],
   "summary": {

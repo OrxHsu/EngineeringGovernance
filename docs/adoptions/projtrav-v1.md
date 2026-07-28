@@ -5,11 +5,11 @@ Date: 2026-07-29
 
 ## Candidate
 
-- Governance implementation commit: `5ee1a70bdbd32a5c5e9044c522757801e0d43df1`
-- Governance implementation tree: `25ba5efaaecf2a2ebdcd72e776d722035f22dce2`
+- Governance implementation commit: `77866c9a78dd14bb76dc3b31239fee7abde98d9b`
+- Governance implementation tree: `a528f2aa42141977440c1a67e9a28b1f4c51f9da`
 - SOP version: `1.0.0`
-- SOP digest: `ea247f12a2f2cee2bcea67affd0f3e93fc9ee198ddd2036226015f10845ba26e`
-- Runner digest: `83aa693997938c9b2f01b12d81ea73af88dd227dd3701743de67052fcc8b985f`
+- SOP digest: `f85636fecdfff9ff4729e5b8afcf684c060c0fe1fc1e221896f0482f14e23821`
+- Runner digest: `f533b20f75d19421ae9a037e014caf6cecbdad4480ae9e215b83aa87423d2d99`
 
 ## Authority map
 
@@ -47,6 +47,10 @@ Date: 2026-07-29
   - Workspace: `3ad83efe6ccc3c48a0404033388722d3a64f3de0`
   - Server: `b6c58b35584353fe0b6badd38587ed743f667865`
   - iOS: `ee7ab323d872c9bb39163236fec27282d997f6ad`
+- Approved-replay and canonical-digest refresh:
+  - Workspace: `65cd98a6a64109840b47c47a33d6bf7cddd8b8bd`
+  - Server: `c379baeccb46443f6d1b4602769268ed5777cc5c`
+  - iOS: `d675c54d81f149681b6b642eaa0b6ec63884a91e`
 
 Only the planned governance files and generated adapters were staged. The pre-existing handoff and untracked files remain outside these commits.
 

@@ -5,11 +5,11 @@ Date: 2026-07-29
 
 ## Candidate
 
-- Governance implementation commit: `5ee1a70bdbd32a5c5e9044c522757801e0d43df1`
-- Governance implementation tree: `25ba5efaaecf2a2ebdcd72e776d722035f22dce2`
+- Governance implementation commit: `77866c9a78dd14bb76dc3b31239fee7abde98d9b`
+- Governance implementation tree: `a528f2aa42141977440c1a67e9a28b1f4c51f9da`
 - SOP version: `1.0.0`
-- SOP digest: `ea247f12a2f2cee2bcea67affd0f3e93fc9ee198ddd2036226015f10845ba26e`
-- Runner digest: `83aa693997938c9b2f01b12d81ea73af88dd227dd3701743de67052fcc8b985f`
+- SOP digest: `f85636fecdfff9ff4729e5b8afcf684c060c0fe1fc1e221896f0482f14e23821`
+- Runner digest: `f533b20f75d19421ae9a037e014caf6cecbdad4480ae9e215b83aa87423d2d99`
 
 ## Authority map
 
@@ -31,6 +31,7 @@ Date: 2026-07-29
 - `1.0.0` upgrade: `f6abdd615726e3c8b643afd672090c12beab52f1`
 - Trusted-clock runner refresh: `f666e28bec149bc3bc9f91c83aa7aee888d1331d`
 - Artifact-binding and portable-runtime repair refresh: `2910996bf942ce1d5f06f62736d0a1bee9c92c5b`
+- Approved-replay and canonical-digest refresh: `1b41a9f205a59be4fee54a7588891e04307b902b`
 
 Only `AGENTS.md` and the planned `.delivery` files were staged. Existing
 untracked handoffs and planning documents under `Docs/` remain outside the

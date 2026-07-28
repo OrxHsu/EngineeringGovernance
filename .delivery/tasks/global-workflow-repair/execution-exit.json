@@ -1,16 +1,12 @@
 {
   "schemaVersion": 1,
-  "runId": "global-workflow-repair2-20260728T2218Z",
-  "checkIds": [
-    "full-node22-check",
-    "invalid-cli-decision-nonzero",
-    "portable-node-version-fail-closed",
-    "artifact-free-review-close-rejected"
-  ],
+  "runId": "global-workflow-repair3-20260728T2257Z",
   "command": {
     "executable": "/opt/homebrew/bin/pnpm",
-    "arguments": ["check"],
+    "arguments": [
+      "check"
+    ],
     "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
   },
-  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair2-exit.json"
+  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair3-exit.json"
 }

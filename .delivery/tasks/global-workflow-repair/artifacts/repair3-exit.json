@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "sop-command-execution-v1",
+  "producer": {
+    "name": "@xgh/engineering-governance",
+    "version": "1.0.0"
+  },
+  "runId": "global-workflow-repair3-20260728T2257Z",
+  "command": {
+    "executable": "/opt/homebrew/bin/pnpm",
+    "arguments": [
+      "check"
+    ],
+    "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
+  },
+  "startedAt": "2026-07-28T22:58:08.183Z",
+  "endedAt": "2026-07-28T22:58:29.221Z",
+  "exitCode": 0,
+  "environment": {
+    "node": "22.23.1",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "checks": [
+    {
+      "id": "command:8435b84cf2e201c73aef35a418310a47ce2d1bd6016b1ee68ad932385db94036",
+      "status": "passed"
+    }
+  ],
+  "stdout": "\n> @xgh/engineering-governance@1.0.0 check /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n> pnpm typecheck && pnpm test && pnpm build && pnpm check:placeholders && pnpm check:licenses\n\n\n> @xgh/engineering-governance@1.0.0 typecheck /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n> tsc -p tsconfig.json --noEmit\n\n\n> @xgh/engineering-governance@1.0.0 test /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n> vitest run\n\n\n RUN  v3.2.4 /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n\n ↓ tests/integration/real-project-dry-run.test.ts (1 test | 1 skipped)\n ✓ tests/integration/git-identity.test.ts (3 tests) 1390ms\n   ✓ Git identity verification > accepts an evidence-only closure commit  494ms\n   ✓ Git identity verification > rejects production changes after the implementation commit  544ms\n   ✓ Git identity verification > rejects a mismatched tree identity  352ms\n ✓ tests/integration/project-adoption.test.ts (5 tests) 2149ms\n   ✓ safe project adoption > distinguishes unrelated dirt from managed-path overlap  331ms\n   ✓ safe project adoption > plans and guards ProjTrav generated targets across all three repositories  1455ms\n ✓ tests/unit/evidence-capture.test.ts (3 tests) 99ms\n ✓ tests/integration/cli-process-exit.test.ts (1 test) 626ms\n   ✓ returns a non-zero process exit when a validation decision is invalid  625ms\n ✓ tests/integration/adversarial-workflow.test.ts (4 tests) 102ms\n ✓ tests/integration/global-adapters.test.ts (1 test) 121ms\n ✓ tests/unit/policy-load.test.ts (8 tests) 99ms\n ✓ tests/unit/authorization.test.ts (3 tests) 51ms\n ✓ tests/unit/skill-adapter.test.ts (3 tests) 46ms\n ✓ tests/unit/evidence.test.ts (9 tests) 61ms\n ✓ tests/integration/codex-install.test.ts (2 tests) 28ms\n ✓ tests/integration/task-verification.test.ts (6 tests) 4376ms\n   ✓ requires explicit approval of the exact replay plan before executing evidence commands  762ms\n   ✓ verifies R2 evidence and Git identity instead of trusting caller summaries  894ms\n   ✓ rejects a caller-authored pass list even when its digest matches  596ms\n   ✓ rejects a full-format static receipt when fresh command replay fails  436ms\n   ✓ rejects caller-controlled evidence time and unbounded freshness windows  434ms\n   ✓ rejects forged implementation trees and incomplete Git identity sets  1254ms\n ✓ tests/unit/tool-adapters.test.ts (4 tests) 31ms\n ✓ tests/unit/exceptions.test.ts (5 tests) 6ms\n ✓ tests/unit/adoption-profile.test.ts (1 test) 7ms\n ✓ tests/integration/cli-workflow.test.ts (10 tests) 4651ms\n   ✓ project command workflow > plans before applying and verifies the adopted project  4485ms\n ✓ tests/unit/cli-help.test.ts (2 tests) 5ms\n ✓ tests/unit/transitions.test.ts (6 tests) 4ms\n ✓ tests/unit/risk.test.ts (16 tests) 6ms\n ✓ tests/unit/metrics.test.ts (3 tests) 3ms\n ✓ tests/unit/adapters.test.ts (1 test) 4ms\n ✓ tests/unit/version-coherence.test.ts (1 test) 2ms\n ✓ tests/integration/adoption-verification.test.ts (5 tests) 6085ms\n   ✓ adopted project verification > validates extensions and the exact managed adapter source  5136ms\n   ✓ adopted project verification > checks ProjTrav generated targets without authoring them directly  555ms\n ✓ tests/integration/portable-gate.test.ts (2 tests) 9736ms\n   ✓ runs a checksum-pinned project gate offline and rejects a mutated runner  7507ms\n   ✓ fails closed before npm install on an unsupported Node runtime  2228ms\n ✓ tests/integration/pilots.test.ts (3 tests) 16566ms\n   ✓ real CLI workflow pilots > keeps R1 lightweight while requiring a fresh local test  1885ms\n   ✓ real CLI workflow pilots > forces R2 repair by the original owner before independent acceptance  10931ms\n   ✓ real CLI workflow pilots > keeps R3 blocked without an exact active scoped authorization  3749ms\n\n Test Files  25 passed | 1 skipped (26)\n      Tests  107 passed | 1 skipped (108)\n   Start at  06:58:10\n   Duration  17.14s (transform 947ms, setup 0ms, collect 2.93s, tests 46.25s, environment 3ms, prepare 1.76s)\n\n\n> @xgh/engineering-governance@1.0.0 build /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n> tsc -p tsconfig.json\n\n\n> @xgh/engineering-governance@1.0.0 check:placeholders /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n> node scripts/check-placeholders.mjs\n\nmarker-check: ok (97 files)\n\n> @xgh/engineering-governance@1.0.0 check:licenses /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n> node scripts/check-licenses.mjs\n\nlicense-check: ok (64 packages; Apache-2.0, BSD-3-Clause, ISC, MIT)\n",
+  "stderr": ""
+}

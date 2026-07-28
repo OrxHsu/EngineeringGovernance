@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "taskId": "global-workflow-repair",
+  "contractDigest": "29398532b2deb3c9c2a50605f5dd1cf4e8324ea217b31c3d59f9e8a3d04df66a",
+  "candidateDigest": "bbcfd9aaae2f0d7c6ca554c975c5fff95d06d0046441e442059fc631b562d055",
+  "reviewedImplementation": [
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation",
+      "commit": "5ee1a70bdbd32a5c5e9044c522757801e0d43df1",
+      "tree": "25ba5efaaecf2a2ebdcd72e776d722035f22dce2"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1",
+      "commit": "3ad83efe6ccc3c48a0404033388722d3a64f3de0",
+      "tree": "4dce6b5b05bc7812f54586ad76c073966b21f9aa"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-server",
+      "commit": "b6c58b35584353fe0b6badd38587ed743f667865",
+      "tree": "342ea17f979f9b53998537b6c97815f26d8094ae"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/ProjTrav_V1/projtrav-ios",
+      "commit": "ee7ab323d872c9bb39163236fec27282d997f6ad",
+      "tree": "819b73e7b63504d4b7e7e882e0d4a38e36466722"
+    },
+    {
+      "repository": "/Users/xgh/Documents/VibeCoding/NoMe_V2",
+      "commit": "2910996bf942ce1d5f06f62736d0a1bee9c92c5b",
+      "tree": "f737ae6e81eb12241f1c6961c454efb7e653deee"
+    }
+  ],
+  "reviewer": "codex-independent-global-workflow-reviewer",
+  "decision": "REPAIR_REQUIRED",
+  "findings": [
+    {
+      "id": "GW-R3-R2-F-001",
+      "severity": "P1",
+      "classification": "contract_violation",
+      "defectClass": "evidence-provenance",
+      "permanentGateId": "GW-EVIDENCE-01",
+      "observation": "The repaired evidence path still accepts caller-authored PASS claims as machine execution. src/evidence/capture.ts:7-16 accepts arbitrary caller-supplied checkIds, and src/evidence/capture.ts:57-82 maps every supplied ID to passed whenever one aggregate command exits zero. src/evidence/verify.ts:142-225 validates only the receipt shape, digest, metadata, and internal field equality; it neither authenticates the producer nor derives executed check IDs from raw reporter output. Fresh adversarial verification of the repository-authored full-format fixture tests/fixtures/evidence/valid.json with tests/fixtures/evidence/artifacts/test-results.json returned valid:true and passedIds:[AC-01]. Thus an implementation owner can hand-author the supported receipt shape, or execute a no-op success command while asserting arbitrary check IDs, contrary to the frozen requirement that arbitrary self-authored artifacts be rejected. Claimed non-execution of Simulator, device, runtime, or external mutation is therefore not independently established."
+    },
+    {
+      "id": "GW-R3-R2-F-002",
+      "severity": "P1",
+      "classification": "contract_violation",
+      "defectClass": "candidate-digest-binding",
+      "permanentGateId": "GW-EXIT-01",
+      "observation": "The artifact-bound review path uses a different candidate digest algorithm from the frozen candidate identity. The handoff and canonical model digest for candidate.json are bbcfd9aaae2f0d7c6ca554c975c5fff95d06d0046441e442059fc631b562d055, computed through src/model/digest.ts:3-14, while the raw file SHA-256 is 119fe7e4d400a9e73b7691f01138b97cf64374910e0c51d451cc6fcfa55c58b0. src/commands/task-review.ts:36-37 and 63-65 hash the raw candidate bytes, and line 107 rejects any review whose candidateDigest differs from that raw hash. Consequently an ACCEPTED review bound to the exact frozen digest required by the handoff cannot pass real task review; substituting the raw hash would violate the frozen candidate identity. The prior artifact-binding finding is therefore not closed and acceptance remains impossible without changing one side of the contract consistently."
+    }
+  ],
+  "nextStage": "REPAIR_REQUIRED -> IN_PROGRESS under the existing implementation owner codex. Repair the same frozen contract so supported execution evidence has trustworthy, mechanically verified provenance and per-check execution, and so candidate creation, handoff, review, and closure use one defined canonical digest algorithm. Regenerate fresh evidence and the exact candidate artifact, then obtain a new independent R3 review before merge or any real global installation.",
+  "userActionRequired": false
+}

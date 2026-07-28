@@ -1,13 +1,6 @@
 {
   "schemaVersion": 1,
-  "runId": "global-workflow-repair2-20260728T2218Z",
-  "checkIds": [
-    "r1-real-cli-pilot",
-    "r2-artifact-bound-independent-review-pilot",
-    "r2-digest-and-tree-drift-rejection",
-    "r2-artifact-bound-closure-pilot",
-    "r3-scoped-authorization-pilot"
-  ],
+  "runId": "global-workflow-repair3-20260728T2257Z",
   "command": {
     "executable": "/opt/homebrew/bin/pnpm",
     "arguments": [
@@ -17,5 +10,5 @@
     ],
     "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
   },
-  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair2-pilots.json"
+  "outputPath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation/.delivery/tasks/global-workflow-repair/artifacts/repair3-pilots.json"
 }

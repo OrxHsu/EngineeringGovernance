@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "sop-command-execution-v1",
+  "producer": {
+    "name": "@xgh/engineering-governance",
+    "version": "1.0.0"
+  },
+  "runId": "global-workflow-repair3-20260728T2257Z",
+  "command": {
+    "executable": "/opt/homebrew/bin/pnpm",
+    "arguments": [
+      "vitest",
+      "run",
+      "tests/unit/evidence-capture.test.ts",
+      "tests/unit/evidence.test.ts",
+      "tests/integration/task-verification.test.ts",
+      "tests/integration/pilots.test.ts"
+    ],
+    "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation"
+  },
+  "startedAt": "2026-07-28T22:58:38.465Z",
+  "endedAt": "2026-07-28T22:58:53.153Z",
+  "exitCode": 0,
+  "environment": {
+    "node": "22.23.1",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "checks": [
+    {
+      "id": "command:be7df4456e1cb2f03cdcf282f831e3ce443d8ddcdf972555bc6a49e1d7d4dca4",
+      "status": "passed"
+    }
+  ],
+  "stdout": "\n RUN  v3.2.4 /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.worktrees/global-workflow-implementation\n\n ✓ tests/unit/evidence.test.ts (9 tests) 47ms\n ✓ tests/unit/evidence-capture.test.ts (3 tests) 89ms\n ✓ tests/integration/task-verification.test.ts (6 tests) 2350ms\n   ✓ requires explicit approval of the exact replay plan before executing evidence commands  411ms\n   ✓ verifies R2 evidence and Git identity instead of trusting caller summaries  357ms\n   ✓ rejects forged implementation trees and incomplete Git identity sets  759ms\n ✓ tests/integration/pilots.test.ts (3 tests) 13525ms\n   ✓ real CLI workflow pilots > keeps R1 lightweight while requiring a fresh local test  907ms\n   ✓ real CLI workflow pilots > forces R2 repair by the original owner before independent acceptance  9004ms\n   ✓ real CLI workflow pilots > keeps R3 blocked without an exact active scoped authorization  3613ms\n\n Test Files  4 passed (4)\n      Tests  21 passed (21)\n   Start at  06:58:39\n   Duration  13.99s (transform 345ms, setup 0ms, collect 687ms, tests 16.01s, environment 0ms, prepare 228ms)\n\n",
+  "stderr": ""
+}
