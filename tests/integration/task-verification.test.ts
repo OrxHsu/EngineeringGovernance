@@ -79,7 +79,7 @@ function candidate(): {
     taskId: 'candidate-task',
     contractDigest: contract.contractDigest,
     runId: 'run-1',
-    runnerVersion: '0.1.0-dev',
+    runnerVersion: '1.0.0',
     implementationCommits: [{
       repository: 'repo',
       commit: implementationCommit,

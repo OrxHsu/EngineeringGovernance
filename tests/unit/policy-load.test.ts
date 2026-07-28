@@ -67,7 +67,7 @@ describe('workflow document schemas', () => {
       taskId: 'task-1',
       contractDigest: 'b'.repeat(64),
       runId: 'run-1',
-      runnerVersion: '0.1.0-dev',
+      runnerVersion: '1.0.0',
       implementationCommits: [{ repository: 'repo', commit: 'c'.repeat(40), tree: 'd'.repeat(40) }],
       records: [{
         acceptanceId: 'AC-01',

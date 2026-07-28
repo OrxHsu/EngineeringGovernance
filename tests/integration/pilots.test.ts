@@ -115,7 +115,7 @@ function closeEvidence(options: {
     taskId: options.taskId,
     contractDigest: contract.contractDigest,
     runId: options.runId,
-    runnerVersion: '0.1.0-dev',
+    runnerVersion: '1.0.0',
     implementationCommits: [{
       repository: 'pilot-repo',
       commit: options.implementationCommit,

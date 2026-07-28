@@ -4,8 +4,9 @@ Engineering Governance is the canonical, versioned development workflow for
 user-owned projects. It defines risk classification, task states, evidence
 integrity, independent review, exception handling, and safe project adoption.
 
-The repository is currently `0.1.0-dev` and unreleased. It is not a published
-package and does not represent the accepted `v1.0.0` policy baseline.
+The repository is a local `1.0.0` release candidate and remains unpublished.
+It is not a published package and does not represent the accepted `v1.0.0`
+policy baseline.
 
 ## Runtime
 

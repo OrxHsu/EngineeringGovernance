@@ -17,7 +17,7 @@ const options = {
   expectedContractDigest: 'b'.repeat(64),
   expectedImplementationIdentities: { repo: 'c'.repeat(40) },
   requiredEvidenceKinds: { 'AC-01': 'unit' as const },
-  expectedRunnerVersion: '0.1.0-dev',
+  expectedRunnerVersion: '1.0.0',
   verificationTime: new Date('2026-07-29T00:05:00Z'),
   maxEvidenceAgeMs: 10 * 60 * 1000,
   artifactRoot: fileURLToPath(new URL('../fixtures/evidence', import.meta.url)),

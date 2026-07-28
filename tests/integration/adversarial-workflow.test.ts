@@ -29,7 +29,7 @@ function options(requiredAcceptanceIds = ['AC-01']) {
     requiredEvidenceKinds: Object.fromEntries(
       requiredAcceptanceIds.map((id) => [id, 'unit' as const]),
     ),
-    expectedRunnerVersion: '0.1.0-dev',
+    expectedRunnerVersion: '1.0.0',
     verificationTime: new Date('2026-07-29T00:05:00Z'),
     maxEvidenceAgeMs: 10 * 60 * 1000,
     artifactRoot: fixtureRoot,

@@ -49,7 +49,7 @@ describe('project command workflow', () => {
 
   it('includes the pinned runner in a bootstrap adoption plan', async () => {
     const project = mkdtempSync(join(tmpdir(), 'governance-cli-runner-'))
-    const bundle = join(project, 'engineering-governance-0.1.0-dev.tgz')
+    const bundle = join(project, 'engineering-governance-1.0.0.tgz')
     writeFileSync(bundle, 'test runner archive\n')
     let output = ''
     await buildProgram({ write: (text) => { output += text } }).parseAsync([
@@ -65,7 +65,7 @@ describe('project command workflow', () => {
     expect(plan.writes.every((write) => write.after === undefined)).toBe(true)
     expect(plan.writes.map((write) => write.path)).toContain(join(
       project,
-      '.delivery/runtime/engineering-governance-0.1.0-dev.tgz',
+      '.delivery/runtime/engineering-governance-1.0.0.tgz',
     ))
   })
 

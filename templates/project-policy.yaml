@@ -1,5 +1,5 @@
 schemaVersion: 1
-sopVersion: 0.1.0-dev
+sopVersion: 1.0.0
 sopDigest: 0000000000000000000000000000000000000000000000000000000000000000
 projectId: example-project
 adapters: []

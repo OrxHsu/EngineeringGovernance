@@ -1,7 +1,6 @@
-import { createHash } from 'node:crypto'
-
 import { stringify } from 'yaml'
 
+import { canonicalDigest } from '../model/digest.js'
 import type { Risk } from '../model/types.js'
 import { classifyRisk, type RiskSignals } from '../policy/risk.js'
 import { governanceIdentity } from './adopt.js'
@@ -37,18 +36,8 @@ export interface TaskStartResult {
   artifacts: TaskArtifact[]
 }
 
-function canonical(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonical)
-  if (typeof value !== 'object' || value === null) return value
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, entry]) => [key, canonical(entry)]),
-  )
-}
-
 export function taskContractDigest(input: unknown): string {
-  return createHash('sha256').update(JSON.stringify(canonical(input))).digest('hex')
+  return canonicalDigest(input)
 }
 
 export function startTask(input: TaskStartInput): TaskStartResult {

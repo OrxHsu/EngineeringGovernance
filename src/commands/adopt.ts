@@ -4,6 +4,7 @@ import { basename, join, resolve, sep } from 'node:path'
 
 import { parse, stringify } from 'yaml'
 
+import { canonicalDigest } from '../model/digest.js'
 import type { ValidationResult } from '../model/types.js'
 import { validateDocument, validateProjectPolicy } from '../policy/load.js'
 import { adoptionProfile } from '../project/adoption-profile.js'
@@ -11,7 +12,6 @@ import { discoverProject, validateManagedPathOverlap } from '../project/discover
 import { createManagedBlock, planManagedBlockWrite } from '../project/managed-block.js'
 import type { PlannedWrite } from '../project/mutate.js'
 import { MANAGED_BLOCK_END, MANAGED_BLOCK_START } from '../adapters/render.js'
-import { taskContractDigest } from './task-start.js'
 
 export interface AdoptionPlan {
   projectRoot: string
@@ -238,7 +238,7 @@ function taskArtifactErrors(projectRoot: string): string[] {
         errors.push(...schema.errors.map((error) => `TASK_CONTRACT_INVALID:${entry.name}:${error}`))
       } else {
         const { contractDigest, ...unsigned } = contract
-        if (taskContractDigest(unsigned) !== contractDigest) {
+        if (canonicalDigest(unsigned) !== contractDigest) {
           errors.push(`TASK_CONTRACT_DIGEST_MISMATCH:${entry.name}`)
         }
         if (contract.taskId !== entry.name) errors.push(`TASK_DIRECTORY_ID_MISMATCH:${entry.name}`)

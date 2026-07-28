@@ -10,7 +10,7 @@ import {
 import { verifyGitIdentity, type GitIdentityInput } from '../evidence/git-identity.js'
 import type { Risk, ValidationResult } from '../model/types.js'
 import { validateDocument } from '../policy/load.js'
-import { taskContractDigest } from './task-start.js'
+import { canonicalDigest } from '../model/digest.js'
 
 interface CandidateVerificationInput {
   contractPath: string
@@ -115,7 +115,7 @@ function verifyCandidateArtifacts(
     return contractSchema.errors.map((error) => `CONTRACT_SCHEMA_INVALID:${error}`)
   }
   const { contractDigest, ...unsignedContract } = contract
-  if (taskContractDigest(unsignedContract) !== contractDigest) {
+  if (canonicalDigest(unsignedContract) !== contractDigest) {
     errors.push('CONTRACT_DIGEST_INVALID')
   }
   if (contract.risk !== risk) errors.push('CONTRACT_RISK_MISMATCH')

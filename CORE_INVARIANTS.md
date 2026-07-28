@@ -2,7 +2,7 @@
 
 Status: canonical development policy
 
-Version: 0.1.0-dev
+Version: 1.0.0
 
 These rules apply to every adopted project. Project rules may add constraints
 but may not silently weaken these invariants.

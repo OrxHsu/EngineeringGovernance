@@ -1,6 +1,6 @@
 schemaVersion: 1
 taskId: example-task
-sopVersion: 0.1.0-dev
+sopVersion: 1.0.0
 contractDigest: 0000000000000000000000000000000000000000000000000000000000000000
 risk: R2
 state: DEFINED

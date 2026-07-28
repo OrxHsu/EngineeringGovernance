@@ -112,7 +112,7 @@ describe('adopted project verification', () => {
     expect(verifyAdoptedProject(projectRoot)).toEqual({ valid: true, errors: [] })
     const archivePath = join(
       projectRoot,
-      '.delivery/runtime/engineering-governance-0.1.0-dev.tgz',
+      '.delivery/runtime/engineering-governance-1.0.0.tgz',
     )
     write(archivePath, 'forged archive\n')
     expect(verifyAdoptedProject(projectRoot).errors).toContain(

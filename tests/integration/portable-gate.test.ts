@@ -36,7 +36,7 @@ it('runs a checksum-pinned project gate offline and rejects a mutated runner', a
     version: string
     sha256: string
   }
-  expect(bundle.version).toBe('0.1.0-dev')
+  expect(bundle.version).toBe('1.0.0')
   expect(bundle.sha256).toMatch(/^[a-f0-9]{64}$/u)
 
   const projectRoot = await temporaryDirectory('sop-portable-project-')

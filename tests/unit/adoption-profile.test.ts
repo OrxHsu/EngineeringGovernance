@@ -23,7 +23,7 @@ it('uses stable project identities for governance and NoMe', () => {
   writeFileSync(join(governance, 'CORE_INVARIANTS.md'), '')
   writeFileSync(join(governance, 'DEVELOPMENT_SOP.md'), '')
   writeFileSync(join(governance, 'RISK_CLASSIFICATION.md'), '')
-  writeFileSync(join(governance, 'VERSION'), '0.1.0-dev\n')
+  writeFileSync(join(governance, 'VERSION'), '1.0.0\n')
   expect(adoptionProfile(governance).projectId).toBe('engineering-governance')
 
   const noMe = directory('NoMe_V2-')
