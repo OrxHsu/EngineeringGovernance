@@ -69,6 +69,22 @@ Historical plans, handoffs, adoption records, and evidence remain historical
 records. Their recorded 1.x version text is not release metadata and must not be
 rewritten during this migration.
 
+## 2.1.0-beta.0 contract-readiness preview
+
+The local `engineering-governance-2.1.0-beta.0.tgz` candidate adds a global
+pre-implementation contract-readiness gate for newly created schema-v2 R2/R3
+tasks. It does not auto-upgrade projects, rewrite pre-gate v2 history, promote
+v1 artifacts, or publish to a remote registry. R1 remains owner-only. A project
+consumes the beta only through a separate reviewed upgrade/adoption task after
+the archive SHA-256 and package/VERSION identity are checked.
+
+For a new R2/R3 task, run `task contract-review` on the canonical
+`.delivery/tasks/<task-id>/contract-review.yaml` before the owner applies the
+`DEFINED -> IN_PROGRESS` transition. If the contract changes, even only in raw
+formatting, the readiness review must be regenerated because the exact reviewed
+bytes changed. A `REPAIR_REQUIRED` result returns to the contract author; it is
+not an implementation authorization.
+
 If the project owner chooses not to use Engineering Governance, do not perform
 an upgrade. Run `sop unadopt <project>` to inspect the exact removal plan and
 apply only its unchanged digest. This removes managed policy/adapter/runner

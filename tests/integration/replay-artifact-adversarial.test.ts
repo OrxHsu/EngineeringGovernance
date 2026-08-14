@@ -90,7 +90,7 @@ function replayedFixture(): ReplayedFixture {
     authorizationRequirements: [],
     evidenceFreshnessMs: 60_000,
     openChoices: [],
-    signals: { security: true },
+    signals: { mutation: true, classificationComplete: true },
   })
   for (const artifact of task.artifacts) write(join(root, artifact.path), artifact.content)
   const contractPath = join(root, task.artifacts.find((artifact) => (

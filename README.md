@@ -58,6 +58,7 @@ Task commands consume explicit YAML inputs and emit deterministic JSON:
 ```sh
 pnpm sop -- task start --project /absolute/path/to/project --input /absolute/path/to/start.yaml
 pnpm sop -- task start --project /absolute/path/to/project --input /absolute/path/to/start.yaml --apply-plan <reviewed-plan-sha256>
+pnpm sop -- task contract-review --input /absolute/path/to/.delivery/tasks/<task-id>/contract-review.yaml
 pnpm sop -- task transition --input /absolute/path/to/owner-transition.yaml
 pnpm sop -- task transition --input /absolute/path/to/owner-transition.yaml --apply-plan <reviewed-plan-sha256>
 pnpm sop -- task execute --input /absolute/path/to/command-execution.yaml
@@ -98,8 +99,12 @@ configuration. Adoption also inspects the archive before planning and requires
 the expected package metadata, version, templates, schemas, sources, and
 compiled `dist/` bytes to match the governance identity being installed.
 
-Schema-v2 mutating R1-R3 tasks create a frozen contract and append-only ledger;
-R2/R3 acceptance requires an independent reviewer. `task execute` runs one
+Schema-v2 mutating R1-R3 tasks create a frozen contract and append-only ledger.
+New R2/R3 tasks also require an independent contract-readiness review before
+implementation can start; `task contract-review` checks the exact canonical
+artifact and `task transition` enforces its ledger binding. R1 tasks remain
+owner-only, and pre-gate v2 history is grandfathered without rewriting. R2/R3
+acceptance still requires an independent candidate reviewer. `task execute` runs one
 contract-frozen executable without a shell and emits a runner-produced receipt
 containing the exact command, environment, times, exit code, stdout, stderr,
 repository set, and checkout identities. Evidence kinds are not interchangeable.

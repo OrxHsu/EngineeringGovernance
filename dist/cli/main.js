@@ -11,6 +11,7 @@ import { persistHardenedVerificationArtifact, } from '../commands/task-verify-v2
 import { applyCandidateReplay, planCandidateReplay } from '../commands/task-replay-v2.js';
 import { applyOwnerTaskTransition, planOwnerTaskTransition, } from '../commands/task-transition-v2.js';
 import { verifyHardenedReview } from '../commands/task-review-v2.js';
+import { verifyContractReview } from '../commands/task-contract-review-v2.js';
 import { verifyHardenedClose } from '../commands/task-close-v2.js';
 import { captureCommandExecution, } from '../evidence/capture.js';
 import { planUpgrade } from '../commands/upgrade.js';
@@ -140,6 +141,13 @@ export function buildProgram(output = defaultOutput) {
         writeJson(output, options.applyPlan === undefined
             ? plan
             : applyOwnerTaskTransition(plan, options.applyPlan));
+    });
+    task.command('contract-review')
+        .requiredOption('--input <path>')
+        .action((options) => {
+        const input = loadCliInput(options.input);
+        requireActiveV2(input.value);
+        writeJson(output, verifyContractReview(input.unresolvedPath));
     });
     task.command('review')
         .requiredOption('--input <path>')

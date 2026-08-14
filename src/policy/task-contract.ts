@@ -32,6 +32,11 @@ interface ContractV2 {
     }
   }>
   authorizationRequirements: Array<{ id: string }>
+  contractReadiness?: {
+    required: boolean
+    reviewPath: string
+    gateVersion: string
+  }
   extensions: Array<{ id: string; version: string; digest: string; input: unknown }>
   [key: string]: unknown
 }
@@ -85,6 +90,20 @@ function semanticErrors(contract: ContractV2): string[] {
   }
   if (contract.risk !== expectedRisk) {
     errors.push(`TASK_CONTRACT_RISK_MISMATCH:${contract.risk}:${expectedRisk}`)
+  }
+
+  if (contract.contractReadiness !== undefined) {
+    const expectedRequired = contract.risk === 'R2' || contract.risk === 'R3'
+    const expectedPath = `.delivery/tasks/${contract.taskId}/contract-review.yaml`
+    if (contract.contractReadiness.required !== expectedRequired) {
+      errors.push('TASK_CONTRACT_READINESS_REQUIREMENT_MISMATCH')
+    }
+    if (contract.contractReadiness.reviewPath !== expectedPath) {
+      errors.push('TASK_CONTRACT_READINESS_PATH_MISMATCH')
+    }
+    if (contract.contractReadiness.gateVersion !== '2.1.0-beta.0') {
+      errors.push('TASK_CONTRACT_READINESS_VERSION_MISMATCH')
+    }
   }
 
   const acceptanceIds = contract.acceptance.map((gate) => gate.id)

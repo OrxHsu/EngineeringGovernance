@@ -119,6 +119,51 @@ export function hardenedTaskFixture(options: {
   const contractPath = join(root, `.delivery/tasks/${taskId}/contract.yaml`)
   const contractRaw = readFileSync(contractPath)
   const contract = parse(contractRaw.toString('utf8')) as Record<string, unknown>
+  if ((contract.contractReadiness as { required?: boolean } | undefined)?.required === true) {
+    const evidenceRef = {
+      id: 'E-001',
+      kind: 'contract',
+      path: `.delivery/tasks/${taskId}/contract.yaml`,
+      sha256: sha256(contractRaw),
+      digest: canonicalDigest(contract),
+    }
+    const checklistItem = { status: 'PASS', evidenceRefs: [evidenceRef] }
+    const r3 = (contract.risk === 'R3')
+      ? {
+        trust_threat_analysis: checklistItem,
+        migration_recovery_rollback: checklistItem,
+        specialized_gates: checklistItem,
+        scoped_authorization: (options.authorizationRequirements ?? []).length > 0
+          ? checklistItem
+          : { status: 'NA', applicabilityReason: 'no-scoped-authorization-action', evidenceRefs: [evidenceRef] },
+        production_observation: { status: 'NA', applicabilityReason: 'no-production-action', evidenceRefs: [evidenceRef] },
+      }
+      : Object.fromEntries([
+        'trust_threat_analysis', 'migration_recovery_rollback', 'specialized_gates',
+        'scoped_authorization', 'production_observation',
+      ].map((key) => [key, { status: 'NA', applicabilityReason: 'risk-below-r3', evidenceRefs: [evidenceRef] }]))
+    const review = {
+      schemaVersion: 2,
+      artifactType: 'sop-contract-review-v2',
+      reviewId: `crv-${taskId}-${String(contract.contractDigest)}`,
+      taskId,
+      risk: contract.risk,
+      reviewer: { id: 'independent-test-reviewer', trustLevel: 'local-claim' },
+      decision: 'ACCEPTED',
+      contract: { path: contractPath, rawSha256: sha256(contractRaw), digest: contract.contractDigest },
+      checklist: Object.fromEntries([
+        'scope_non_goals', 'authority_dependencies', 'risk_owner_reviewer',
+        'behavior_state_transitions', 'security_trust', 'evidence_environment',
+        'external_source_provenance', 'rollout_recovery_compatibility',
+        'unresolved_product_decisions',
+      ].map((key) => [key, checklistItem])),
+      r3Requirements: r3,
+      findings: [],
+      nextStage: 'implementation',
+      userActionRequired: false,
+    }
+    write(join(root, `.delivery/tasks/${taskId}/contract-review.yaml`), stringify(review))
+  }
   const authorizationArtifacts = (options.authorizationDocuments?.({
     root,
     taskId,
@@ -133,7 +178,9 @@ export function hardenedTaskFixture(options: {
     taskId,
     actorId: options.implementationOwner ?? 'codex',
     to: 'IN_PROGRESS',
-    artifacts: [{ kind: 'contract', path: contractPath }],
+    artifacts: ((contract.contractReadiness as { required?: boolean } | undefined)?.required === true)
+      ? [{ kind: 'contract-review', path: join(root, `.delivery/tasks/${taskId}/contract-review.yaml`) }]
+      : [{ kind: 'contract', path: contractPath }],
   })
   if (!applyTaskTransition(inProgress, inProgress.digest).applied) throw new Error('fixture IN_PROGRESS failed')
   write(join(root, 'implementation.txt'), 'implemented\n')

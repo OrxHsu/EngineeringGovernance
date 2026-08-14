@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { cp, mkdir, mkdtemp, readFile, realpath, rename, rm } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
@@ -10,6 +10,12 @@ if (outputIndex < 0 || !process.argv[outputIndex + 1]) {
   process.exit(2)
 }
 const outputDirectory = resolve(process.argv[outputIndex + 1])
+const versionIndex = process.argv.indexOf('--version')
+const versionOverride = versionIndex >= 0 ? process.argv[versionIndex + 1] : undefined
+if (versionOverride !== undefined && !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(versionOverride)) {
+  process.stderr.write('BUNDLE_VERSION_INVALID\n')
+  process.exit(2)
+}
 await mkdir(outputDirectory, { recursive: true })
 
 function run(command, arguments_) {
@@ -63,6 +69,13 @@ try {
       dereference: true,
     })
   }
+  if (versionOverride !== undefined) {
+    const packagePath = resolve(stage, 'package.json')
+    const packageJson = JSON.parse(await readFile(packagePath, 'utf8'))
+    packageJson.version = versionOverride
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`)
+    await writeFile(resolve(stage, 'VERSION'), `${versionOverride}\n`)
+  }
   for (const dependency of ['ajv', 'commander', 'yaml']) {
     await copyPackageClosure(
       resolve(repositoryRoot, 'node_modules', dependency),
@@ -89,7 +102,7 @@ try {
 
   const reportedPath = packedLine.trim()
   const packedPath = resolve(outputDirectory, basename(reportedPath))
-  const version = (await readFile(resolve(repositoryRoot, 'VERSION'), 'utf8')).trim()
+  const version = versionOverride ?? (await readFile(resolve(repositoryRoot, 'VERSION'), 'utf8')).trim()
   const archivePath = resolve(outputDirectory, `engineering-governance-${version}.tgz`)
   if (packedPath !== archivePath) await rename(packedPath, archivePath)
   const sha256 = createHash('sha256').update(await readFile(archivePath)).digest('hex')

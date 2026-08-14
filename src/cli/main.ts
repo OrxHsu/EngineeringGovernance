@@ -26,6 +26,7 @@ import {
   planOwnerTaskTransition,
 } from '../commands/task-transition-v2.js'
 import { verifyHardenedReview } from '../commands/task-review-v2.js'
+import { verifyContractReview } from '../commands/task-contract-review-v2.js'
 import { verifyHardenedClose } from '../commands/task-close-v2.js'
 import {
   captureCommandExecution,
@@ -189,6 +190,13 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
           ? plan
           : applyOwnerTaskTransition(plan, options.applyPlan),
       )
+    })
+  task.command('contract-review')
+    .requiredOption('--input <path>')
+    .action((options: { input: string }) => {
+      const input = loadCliInput<unknown>(options.input)
+      requireActiveV2(input.value)
+      writeJson(output, verifyContractReview(input.unresolvedPath))
     })
   task.command('review')
     .requiredOption('--input <path>')

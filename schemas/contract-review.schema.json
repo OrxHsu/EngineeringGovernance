@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/contract-review.schema.json",
+  "$defs": {
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path", "sha256", "digest"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^E-[0-9]{3}$" },
+        "kind": { "enum": ["authority", "contract", "test", "record", "plan", "extension"] },
+        "path": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "checkItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "evidenceRefs"],
+      "properties": {
+        "status": { "const": "PASS" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidenceRef" }
+        },
+        "applicabilityReason": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [{
+        "if": { "properties": { "status": { "const": "PASS" } }, "required": ["status"] },
+        "then": { "properties": { "applicabilityReason": false } }
+      }]
+    },
+    "r3Item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["PASS", "NA"] },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidenceRef" }
+        },
+        "applicabilityReason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "classification", "observation", "requiredChange", "evidenceRefs"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^CR-[0-9]{3}$" },
+        "severity": { "enum": ["BLOCKER", "HIGH", "MEDIUM", "LOW"] },
+        "classification": { "enum": ["contract_violation", "newly_discovered_defect", "new_requirement"] },
+        "observation": { "type": "string", "minLength": 1 },
+        "requiredChange": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidenceRef" } }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "artifactType", "reviewId", "taskId", "risk", "reviewer",
+    "decision", "contract", "checklist", "r3Requirements", "findings", "nextStage",
+    "userActionRequired"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "artifactType": { "const": "sop-contract-review-v2" },
+    "reviewId": { "type": "string", "pattern": "^crv-[a-z0-9][a-z0-9._-]*-[a-f0-9]{64}$" },
+    "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "risk": { "enum": ["R2", "R3"] },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "trustLevel"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "trustLevel": { "const": "local-claim" }
+      }
+    },
+    "decision": { "enum": ["ACCEPTED", "REPAIR_REQUIRED"] },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "rawSha256", "digest"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_non_goals", "authority_dependencies", "risk_owner_reviewer",
+        "behavior_state_transitions", "security_trust", "evidence_environment",
+        "external_source_provenance", "rollout_recovery_compatibility",
+        "unresolved_product_decisions"
+      ],
+      "properties": {
+        "scope_non_goals": { "$ref": "#/$defs/checkItem" },
+        "authority_dependencies": { "$ref": "#/$defs/checkItem" },
+        "risk_owner_reviewer": { "$ref": "#/$defs/checkItem" },
+        "behavior_state_transitions": { "$ref": "#/$defs/checkItem" },
+        "security_trust": { "$ref": "#/$defs/checkItem" },
+        "evidence_environment": { "$ref": "#/$defs/checkItem" },
+        "external_source_provenance": { "$ref": "#/$defs/checkItem" },
+        "rollout_recovery_compatibility": { "$ref": "#/$defs/checkItem" },
+        "unresolved_product_decisions": { "$ref": "#/$defs/checkItem" }
+      }
+    },
+    "r3Requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trust_threat_analysis", "migration_recovery_rollback", "specialized_gates",
+        "scoped_authorization", "production_observation"
+      ],
+      "properties": {
+        "trust_threat_analysis": { "$ref": "#/$defs/r3Item" },
+        "migration_recovery_rollback": { "$ref": "#/$defs/r3Item" },
+        "specialized_gates": { "$ref": "#/$defs/r3Item" },
+        "scoped_authorization": { "$ref": "#/$defs/r3Item" },
+        "production_observation": { "$ref": "#/$defs/r3Item" }
+      }
+    },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "nextStage": { "enum": ["implementation", "contract-repair"] },
+    "userActionRequired": { "type": "boolean" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "decision": { "const": "ACCEPTED" } }, "required": ["decision"] },
+      "then": {
+        "properties": {
+          "findings": { "type": "array", "maxItems": 0 },
+          "nextStage": { "const": "implementation" },
+          "userActionRequired": { "const": false }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "decision": { "const": "REPAIR_REQUIRED" } }, "required": ["decision"] },
+      "then": {
+        "properties": {
+          "findings": { "type": "array", "minItems": 1 },
+          "nextStage": { "const": "contract-repair" }
+        }
+      }
+    }
+  ]
+}

@@ -87,7 +87,7 @@ function definedV2Task(
     }],
     authorizationRequirements: [],
     openChoices: [],
-    signals: { crossModule: true },
+    signals: { mutation: true, classificationComplete: true },
   })
   for (const artifact of task.artifacts) {
     const path = join(root, artifact.path)
@@ -230,7 +230,7 @@ describe('v2 CLI hardening', () => {
         'external-source-provenance@1.0.0': { mode: 'independent' },
       },
       openChoices: [],
-      signals: { crossModule: true },
+    signals: { mutation: true, classificationComplete: true },
     }))
 
     let output = ''
@@ -333,7 +333,7 @@ describe('v2 CLI hardening', () => {
       }],
       requiredGates: ['node --version'],
       openChoices: [],
-      signals: { crossModule: true },
+    signals: { mutation: true, classificationComplete: true },
     }))
 
     await expect(buildProgram().parseAsync([

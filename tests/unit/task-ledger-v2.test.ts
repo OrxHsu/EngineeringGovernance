@@ -54,7 +54,7 @@ function fixture(): { root: string; contract: Record<string, unknown> } {
     }],
     authorizationRequirements: [],
     openChoices: [],
-    signals: { mutation: true, crossModule: true },
+    signals: { mutation: true, classificationComplete: true },
   })
   for (const artifact of task.artifacts) {
     const path = join(root, artifact.path)

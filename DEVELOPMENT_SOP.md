@@ -52,6 +52,46 @@ R2/R3 requirements are frozen before implementation. Requirements and review
 criteria are identical. Natural-language properties such as secure, private,
 bound, executed, or complete require observable checks.
 
+### Contract readiness before implementation
+
+For newly created schema-v2 R2/R3 tasks, the contract author and implementation
+owner are not the contract-readiness approver. Before `DEFINED -> IN_PROGRESS`,
+an independent reviewer runs `task contract-review --input` against the exact
+`.delivery/tasks/<task-id>/contract-review.yaml` artifact. The artifact binds
+the task, risk, reviewer, raw contract SHA-256, semantic contract digest, nine
+completeness categories, all applicable R3 categories, evidence references, and
+one consolidated finding set. `ACCEPTED` requires every required item to pass
+and no findings; `REPAIR_REQUIRED` cannot start implementation. Findings are
+classified as `contract_violation`, `newly_discovered_defect`, or
+`new_requirement` and return to the contract author as one repair record.
+Self-review is forbidden.
+
+The gate is a global rule, not a Phase 2D rule. R1 tasks keep the simpler owner
+transition. A task may remain `DEFINED` while waiting for review. A markerless
+R2/R3 schema-v2 contract is grandfathered only when its contract is `sopVersion:
+2.0.0`, its `policyDigest` equals the frozen pre-gate digest
+`eba8165bd069c0e85e5b08217ea260e7b027e85158404a50644c03b57a909aca`, and its
+ledger begins with sequence-1 `null -> DEFINED`; otherwise it is invalid and
+cannot bypass readiness. Such historical evidence is not rewritten; v1 remains
+inspect-only. Returning from
+`REPAIR_REQUIRED` may reuse the accepted readiness artifact only if the exact
+contract bytes and semantic digest are unchanged; drift requires a new review.
+
+Contract-readiness uses both identities deliberately: the semantic digest is
+the contract identity used by normal candidate/review binding, while the raw
+SHA-256 prevents an unreviewed byte-level edit before implementation. Thus even
+formatting-only edits require a fresh readiness review.
+
+For R3, trust/threat analysis and migration/recovery/rollback are always
+applicable. Specialized gates, scoped authorization, and production observation
+are mechanically applicable from the frozen risk signals, authorization list,
+and production/deployment flags; an `NA` entry must carry the exact permitted
+reason. Local actor and approval strings remain `local-claim`, not authenticated
+identity or external authorization. External-source provenance remains
+default-deny and requires exact allocation, actual-use, and release records.
+The global package does not grant access to TREK implementation material or
+turn a project-specific source boundary into a global product requirement.
+
 ### External implementation sources
 
 External-source use is default-deny and vendor-neutral. Without an enabled,
@@ -166,13 +206,18 @@ An R2/R3 reviewer inspects actual commits, diffs, files, repository state, and
 fresh evidence. The reviewer does not trust the implementation report and does
 not edit the candidate.
 
-Candidate and review binding uses the canonical structured-document digest, so
-formatting-only changes do not alter identity while semantic changes do. The
-accepted review and closure also bind the exact approved replay-plan digest.
+Candidate and normal implementation-review binding uses the canonical
+structured-document digest, so formatting-only changes do not alter that
+identity while semantic changes do. The pre-implementation readiness artifact
+also binds raw contract bytes, so formatting-only edits before implementation
+invalidate readiness. The accepted review and closure also bind the exact
+approved replay-plan digest.
 Closure artifact references additionally bind exact file bytes with SHA-256.
 
-A review decision is ACCEPTED or REPAIR_REQUIRED. Findings are ordered by
-severity and classified as:
+A review decision is ACCEPTED or REPAIR_REQUIRED. Generic completeness
+categories are always `PASS`; only the explicitly applicable R3 entries may be
+`NA` with their exact reason. Findings are ordered by severity descending
+(`BLOCKER`, `HIGH`, `MEDIUM`, `LOW`) and then by finding ID, and classified as:
 
 - contract violation;
 - newly discovered defect;

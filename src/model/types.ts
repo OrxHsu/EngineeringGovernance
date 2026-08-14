@@ -27,6 +27,7 @@ export type DocumentKind =
   | 'extensions-manifest'
   | 'external-source-use'
   | 'external-source-release'
+  | 'contract-review'
 
 export interface ValidationResult {
   valid: boolean

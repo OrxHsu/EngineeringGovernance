@@ -1,0 +1,32 @@
+schemaVersion: 2
+artifactType: sop-contract-review-v2
+reviewId: crv-<taskId>-<contractDigest>
+taskId: <taskId>
+risk: R3
+reviewer:
+  id: <independent-reviewer-id>
+  trustLevel: local-claim
+decision: ACCEPTED
+contract:
+  path: /absolute/project/.delivery/tasks/<taskId>/contract.yaml
+  rawSha256: <sha256-of-contract-bytes>
+  digest: <contractDigest>
+checklist:
+  scope_non_goals: { status: PASS, evidenceRefs: [] }
+  authority_dependencies: { status: PASS, evidenceRefs: [] }
+  risk_owner_reviewer: { status: PASS, evidenceRefs: [] }
+  behavior_state_transitions: { status: PASS, evidenceRefs: [] }
+  security_trust: { status: PASS, evidenceRefs: [] }
+  evidence_environment: { status: PASS, evidenceRefs: [] }
+  external_source_provenance: { status: PASS, evidenceRefs: [] }
+  rollout_recovery_compatibility: { status: PASS, evidenceRefs: [] }
+  unresolved_product_decisions: { status: PASS, evidenceRefs: [] }
+r3Requirements:
+  trust_threat_analysis: { status: PASS, evidenceRefs: [] }
+  migration_recovery_rollback: { status: PASS, evidenceRefs: [] }
+  specialized_gates: { status: PASS, evidenceRefs: [] }
+  scoped_authorization: { status: NA, applicabilityReason: no-scoped-authorization-action, evidenceRefs: [] }
+  production_observation: { status: NA, applicabilityReason: no-production-action, evidenceRefs: [] }
+findings: []
+nextStage: implementation
+userActionRequired: false

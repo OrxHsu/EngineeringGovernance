@@ -7,6 +7,7 @@ import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { verifyHardenedCandidate, } from '../commands/task-verify-v2.js';
 import { readTaskLedger } from '../state/ledger.js';
+import { PRE_GATE_POLICY_DIGEST, verifyContractReadinessArtifact } from '../state/contract-readiness.js';
 function sha256(input) {
     return createHash('sha256').update(input).digest('hex');
 }
@@ -164,6 +165,86 @@ function reviewArtifacts(taskRoot, taskId, errors) {
         errors.push(`TASK_GRAPH_DUPLICATE_ACCEPTED_REVIEW:${taskId}`);
     }
     return reviews;
+}
+function contractReadinessArtifacts(taskRoot, taskId, errors) {
+    const artifacts = [];
+    for (const path of structuredFiles(taskRoot, taskId, errors)) {
+        let value;
+        try {
+            value = parse(readFileSync(path, 'utf8'));
+        }
+        catch {
+            continue;
+        }
+        if (typeof value !== 'object' || value === null || Array.isArray(value))
+            continue;
+        const record = value;
+        if (record.artifactType !== 'sop-contract-review-v2')
+            continue;
+        const schema = validateDocument('contract-review', record);
+        if (!schema.valid || record.schemaVersion !== 2) {
+            errors.push(`TASK_GRAPH_CONTRACT_REVIEW_INVALID:${taskId}:${relative(taskRoot, path)}`);
+            continue;
+        }
+        artifacts.push({ path, value: record });
+        if (record.taskId !== taskId) {
+            errors.push(`TASK_GRAPH_CROSS_TASK_ARTIFACT:${taskId}:${relative(taskRoot, path)}:${String(record.taskId)}`);
+        }
+    }
+    if (artifacts.length > 1)
+        errors.push(`TASK_GRAPH_DUPLICATE_CONTRACT_REVIEW:${taskId}`);
+    return artifacts;
+}
+function validateContractReadinessGraph(input) {
+    if (input.contract.contractReadiness?.required !== true) {
+        const initial = input.events[0];
+        const isExplicitPreGateHistory = input.contract.contractReadiness === undefined
+            && input.contract.sopVersion === '2.0.0'
+            && input.contract.policyDigest === PRE_GATE_POLICY_DIGEST
+            && initial?.sequence === 1
+            && initial.from === null
+            && initial.to === 'DEFINED';
+        if (input.contract.risk === 'R2' || input.contract.risk === 'R3') {
+            if (!isExplicitPreGateHistory)
+                input.errors.push(`TASK_GRAPH_MARKERLESS_CONTRACT_NOT_GRANDFATHERED:${input.taskId}`);
+        }
+        if (input.readinessArtifacts.length > 0)
+            input.errors.push(`TASK_GRAPH_ORPHAN_CONTRACT_REVIEW:${input.taskId}`);
+        return;
+    }
+    const canonicalPath = join(input.taskRoot, 'contract-review.yaml');
+    const artifact = input.readinessArtifacts.find((item) => item.path === canonicalPath);
+    if (input.readinessArtifacts.some((item) => item.path !== canonicalPath)) {
+        input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_CANONICAL_PATH_MISMATCH:${input.taskId}`);
+    }
+    const stateRequiresReview = input.currentState === 'IN_PROGRESS'
+        || input.currentState === 'CANDIDATE'
+        || input.currentState === 'ACCEPTED'
+        || input.currentState === 'CLOSED'
+        || input.currentState === 'REPAIR_REQUIRED'
+        || input.currentState === 'BLOCKED';
+    if (artifact === undefined) {
+        if (stateRequiresReview)
+            input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_MISSING:${input.taskId}`);
+        return;
+    }
+    const verification = verifyContractReadinessArtifact(input.projectRoot, input.taskId, artifact.path);
+    if (!verification.valid || verification.review?.decision !== 'ACCEPTED') {
+        input.errors.push(...verification.errors.map((error) => `TASK_GRAPH_CONTRACT_REVIEW_INVALID:${input.taskId}:${error}`));
+        if (verification.valid)
+            input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_NOT_ACCEPTED:${input.taskId}`);
+    }
+    if (!stateRequiresReview)
+        return;
+    const inProgress = input.events.find((event) => event.to === 'IN_PROGRESS');
+    const expectedRef = {
+        kind: 'contract-review',
+        path: relative(input.projectRoot, canonicalPath),
+        sha256: sha256(readFileSync(canonicalPath)),
+    };
+    if (inProgress === undefined || JSON.stringify(inProgress.artifactRefs) !== JSON.stringify([expectedRef])) {
+        input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_EVENT_REF_MISMATCH:${input.taskId}`);
+    }
 }
 function closureArtifacts(taskRoot, taskId, errors) {
     const closures = [];
@@ -385,6 +466,17 @@ function validateVerificationGraph(input) {
         verificationValue: verification.value.extensionArtifacts,
         errors: input.errors,
     });
+    if (typeof input.contractRaw.toString === 'function') {
+        try {
+            const historicalContract = parse(input.contractRaw.toString('utf8'));
+            if (historicalContract.contractReadiness === undefined)
+                return;
+        }
+        catch {
+            input.errors.push(`TASK_GRAPH_VERIFICATION_CONTRACT_HISTORY_INVALID:${input.taskId}`);
+            return;
+        }
+    }
     const verifiedAt = verification.value.verifiedAt;
     if (typeof verifiedAt !== 'string') {
         input.errors.push(`TASK_GRAPH_VERIFICATION_RECOMPUTATION_FAILED:${input.taskId}:TIME_INVALID`);
@@ -551,6 +643,7 @@ export function validateProjectTaskGraph(projectPath) {
         const candidates = candidateArtifacts(taskRoot, entry.name, errors);
         const verifications = verificationArtifacts(taskRoot, entry.name, errors);
         const reviews = reviewArtifacts(taskRoot, entry.name, errors);
+        const contractReadinessReviews = contractReadinessArtifacts(taskRoot, entry.name, errors);
         const closures = closureArtifacts(taskRoot, entry.name, errors);
         if (ledger.valid) {
             validateCurrentCandidate({
@@ -562,6 +655,16 @@ export function validateProjectTaskGraph(projectPath) {
                 contractDigest,
                 events: ledger.events,
                 candidates,
+                errors,
+            });
+            validateContractReadinessGraph({
+                projectRoot,
+                taskRoot,
+                taskId: entry.name,
+                contract,
+                events: ledger.events,
+                ...(ledger.currentState === undefined ? {} : { currentState: ledger.currentState }),
+                readinessArtifacts: contractReadinessReviews,
                 errors,
             });
             validateVerificationGraph({

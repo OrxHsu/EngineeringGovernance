@@ -81,7 +81,7 @@ function fixture(replay: 'required' | 'not-required' = 'not-required'): {
     authorizationRequirements: [],
     evidenceFreshnessMs: 60_000,
     openChoices: [],
-    signals: { crossModule: true },
+    signals: { mutation: true, classificationComplete: true },
   })
   for (const artifact of task.artifacts) write(join(repository, artifact.path), artifact.content)
   const contractPath = join(repository, task.artifacts[0]!.path)

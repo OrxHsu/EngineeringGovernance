@@ -375,6 +375,11 @@ export function startTask(input, context = {}) {
         acceptance,
         evidenceFreshnessMs,
         authorizationRequirements: input.authorizationRequirements,
+        contractReadiness: {
+            required: risk === 'R2' || risk === 'R3',
+            reviewPath: contractPath.replace(/contract\.yaml$/u, 'contract-review.yaml'),
+            gateVersion: '2.1.0-beta.0',
+        },
         extensions,
         openChoices: input.openChoices,
     };

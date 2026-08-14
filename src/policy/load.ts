@@ -21,6 +21,7 @@ const schemaPaths: Record<DocumentKind, URL> = {
   'extensions-manifest': new URL('../../schemas/extensions-manifest.schema.json', import.meta.url),
   'external-source-use': new URL('../../schemas/external-source-use.schema.json', import.meta.url),
   'external-source-release': new URL('../../schemas/external-source-release.schema.json', import.meta.url),
+  'contract-review': new URL('../../schemas/contract-review.schema.json', import.meta.url),
 }
 
 const ajv = new Ajv2020({ allErrors: true, strict: true })

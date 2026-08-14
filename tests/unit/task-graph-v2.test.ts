@@ -76,7 +76,7 @@ function definedTaskFixture(taskId = 'graph-task'): string {
     }],
     authorizationRequirements: [],
     openChoices: [],
-    signals: { mutation: true },
+    signals: { mutation: true, classificationComplete: true },
   })
   for (const artifact of result.artifacts) {
     const path = join(root, artifact.path)

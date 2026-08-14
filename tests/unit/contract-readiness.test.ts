@@ -1,0 +1,136 @@
+import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
+import { afterEach, describe, expect, it } from 'vitest'
+import { parse, stringify } from 'yaml'
+
+import { startTask } from '../../src/commands/task-start.js'
+import { canonicalDigest } from '../../src/model/digest.js'
+import { planTaskTransition } from '../../src/state/ledger.js'
+import { verifyContractReadinessArtifact } from '../../src/state/contract-readiness.js'
+
+const temporaryDirectories: string[] = []
+
+function sha256(input: string | Uint8Array): string {
+  return createHash('sha256').update(input).digest('hex')
+}
+
+function fixture(): { root: string; taskId: string; contract: Record<string, unknown>; reviewPath: string } {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'sop-contract-readiness-')))
+  temporaryDirectories.push(root)
+  execFileSync('git', ['-C', root, 'init', '-b', 'main'])
+  execFileSync('git', ['-C', root, 'config', 'user.email', 'test@example.com'])
+  execFileSync('git', ['-C', root, 'config', 'user.name', 'Test'])
+  writeFileSync(join(root, 'authority.md'), 'authority\n')
+  execFileSync('git', ['-C', root, 'add', 'authority.md'])
+  execFileSync('git', ['-C', root, 'commit', '-m', 'baseline'])
+  const taskId = 'readiness-task'
+  const result = startTask({
+    schemaVersion: 2,
+    taskId,
+    implementationOwner: 'codex',
+    objective: 'Validate pre-implementation readiness.',
+    scope: ['src/**'],
+    nonGoals: ['deployment'],
+    authorityInputs: ['authority.md'],
+    repositories: [{ id: 'root', path: root }],
+    acceptance: [{
+      id: 'AC-01', observation: 'The gate is validated.', positiveCases: ['pass'], negativeCases: ['reject'],
+      evidenceKind: 'unit', command: {
+        repositoryId: 'root', cwd: '.', executable: process.execPath, arguments: ['--version'],
+      }, observerPolicy: { expectedExitCode: 0, output: 'nonempty', checkoutMutation: 'forbidden', replay: 'required' },
+    }],
+    authorizationRequirements: [],
+    openChoices: [],
+    signals: { crossModule: true, classificationComplete: true },
+  })
+  for (const artifact of result.artifacts) {
+    const path = join(root, artifact.path)
+    mkdirSync(join(path, '..'), { recursive: true })
+    writeFileSync(path, artifact.content)
+  }
+  const contractPath = join(root, `.delivery/tasks/${taskId}/contract.yaml`)
+  const contractRaw = readFileSync(contractPath)
+  const contract = parse(contractRaw.toString('utf8')) as Record<string, unknown>
+  const evidenceRef = { id: 'E-001', kind: 'contract', path: `.delivery/tasks/${taskId}/contract.yaml`, sha256: sha256(contractRaw), digest: canonicalDigest(contract) }
+  const item = { status: 'PASS', evidenceRefs: [evidenceRef] }
+  const r3Item = { status: 'NA', applicabilityReason: 'risk-below-r3', evidenceRefs: [evidenceRef] }
+  const review = {
+    schemaVersion: 2,
+    artifactType: 'sop-contract-review-v2',
+    reviewId: `crv-${taskId}-${String(contract.contractDigest)}`,
+    taskId,
+    risk: 'R2',
+    reviewer: { id: 'independent-reviewer', trustLevel: 'local-claim' },
+    decision: 'ACCEPTED',
+    contract: { path: contractPath, rawSha256: sha256(contractRaw), digest: contract.contractDigest },
+    checklist: {
+      scope_non_goals: item, authority_dependencies: item, risk_owner_reviewer: item,
+      behavior_state_transitions: item, security_trust: item, evidence_environment: item,
+      external_source_provenance: item, rollout_recovery_compatibility: item,
+      unresolved_product_decisions: item,
+    },
+    r3Requirements: {
+      trust_threat_analysis: r3Item, migration_recovery_rollback: r3Item,
+      specialized_gates: r3Item, scoped_authorization: r3Item, production_observation: r3Item,
+    },
+    findings: [], nextStage: 'implementation', userActionRequired: false,
+  }
+  const reviewPath = join(root, `.delivery/tasks/${taskId}/contract-review.yaml`)
+  writeFileSync(reviewPath, stringify(review))
+  return { root, taskId, contract, reviewPath }
+}
+
+afterEach(() => {
+  for (const path of temporaryDirectories.splice(0)) rmSync(path, { recursive: true, force: true })
+})
+
+describe('contract readiness gate', () => {
+  it('accepts an exact independent review and binds it to IN_PROGRESS', () => {
+    const { root, taskId, reviewPath } = fixture()
+    const verification = verifyContractReadinessArtifact(root, taskId, reviewPath)
+    expect(verification.valid).toBe(true)
+    const plan = planTaskTransition({
+      projectRoot: root,
+      taskId,
+      actorId: 'codex',
+      to: 'IN_PROGRESS',
+      artifacts: [{ kind: 'contract-review', path: reviewPath }],
+    })
+    expect(plan.event.artifactRefs).toHaveLength(1)
+    expect(plan.event.artifactRefs[0]?.kind).toBe('contract-review')
+  })
+
+  it('rejects self-review and stale contract bytes', () => {
+    const { root, taskId, reviewPath } = fixture()
+    const review = parse(readFileSync(reviewPath, 'utf8')) as Record<string, any>
+    review.reviewer.id = 'CODEX'
+    writeFileSync(reviewPath, stringify(review))
+    expect(verifyContractReadinessArtifact(root, taskId, reviewPath).errors).toContain('CONTRACT_REVIEW_SELF_REVIEW_FORBIDDEN')
+    review.reviewer.id = 'independent-reviewer'
+    writeFileSync(reviewPath, stringify(review))
+    writeFileSync(join(root, `.delivery/tasks/${taskId}/contract.yaml`), `${readFileSync(join(root, `.delivery/tasks/${taskId}/contract.yaml`), 'utf8')}\n`)
+    expect(() => planTaskTransition({
+      projectRoot: root, taskId, actorId: 'codex', to: 'IN_PROGRESS', artifacts: [{ kind: 'contract-review', path: reviewPath }],
+    })).toThrow('TASK_LEDGER_INVALID')
+  })
+
+  it('requires findings to be ordered by severity and then ID', () => {
+    const { root, taskId, reviewPath } = fixture()
+    const review = parse(readFileSync(reviewPath, 'utf8')) as Record<string, any>
+    const evidenceRefs = review.checklist.scope_non_goals.evidenceRefs
+    review.decision = 'REPAIR_REQUIRED'
+    review.nextStage = 'contract-repair'
+    review.userActionRequired = true
+    review.findings = [
+      { id: 'CR-001', severity: 'HIGH', classification: 'contract_violation', observation: 'high', requiredChange: 'fix', evidenceRefs },
+      { id: 'CR-002', severity: 'BLOCKER', classification: 'contract_violation', observation: 'blocker', requiredChange: 'fix', evidenceRefs },
+    ]
+    writeFileSync(reviewPath, stringify(review))
+    expect(verifyContractReadinessArtifact(root, taskId, reviewPath).errors)
+      .toContain('CONTRACT_REVIEW_FINDINGS_NOT_UNIQUE_SEVERITY_SORTED')
+  })
+})

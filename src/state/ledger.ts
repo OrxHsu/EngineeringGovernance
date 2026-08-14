@@ -12,6 +12,7 @@ import { validateDocument } from '../policy/load.js'
 import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { applyPlannedWrites } from '../project/mutate.js'
 import { canTransition, validateAcceptanceAuthority } from './transitions.js'
+import { verifyContractReadinessArtifact } from './contract-readiness.js'
 
 export interface ArtifactReference {
   kind: string
@@ -43,6 +44,7 @@ interface LedgerContract {
   contractDigest: string
   implementationOwner: string
   risk: Risk
+  contractReadiness?: { required: boolean; reviewPath: string; gateVersion: string }
   [key: string]: unknown
 }
 
@@ -83,6 +85,27 @@ function transitionAuthorityErrors(input: {
     errors.push('TASK_CLOSE_TRANSITION_ARTIFACT_SET_INVALID')
   }
   return [...new Set(errors)].sort()
+}
+
+function contractReadinessErrors(input: {
+  projectRoot: string
+  taskId: string
+  contract: LedgerContract
+  to: TaskState
+  artifacts: Array<{ kind: string; path: string }>
+}): string[] {
+  if (input.to !== 'IN_PROGRESS' || input.contract.contractReadiness?.required !== true) return []
+  if (input.artifacts.length !== 1 || input.artifacts[0]?.kind !== 'contract-review') {
+    return ['TASK_CONTRACT_READINESS_ARTIFACT_SET_INVALID']
+  }
+  const expected = `.delivery/tasks/${input.taskId}/contract-review.yaml`
+  if (input.artifacts[0].path !== expected) return ['TASK_CONTRACT_READINESS_PATH_INVALID']
+  const result = verifyContractReadinessArtifact(
+    input.projectRoot,
+    input.taskId,
+    join(input.projectRoot, expected),
+  )
+  return result.valid ? [] : result.errors.map((error) => `TASK_CONTRACT_READINESS_INVALID:${error}`)
 }
 
 export interface TaskTransitionPlan {
@@ -223,6 +246,13 @@ export function readTaskLedger(input: {
           to: event.to,
           artifacts: event.artifactRefs,
         }).map((error) => `${error}:${index + 1}`))
+        errors.push(...contractReadinessErrors({
+          projectRoot: input.projectRoot,
+          taskId: input.taskId,
+          contract: authorityContract,
+          to: event.to,
+          artifacts: event.artifactRefs,
+        }).map((error) => `${error}:${index + 1}`))
       }
     }
     events.push(event)
@@ -305,6 +335,15 @@ export function planTaskTransition(input: {
     artifacts: input.artifacts,
   })
   if (authorityErrors.length > 0) throw new Error(authorityErrors.join(','))
+  const artifactRefs = input.artifacts.map((artifact) => artifactReference(loaded.root, artifact))
+  const readinessErrors = contractReadinessErrors({
+    projectRoot: loaded.root,
+    taskId: input.taskId,
+    contract: loaded.contract,
+    to: input.to,
+    artifacts: artifactRefs,
+  })
+  if (readinessErrors.length > 0) throw new Error(readinessErrors.join(','))
   const previous = ledger.events.at(-1)!
   const event = createTaskEvent({
     schemaVersion: 2,
@@ -314,7 +353,7 @@ export function planTaskTransition(input: {
     to: input.to,
     actorId,
     contractDigest: loaded.contract.contractDigest,
-    artifactRefs: input.artifacts.map((artifact) => artifactReference(loaded.root, artifact)),
+    artifactRefs,
   })
   const unsigned = {
     schemaVersion: 2 as const,
@@ -381,6 +420,13 @@ function planErrors(plan: TaskTransitionPlan, approvedDigest: string): string[] 
   errors.push(...transitionAuthorityErrors({
     contract: loaded.contract,
     actorId: plan.event.actorId,
+    to: plan.event.to,
+    artifacts: plan.event.artifactRefs,
+  }))
+  errors.push(...contractReadinessErrors({
+    projectRoot: loaded.root,
+    taskId: plan.taskId,
+    contract: loaded.contract,
     to: plan.event.to,
     artifacts: plan.event.artifactRefs,
   }))
