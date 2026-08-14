@@ -1,0 +1,85 @@
+schemaVersion: 2
+taskId: global-sop-hardening-2
+sopVersion: 2.0.0
+policyDigest: eba8165bd069c0e85e5b08217ea260e7b027e85158404a50644c03b57a909aca
+risk: R3
+riskSignals:
+  mutation: true
+  classificationComplete: true
+  crossModule: true
+  security: true
+  projectMinimum: R3
+implementationOwner: codex
+objective: Validate the repaired SOP 2.0 input boundary and the self-adopted
+  2.0.0 governance runner from the real Engineering Governance repository.
+scope:
+  - Verify malformed v2 task-start and command-execution inputs fail closed with
+    stable validation errors.
+  - Verify the self-adopted 2.0.0 policy, pinned runner, generated adapter, and
+    complete package checks remain coherent.
+  - Bind the candidate to the exact contract, evidence receipt, implementation
+    checkout, and current governance identity.
+nonGoals:
+  - Do not rewrite or close the historical v1 task contracts.
+  - Do not review or approve this task's own candidate.
+  - Do not push, publish, deploy, or mutate consumer projects or production
+    systems.
+authorityInputs:
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - RISK_CLASSIFICATION.md
+  - README.md
+  - schemas/
+  - src/
+  - tests/
+  - .delivery/policy.yaml
+  - .delivery/extensions.yaml
+repositories:
+  - id: root
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    baseline:
+      head: 5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf
+      tree: 5cb39e04f7dca18ff0ddbe38e883df20c8fbd565
+      checkoutDigest: 4d936a540442f8c840f7adb2480aca8b3bc8cb9c09be644479b5c9db0002265b
+      trackedPaths: []
+      untrackedPaths:
+        - .delivery/inputs/global-sop-hardening-2.yaml
+        - docs/handoffs/global-sop-hardening-1.md
+acceptance:
+  - id: SOP2-REPAIR-01
+    observation: The repaired 2.0.0 governance package passes its complete real-path
+      check while preserving the fail-closed input boundary and self-adopted
+      runner identity.
+    positiveCases:
+      - Node 22 typecheck, unit, integration, adversarial, CLI-process, build,
+        placeholder, license, runner-bundle, and task-graph checks pass from the
+        exact current checkout.
+      - Malformed and partial v2 task-start and command-execution inputs return
+        stable validation errors without TypeError or command execution.
+      - The pinned 2.0.0 wrapper validates policy, adapter, runner, and
+        task-graph identity.
+    negativeCases:
+      - A skipped required suite, stale runner, policy drift, malformed task
+        input, or caller-controlled command/path is accepted as completion.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - check
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+evidenceFreshnessMs: 86400000
+authorizationRequirements: []
+extensions: []
+openChoices:
+  - The independent reviewer chooses the review mechanism while consuming this
+    exact candidate identity.
+contractDigest: 7bd8ccb39a3920964834343c726931deea63b0a43a2079e1b525e41f1d85191d

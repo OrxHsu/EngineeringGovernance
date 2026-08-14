@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "sop-replay-verification-v2",
+  "producer": {
+    "name": "@xgh/engineering-governance",
+    "version": "2.0.0",
+    "policyDigest": "eba8165bd069c0e85e5b08217ea260e7b027e85158404a50644c03b57a909aca"
+  },
+  "taskId": "global-sop-hardening-2",
+  "contract": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/contract.yaml",
+    "sha256": "89f66712b6e6a460b1dbb4cf1ed779b08fb4c5eb1b92ce339ff3a50d53ebf0f5",
+    "digest": "7bd8ccb39a3920964834343c726931deea63b0a43a2079e1b525e41f1d85191d"
+  },
+  "candidate": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/candidate.yaml",
+    "sha256": "6b908128c59d5c50075aa0138d37921ad0c3b5525fcfcd48a370ec31669c98e0",
+    "digest": "7345e32d15149c57857800b5f196a3c81265dad6ce0068609224f85c298d8055"
+  },
+  "planDigest": "93bcfd4a887f1ddf57d7a878846e15f2da8f0ba577775fe48be962cdee04e1e3",
+  "implementationIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "commit": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+      "tree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+      "checkoutDigest": "9a48fbedded2fdb307737404b54c034034f92adee3d62617d6ca6475e225d378"
+    }
+  ],
+  "executions": [
+    {
+      "acceptanceId": "SOP2-REPAIR-01",
+      "gateDigest": "f00e7129a232d930477f1af0249360966c7d04fd0b06f4781443f0f37f91dcbe",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "check"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "repositoriesBefore": [
+        {
+          "id": "root",
+          "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+          "head": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+          "tree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+          "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "trackedPaths": [],
+          "untracked": [
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2-candidate.yaml",
+              "type": "file",
+              "sha256": "4b272051d52df05e3d3ba310594919a21b7b9af5ed64c6833fc9b7e989a208ce"
+            },
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2-execute.yaml",
+              "type": "file",
+              "sha256": "a97ce02b7726d9f8c7aa76a22e343aba622ac6fedab7110efee9bcc84ba42cde"
+            },
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2-in-progress.yaml",
+              "type": "file",
+              "sha256": "912fd7325177dfb60a3f1c7c257742e5b745c4bfb886694c9205588a83aa8052"
+            },
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2.yaml",
+              "type": "file",
+              "sha256": "5c67f787c97abf6f8204d04237ef5680d6e25b62a5b62e95921a4176efb0c8dd"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/candidate.yaml",
+              "type": "file",
+              "sha256": "6b908128c59d5c50075aa0138d37921ad0c3b5525fcfcd48a370ec31669c98e0"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/contract.yaml",
+              "type": "file",
+              "sha256": "89f66712b6e6a460b1dbb4cf1ed779b08fb4c5eb1b92ce339ff3a50d53ebf0f5"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/evidence.json",
+              "type": "file",
+              "sha256": "777ebd14ecc8c80dad49d0551ac9acce3c49038ad1e494985800272a857ed09a"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/ledger.jsonl",
+              "type": "file",
+              "sha256": "b770b4804dd720b34d6add284f9537744b09c13757da16815f541836e88c3139"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/receipts/run-1/SOP2-REPAIR-01.json",
+              "type": "file",
+              "sha256": "8f15dcbb3ec25f9c6f4bef0a5a6c52ba980d8c081680d8ae35ff671c18ea4b60"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/replay-plan.json",
+              "type": "file",
+              "sha256": "0585fb5932255e22fde04c53576001dbe513ff2a009194c1cbc50b561324d46c"
+            },
+            {
+              "path": "docs/handoffs/global-sop-hardening-1.md",
+              "type": "file",
+              "sha256": "3b9240f202e5d23038b324ccf39a2dcb92dcc44740dc83f829bad5f1706c8239"
+            }
+          ],
+          "statusDigest": "7723dbc1525f479865b945493ee9f50d6765b20083c122a2eea40c1c8d5e97b2"
+        }
+      ],
+      "repositoriesAfter": [
+        {
+          "id": "root",
+          "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+          "head": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+          "tree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+          "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "trackedPaths": [],
+          "untracked": [
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2-candidate.yaml",
+              "type": "file",
+              "sha256": "4b272051d52df05e3d3ba310594919a21b7b9af5ed64c6833fc9b7e989a208ce"
+            },
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2-execute.yaml",
+              "type": "file",
+              "sha256": "a97ce02b7726d9f8c7aa76a22e343aba622ac6fedab7110efee9bcc84ba42cde"
+            },
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2-in-progress.yaml",
+              "type": "file",
+              "sha256": "912fd7325177dfb60a3f1c7c257742e5b745c4bfb886694c9205588a83aa8052"
+            },
+            {
+              "path": ".delivery/inputs/global-sop-hardening-2.yaml",
+              "type": "file",
+              "sha256": "5c67f787c97abf6f8204d04237ef5680d6e25b62a5b62e95921a4176efb0c8dd"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/candidate.yaml",
+              "type": "file",
+              "sha256": "6b908128c59d5c50075aa0138d37921ad0c3b5525fcfcd48a370ec31669c98e0"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/contract.yaml",
+              "type": "file",
+              "sha256": "89f66712b6e6a460b1dbb4cf1ed779b08fb4c5eb1b92ce339ff3a50d53ebf0f5"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/evidence.json",
+              "type": "file",
+              "sha256": "777ebd14ecc8c80dad49d0551ac9acce3c49038ad1e494985800272a857ed09a"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/ledger.jsonl",
+              "type": "file",
+              "sha256": "b770b4804dd720b34d6add284f9537744b09c13757da16815f541836e88c3139"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/receipts/run-1/SOP2-REPAIR-01.json",
+              "type": "file",
+              "sha256": "8f15dcbb3ec25f9c6f4bef0a5a6c52ba980d8c081680d8ae35ff671c18ea4b60"
+            },
+            {
+              "path": ".delivery/tasks/global-sop-hardening-2/replay-plan.json",
+              "type": "file",
+              "sha256": "0585fb5932255e22fde04c53576001dbe513ff2a009194c1cbc50b561324d46c"
+            },
+            {
+              "path": "docs/handoffs/global-sop-hardening-1.md",
+              "type": "file",
+              "sha256": "3b9240f202e5d23038b324ccf39a2dcb92dcc44740dc83f829bad5f1706c8239"
+            }
+          ],
+          "statusDigest": "7723dbc1525f479865b945493ee9f50d6765b20083c122a2eea40c1c8d5e97b2"
+        }
+      ],
+      "startedAt": "2026-08-14T15:24:36.742Z",
+      "endedAt": "2026-08-14T15:26:14.930Z",
+      "exitCode": 0,
+      "stdout": "\n> @xgh/engineering-governance@2.0.0 check /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n> pnpm typecheck && pnpm test && pnpm build && pnpm check:placeholders && pnpm check:licenses\n\n\n> @xgh/engineering-governance@2.0.0 typecheck /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n> tsc -p tsconfig.json --noEmit\n\n\n> @xgh/engineering-governance@2.0.0 test /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n> pnpm build && vitest run\n\n\n> @xgh/engineering-governance@2.0.0 build /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n> tsc -p tsconfig.json\n\n\n RUN  v3.2.4 /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n\n ✓ tests/integration/cli-v2-hardening.test.ts (14 tests) 12623ms\n   ✓ v2 CLI hardening > starts a v2 task from an explicit adopted project and freezes its extensions  3824ms\n   ✓ v2 CLI hardening > rejects legacy task start input on the active command  482ms\n   ✓ v2 CLI hardening > verifies the canonical candidate input and persists verification only when requested  1012ms\n   ✓ v2 CLI hardening > rejects a candidate symlink before verification persistence  647ms\n   ✓ v2 CLI hardening > executes a candidate replay only with the exact current plan digest  675ms\n   ✓ v2 CLI hardening > uses v2 policy errors rather than the raw expected command exit as process status  701ms\n   ✓ v2 CLI hardening > returns shell status from v2 policy errors  1911ms\n   ✓ v2 CLI hardening > inspects versionless legacy task-start inputs without activating them  529ms\n   ✓ v2 CLI hardening > keeps unadopt dry-run until the exact current plan digest is applied  556ms\n   ✓ v2 CLI hardening > applies a v2 review transition only with the exact dry-run plan digest  1105ms\n   ✓ v2 CLI hardening > applies a v2 close transition only with the exact dry-run plan digest  1175ms\n ✓ tests/integration/replay-artifact-adversarial.test.ts (14 tests) 11759ms\n   ✓ replay artifact adversarial integrity > rejects an incorrect exit code even when policyErrors is forged empty  923ms\n   ✓ replay artifact adversarial integrity > rejects forged policyErrors rather than trusting them as an observer result  840ms\n   ✓ replay artifact adversarial integrity > rejects stdout and stderr whose recorded digests do not match  851ms\n   ✓ replay artifact adversarial integrity > rejects forged stdout and stderr even when their internal digests are recomputed  787ms\n   ✓ replay artifact adversarial integrity > rejects replay snapshots supplied by the execution artifact as the approved plan  801ms\n   ✓ replay artifact adversarial integrity > rejects a missing replay execution  833ms\n   ✓ replay artifact adversarial integrity > rejects duplicated replay executions  804ms\n   ✓ replay artifact adversarial integrity > rejects reordered replay executions  902ms\n   ✓ replay artifact adversarial integrity > rejects a substituted replay execution  870ms\n   ✓ replay artifact adversarial integrity > rejects a changed replay plan digest  874ms\n   ✓ replay artifact adversarial integrity > rejects a changed gate digest  808ms\n   ✓ replay artifact adversarial integrity > rejects a changed command  817ms\n   ✓ replay artifact adversarial integrity > rejects a changed repository set  825ms\n   ✓ replay artifact adversarial integrity > rejects changed checkout state across an execution  822ms\n ✓ tests/integration/runner-release-bundle-adversarial.test.ts (8 tests) 5850ms\n   ✓ runner release-bundle adversarial integrity > builds the baseline runner only into the isolated temporary output  349ms\n   ✓ runner release-bundle adversarial integrity > rejects a harmless mutation of compiled runner bytes  491ms\n   ✓ runner release-bundle adversarial integrity > rejects a harmless mutation of a bundled transitive dependency  500ms\n   ✓ runner release-bundle adversarial integrity > rejects an archive missing required release file VERSION  302ms\n   ✓ runner release-bundle adversarial integrity > rejects an archive missing required release file package.json  343ms\n   ✓ runner release-bundle adversarial integrity > does not accept an altered archive as the expected governance identity  472ms\n ✓ tests/integration/cli-workflow.test.ts (10 tests) 3182ms\n   ✓ project command workflow > includes the pinned runner in a bootstrap adoption plan  2679ms\n   ✓ project command workflow > plans before applying and verifies the adopted project  380ms\n ✓ tests/integration/portable-gate.test.ts (2 tests) 7636ms\n   ✓ runs a checksum-pinned project gate offline and rejects a mutated runner  4689ms\n   ✓ fails closed before npm install on an unsupported Node runtime  2946ms\n ✓ tests/unit/task-graph-v2.test.ts (17 tests) 5910ms\n   ✓ v2 project task graph > rejects duplicate and cross-task candidate artifacts independent of filename  415ms\n   ✓ v2 project task graph > rejects a current candidate whose bytes no longer match the ledger reference  381ms\n   ✓ v2 project task graph > rejects duplicate and cross-task verification artifacts independent of filename  527ms\n   ✓ v2 project task graph > rejects a schema-valid verification that differs from recomputed eligibility  494ms\n   ✓ v2 project task graph > rejects more than one accepted review even when the duplicate has an unrelated filename  507ms\n   ✓ v2 project task graph > rejects an accepted review whose bytes no longer match the ledger reference  516ms\n   ✓ v2 project task graph > rejects a verification artifact whose candidate ancestor is missing  375ms\n   ✓ v2 project task graph > rejects a review artifact that has no ledger review event  555ms\n   ✓ v2 project task graph > rejects a closed artifact whose bytes no longer match the ledger reference  542ms\n   ✓ v2 project task graph > rejects a closure without an accepted review ancestor  516ms\n   ✓ v2 project task graph > rejects duplicate closure artifacts independent of filename  493ms\n ✓ tests/integration/candidate-verification-v2.test.ts (3 tests) 3888ms\n   ✓ v2 candidate verification > statically binds contract, evidence, receipts, checkout identity, and Git closure  668ms\n   ✓ v2 candidate verification > rejects post-candidate evidence substitution and candidate-owned gate requirements  2103ms\n   ✓ v2 candidate verification > requires a separately approved contract-owned replay and binds its artifact  1117ms\n ✓ tests/integration/pilots.test.ts (2 tests) 4958ms\n   ✓ breaking-version workflow pilots > keeps every historical pilot available through explicit read-only inspection  1031ms\n   ✓ breaking-version workflow pilots > rejects every historical pilot on the active v2 start path without creating task state  3926ms\n ✓ tests/integration/adoption-verification.test.ts (5 tests) 4265ms\n   ✓ adopted project verification > validates extensions and the exact managed adapter source  2526ms\n   ✓ adopted project verification > checks ProjTrav generated targets without authoring them directly  721ms\n   ✓ adopted project verification > validates a configured pinned runner and wrapper  383ms\n   ✓ adopted project verification > validates task contract schemas and canonical digests  543ms\n ✓ tests/integration/external-source-provenance.test.ts (3 tests) 3952ms\n   ✓ external-source provenance extension > permits exact copying only inside a pinned allocation with use and release records  762ms\n   ✓ external-source provenance extension > rejects unallocated destinations and a blocked release decision  1912ms\n   ✓ external-source provenance extension > keeps source-use and release bytes bound through review, close, and project check  1278ms\n ✓ tests/integration/unadopt.test.ts (3 tests) 3424ms\n   ✓ safe project unadoption > is digest-approved, drift-safe, and preserves task history and unrelated files  2635ms\n   ✓ safe project unadoption > refuses to plan removal of a drifted pinned runner or wrapper  684ms\n ✓ tests/integration/nonexecuting-close-v2.test.ts (3 tests) 2698ms\n   ✓ non-executing v2 close > binds the accepted event and status artifacts, then returns a CLOSED transition plan  1026ms\n   ✓ non-executing v2 close > rejects a forged accepted event and a substituted review  901ms\n   ✓ non-executing v2 close > recomputes a recorded review before allowing close  770ms\n ✓ tests/integration/nonexecuting-review-v2.test.ts (3 tests) 2369ms\n   ✓ non-executing v2 review > consumes an exact persisted verification and returns an ACCEPTED transition plan  860ms\n   ✓ non-executing v2 review > rejects normalized self-review and verification substitution without executing commands  778ms\n   ✓ non-executing v2 review > rejects a schema-valid verification that was not the runner-computed result  731ms\n ✓ tests/integration/task-verification.test.ts (6 tests) 2313ms\n   ✓ requires explicit approval of the exact replay plan before executing evidence commands  378ms\n   ✓ verifies R2 evidence and Git identity instead of trusting caller summaries  356ms\n   ✓ rejects forged implementation trees and incomplete Git identity sets  752ms\n ✓ tests/integration/authorization-v2.test.ts (2 tests) 2033ms\n   ✓ v2 authorization binding > accepts an exact active local claim while exposing its trust level  741ms\n   ✓ v2 authorization binding > rejects target drift and verified attestations without a trusted verifier  1292ms\n ✓ tests/unit/checkout-bound-execution.test.ts (3 tests) 1190ms\n   ✓ checkout-bound execution > loads the command from the contract and records exact before/after snapshots  462ms\n   ✓ checkout-bound execution > rejects caller-controlled commands and detects observer mutation  373ms\n   ✓ checkout-bound execution > enforces exact stdout and stderr digests during execution  354ms\n ✓ tests/integration/project-adoption.test.ts (5 tests) 894ms\n   ✓ safe project adoption > plans and guards ProjTrav generated targets across all three repositories  605ms\n ✓ tests/integration/git-identity.test.ts (3 tests) 615ms\n ✓ tests/unit/task-contract-v2.test.ts (3 tests) 545ms\n ✓ tests/integration/cli-process-exit.test.ts (1 test) 387ms\n   ✓ returns a non-zero process exit when a validation decision is invalid  387ms\n ✓ tests/unit/task-ledger-v2.test.ts (2 tests) 408ms\n ✓ tests/unit/extensions-v2.test.ts (2 tests) 407ms\n ✓ tests/integration/global-adapters.test.ts (1 test) 90ms\n ✓ tests/unit/evidence-capture.test.ts (3 tests) 80ms\n ✓ tests/unit/policy-load.test.ts (8 tests) 67ms\n ✓ tests/integration/external-source-provenance-adversarial.test.ts (14 tests) 60ms\n ✓ tests/unit/evidence.test.ts (9 tests) 40ms\n ✓ tests/unit/authorization.test.ts (3 tests) 44ms\n ✓ tests/integration/adversarial-workflow.test.ts (4 tests) 44ms\n ✓ tests/unit/skill-adapter.test.ts (3 tests) 26ms\n ✓ tests/integration/codex-install.test.ts (2 tests) 17ms\n ✓ tests/unit/tool-adapters.test.ts (4 tests) 7ms\n ✓ tests/unit/version-coherence.test.ts (1 test) 10ms\n ✓ tests/unit/governance-identity.test.ts (1 test) 7ms\n ✓ tests/unit/cli-help.test.ts (2 tests) 3ms\n ✓ tests/unit/adoption-profile.test.ts (1 test) 4ms\n ✓ tests/unit/metrics.test.ts (3 tests) 3ms\n ✓ tests/unit/risk.test.ts (16 tests) 2ms\n ✓ tests/unit/transitions.test.ts (6 tests) 2ms\n ✓ tests/unit/exceptions.test.ts (5 tests) 2ms\n ✓ tests/unit/adapters.test.ts (1 test) 2ms\n ↓ tests/integration/real-project-dry-run.test.ts (1 test | 1 skipped)\n\n Test Files  41 passed | 1 skipped (42)\n      Tests  201 passed | 1 skipped (202)\n   Start at  23:24:40\n   Duration  91.78s (transform 524ms, setup 0ms, collect 2.45s, tests 81.82s, environment 3ms, prepare 1.51s)\n\n\n> @xgh/engineering-governance@2.0.0 build /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n> tsc -p tsconfig.json\n\n\n> @xgh/engineering-governance@2.0.0 check:placeholders /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n> node scripts/check-placeholders.mjs\n\nmarker-check: ok (140 files)\n\n> @xgh/engineering-governance@2.0.0 check:licenses /Users/xgh/Documents/VibeCoding/EngineeringGovernance\n> node scripts/check-licenses.mjs\n\nlicense-check: ok (64 packages; Apache-2.0, BSD-3-Clause, ISC, MIT)\n",
+      "stderr": "",
+      "stdoutSha256": "0af06e3ac88164526d48c61ef6e2ab098453cd59dd0c130d858cd7a2d41625d6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "policyErrors": []
+    }
+  ],
+  "verifiedAt": "2026-08-14T15:26:15.028Z",
+  "decision": "eligible"
+}

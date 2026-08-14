@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "sop-evidence-v2",
+  "taskId": "global-sop-hardening-2",
+  "contractDigest": "7bd8ccb39a3920964834343c726931deea63b0a43a2079e1b525e41f1d85191d",
+  "runId": "run-1",
+  "runner": {
+    "version": "2.0.0",
+    "policyDigest": "eba8165bd069c0e85e5b08217ea260e7b027e85158404a50644c03b57a909aca"
+  },
+  "implementationIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "commit": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+      "tree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+      "checkoutDigest": "9a48fbedded2fdb307737404b54c034034f92adee3d62617d6ca6475e225d378"
+    }
+  ],
+  "receipts": [
+    {
+      "acceptanceId": "SOP2-REPAIR-01",
+      "path": ".delivery/tasks/global-sop-hardening-2/receipts/run-1/SOP2-REPAIR-01.json",
+      "sha256": "8f15dcbb3ec25f9c6f4bef0a5a6c52ba980d8c081680d8ae35ff671c18ea4b60"
+    }
+  ],
+  "summary": {
+    "passedIds": [
+      "SOP2-REPAIR-01"
+    ],
+    "failedIds": []
+  }
+}

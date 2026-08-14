@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 2,
+  "taskId": "global-sop-hardening-2",
+  "contract": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/contract.yaml",
+    "sha256": "89f66712b6e6a460b1dbb4cf1ed779b08fb4c5eb1b92ce339ff3a50d53ebf0f5"
+  },
+  "evidence": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/evidence.json",
+    "sha256": "777ebd14ecc8c80dad49d0551ac9acce3c49038ad1e494985800272a857ed09a"
+  },
+  "implementationIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "commit": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+      "tree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+      "checkoutDigest": "9a48fbedded2fdb307737404b54c034034f92adee3d62617d6ca6475e225d378"
+    }
+  ],
+  "gitIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "implementationCommit": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+      "implementationTree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+      "closureCommit": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+      "allowedClosurePaths": [
+        ".delivery/**"
+      ]
+    }
+  ],
+  "authorizationArtifacts": [],
+  "extensionArtifacts": []
+}

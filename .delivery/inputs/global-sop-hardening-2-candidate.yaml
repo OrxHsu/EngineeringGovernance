@@ -1,0 +1,10 @@
+schemaVersion: 2
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+taskId: global-sop-hardening-2
+actorId: codex
+to: CANDIDATE
+artifacts:
+  - kind: candidate
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/candidate.yaml
+  - kind: evidence
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/evidence.json

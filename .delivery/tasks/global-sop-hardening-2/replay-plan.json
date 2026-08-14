@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "sop-replay-plan-v2",
+  "projectRoot": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+  "taskId": "global-sop-hardening-2",
+  "contract": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/contract.yaml",
+    "sha256": "89f66712b6e6a460b1dbb4cf1ed779b08fb4c5eb1b92ce339ff3a50d53ebf0f5",
+    "digest": "7bd8ccb39a3920964834343c726931deea63b0a43a2079e1b525e41f1d85191d"
+  },
+  "candidate": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/candidate.yaml",
+    "sha256": "6b908128c59d5c50075aa0138d37921ad0c3b5525fcfcd48a370ec31669c98e0",
+    "digest": "7345e32d15149c57857800b5f196a3c81265dad6ce0068609224f85c298d8055"
+  },
+  "implementationIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "commit": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+      "tree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+      "checkoutDigest": "9a48fbedded2fdb307737404b54c034034f92adee3d62617d6ca6475e225d378"
+    }
+  ],
+  "checkoutSnapshots": [
+    {
+      "id": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "head": "5e93ba45bdce60dbf173f7b1e63b72b69acb1ebf",
+      "tree": "5cb39e04f7dca18ff0ddbe38e883df20c8fbd565",
+      "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trackedPaths": [],
+      "untracked": [
+        {
+          "path": ".delivery/inputs/global-sop-hardening-2-candidate.yaml",
+          "type": "file",
+          "sha256": "4b272051d52df05e3d3ba310594919a21b7b9af5ed64c6833fc9b7e989a208ce"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-hardening-2-execute.yaml",
+          "type": "file",
+          "sha256": "a97ce02b7726d9f8c7aa76a22e343aba622ac6fedab7110efee9bcc84ba42cde"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-hardening-2-in-progress.yaml",
+          "type": "file",
+          "sha256": "912fd7325177dfb60a3f1c7c257742e5b745c4bfb886694c9205588a83aa8052"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-hardening-2.yaml",
+          "type": "file",
+          "sha256": "5c67f787c97abf6f8204d04237ef5680d6e25b62a5b62e95921a4176efb0c8dd"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-hardening-2/candidate.yaml",
+          "type": "file",
+          "sha256": "6b908128c59d5c50075aa0138d37921ad0c3b5525fcfcd48a370ec31669c98e0"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-hardening-2/contract.yaml",
+          "type": "file",
+          "sha256": "89f66712b6e6a460b1dbb4cf1ed779b08fb4c5eb1b92ce339ff3a50d53ebf0f5"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-hardening-2/evidence.json",
+          "type": "file",
+          "sha256": "777ebd14ecc8c80dad49d0551ac9acce3c49038ad1e494985800272a857ed09a"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-hardening-2/ledger.jsonl",
+          "type": "file",
+          "sha256": "b770b4804dd720b34d6add284f9537744b09c13757da16815f541836e88c3139"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-hardening-2/receipts/run-1/SOP2-REPAIR-01.json",
+          "type": "file",
+          "sha256": "8f15dcbb3ec25f9c6f4bef0a5a6c52ba980d8c081680d8ae35ff671c18ea4b60"
+        },
+        {
+          "path": "docs/handoffs/global-sop-hardening-1.md",
+          "type": "file",
+          "sha256": "3b9240f202e5d23038b324ccf39a2dcb92dcc44740dc83f829bad5f1706c8239"
+        }
+      ],
+      "statusDigest": "0b73ab9a69f0c0a214293f5122e0c51cfd69cf1f554d6ed9b186afdbb2f9a8e5"
+    }
+  ],
+  "gates": [
+    {
+      "acceptanceId": "SOP2-REPAIR-01",
+      "gateDigest": "f00e7129a232d930477f1af0249360966c7d04fd0b06f4781443f0f37f91dcbe",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "check"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    }
+  ],
+  "digest": "93bcfd4a887f1ddf57d7a878846e15f2da8f0ba577775fe48be962cdee04e1e3"
+}
