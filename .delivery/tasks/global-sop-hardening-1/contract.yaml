@@ -1,0 +1,179 @@
+schemaVersion: 1
+taskId: global-sop-hardening-1
+sopVersion: 1.0.0
+risk: R3
+state: DEFINED
+implementationOwner: codex
+objective: Harden Engineering Governance so its machine-enforced lifecycle
+  matches its documented R1-R3 ownership, evidence, independent-review,
+  extension, provenance, and project opt-out guarantees.
+scope:
+  - Make contract-owned acceptance gates and evidence kinds authoritative;
+    candidates may report evidence but may not weaken or replace frozen
+    requirements.
+  - Bind candidates, reviews, closures, execution receipts, and verification
+    results to exact artifact bytes, contract identity, repository set, checkout
+    state, and immutable transition history.
+  - Ensure review and close are non-executing eligibility checks; any replay is
+    a separate explicit action limited to contract-frozen commands and produces
+    a digest-bound verification artifact.
+  - Require every mutating R1-R3 task to have exactly one normalized
+    implementation owner, a frozen task contract, fresh real-path evidence, and
+    mechanically checked lifecycle state.
+  - Define and enforce versioned project extensions, including a vendor-neutral
+    external-source provenance policy with default-deny source access, exact
+    source/destination allowlists, actual-use records, and release blocking.
+  - Add dry-run-first project unadoption that removes only digest-matching
+    managed governance artifacts and blocks on drift while preserving Git
+    history and unrelated project content.
+  - Validate complete task artifact graphs, unique accepted reviews, closure
+    coherence, and policy/runner/schema identity rather than validating isolated
+    files only.
+  - Update canonical documentation, schemas, templates, bundled runner content,
+    and adversarial tests for the hardened behavior.
+nonGoals:
+  - Do not modify or adopt ProjTrav, NoMe, or any other consumer project in this
+    task.
+  - Do not push, publish, deploy, install into the real user home, rewrite Git
+    history, or mutate production or external systems.
+  - Do not claim that a local YAML actor string provides cryptographic human or
+    agent authentication; expose that trust-anchor limitation explicitly.
+  - Do not encode TREK, ProjTrav, AGPL-specific legal conclusions, project
+    paths, capability IDs, or vendor-specific allowlists in the global package.
+  - Do not execute candidate-controlled commands during review or close and do
+    not approve this task's own replay, review, acceptance, or closure.
+authorityInputs:
+  - CORE_INVARIANTS.md, DEVELOPMENT_SOP.md, RISK_CLASSIFICATION.md, README.md,
+    schemas/, src/, templates/, tests/, and the current 1.0.0 package behavior.
+  - The 2026-08-14 independent audit findings covering candidate-controlled
+    replay, unenforced requiredGates, self-declared authorization and risk,
+    unbound checkout/evidence identities, weak reviewer identity, dead lifecycle
+    state, inert extensions, and incomplete task graph checks.
+  - Existing dry-run-first init/adopt/upgrade mutation primitives and the
+    explicit NoMe project opt-out precedent.
+acceptance:
+  - id: SOP-HARD-01
+    observation: Frozen task contracts, not candidates, define the exact
+      acceptance-to-evidence-kind and command requirements used by verification.
+    positiveCases:
+      - Candidate evidence exactly satisfies every contract acceptance ID,
+        evidence kind, and frozen command identity once.
+    negativeCases:
+      - Missing, additional, duplicated, reordered, downgraded, or
+        candidate-invented gate requirements fail.
+  - id: SOP-HARD-02
+    observation: Every execution and verification artifact is bound to exact
+      contract and evidence bytes plus the real repository set and checkout
+      state where each command ran.
+    positiveCases:
+      - Repository root, HEAD, tree, dirty-state digest, command cwd, receipt
+        bytes, stdout, stderr, runner identity, and times recompute exactly.
+    negativeCases:
+      - A command run in tmp, a different checkout, an omitted repository,
+        dirty-state substitution, output change, or post-review evidence
+        replacement fails.
+  - id: SOP-HARD-03
+    observation: Review and close never execute candidate commands; explicit replay
+      accepts only contract-frozen commands and emits a digest-bound
+      verification artifact consumed by later eligibility checks.
+    positiveCases:
+      - Review and close remain read-only even for a malicious candidate
+        command, and exact approved replay produces a separately bound artifact.
+    negativeCases:
+      - Candidate-controlled executable, arguments, cwd, environment, or replay
+        approval can trigger during review or close.
+  - id: SOP-HARD-04
+    observation: R1-R3 mutation tasks have one normalized owner, frozen contracts,
+      fresh evidence, and durable legal state transitions; R2/R3 require a
+      distinct normalized reviewer.
+    positiveCases:
+      - Start, candidate, repair, accept, close, cancel, block, and supersede
+        transitions are append-only, ordered, and bound to their triggering
+        artifacts.
+    negativeCases:
+      - Owner omission, Codex/codex independence bypass, caller-authored state
+        jumps, duplicate acceptance, or DEFINED plus accepted closure passes.
+  - id: SOP-HARD-05
+    observation: Authorization records are contract-required when applicable and
+      bind exact action, target, scope, actor claim, time window, and artifact
+      identity while documenting the external trust-anchor limitation.
+    positiveCases:
+      - An active exact-scope authorization passes only for the frozen
+        restricted action.
+    negativeCases:
+      - Candidate disables authorization, self-writes user approval, changes
+        target, or reuses an expired or unrelated record.
+  - id: SOP-HARD-06
+    observation: Versioned project extensions are schema-validated, identity-bound,
+      merged as strengthening rules, and executed during start, verify, review,
+      close, check, and unadopt where relevant.
+    positiveCases:
+      - A valid extension can raise risk or require an artifact and the core
+        lifecycle enforces it.
+    negativeCases:
+      - Unknown, malformed, weakened, inert, reordered-with-different-meaning,
+        or digest-drifted extensions pass.
+  - id: SOP-HARD-07
+    observation: The external-source provenance extension defaults to independent
+      mode and allows source-assisted work only through an active exact
+      task/contract/source-pin/source-symbol/destination allocation with
+      complete actual-use and release records.
+    positiveCases:
+      - Independent use has an empty source allowlist; authorized
+        source-assisted use is an exact subset and every changed destination is
+        classified once.
+    negativeCases:
+      - Open-ended discovery, unpinned source, unallocated destination, hidden
+        copied material, missing use record, or unresolved release
+        classification passes.
+  - id: SOP-HARD-08
+    observation: Project unadoption is dry-run-first and removes only
+      governance-managed blocks and artifacts whose current digests match the
+      reviewed plan.
+    positiveCases:
+      - Exact-plan apply preserves unrelated content and leaves a recoverable
+        Git history.
+    negativeCases:
+      - Drifted managed content, broad deletion, unresolved paths, a different
+        project, or apply without the reviewed digest mutates anything.
+  - id: SOP-HARD-09
+    observation: Project check validates the complete task graph,
+      policy/runner/schema identity, contract-directory coherence, unique
+      accepted review, exact closure ancestry, and current extension
+      obligations.
+    positiveCases:
+      - A coherent fixture and the package self-adoption pass.
+    negativeCases:
+      - Orphan artifacts, cross-task references, multiple accepted reviews,
+        stale closure, missing state ledger, or modified runner code under the
+        same policy identity passes.
+  - id: SOP-HARD-10
+    observation: Node 22 typecheck, unit, integration, adversarial, CLI-process,
+      build, placeholder, license, runner-bundle, and isolated dry-run
+      adoption/unadoption checks pass with non-empty machine-readable evidence.
+    positiveCases:
+      - Fresh full-package verification passes from the exact implementation
+        commit without external mutation.
+    negativeCases:
+      - Skipped required suites, compile-only substitution, stale artifacts,
+        handwritten PASS data, or consumer-project mutation is reported as
+        completion.
+requiredGates:
+  - Use Node 22 and the repository-pinned pnpm lockfile.
+  - Preserve the clean main worktree and stage only exact task-owned paths;
+    never reset, clean, stash, amend, rebase, or rewrite history.
+  - Add adversarial regression tests before or with each trust-boundary
+    implementation change.
+  - Build a fresh portable runner and prove its digest covers executable code,
+    schemas, templates, and canonical policy inputs.
+  - Run pnpm check plus focused malicious-candidate, evidence-substitution,
+    state-transition, extension, provenance, and unadopt integration tests.
+  - Stop at one exact R3 candidate for a different independent reviewer; Codex
+    must not review or close its own implementation.
+openChoices:
+  - Internal module layout, schema factoring, state-ledger serialization, and
+    command names are open if the frozen observations remain mechanically
+    decidable.
+  - Backward compatibility may use an explicit migration command or fail-closed
+    version error; silently accepting weaker 1.0.0 artifacts is not allowed.
+contractDigest: 5a42ca254cb425cde6c353ca9bd5facc8986f41218bdab3bd505dd2337be668f
