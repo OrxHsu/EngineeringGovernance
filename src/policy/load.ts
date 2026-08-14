@@ -14,6 +14,9 @@ const schemaPaths: Record<DocumentKind, URL> = {
   closure: new URL('../../schemas/closure.schema.json', import.meta.url),
   exception: new URL('../../schemas/exception.schema.json', import.meta.url),
   authorization: new URL('../../schemas/authorization.schema.json', import.meta.url),
+  'task-event': new URL('../../schemas/task-event.schema.json', import.meta.url),
+  'execution-receipt': new URL('../../schemas/execution-receipt.schema.json', import.meta.url),
+  verification: new URL('../../schemas/verification.schema.json', import.meta.url),
 }
 
 const ajv = new Ajv2020({ allErrors: true, strict: true })

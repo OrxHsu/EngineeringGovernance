@@ -1,4 +1,5 @@
 import type { Risk, TaskState, ValidationResult } from '../model/types.js'
+import { normalizeActorId } from '../model/actor.js'
 
 const transitions: Record<TaskState, readonly TaskState[]> = {
   DEFINED: ['IN_PROGRESS', 'BLOCKED', 'CANCELLED', 'SUPERSEDED'],
@@ -23,11 +24,15 @@ export function validateAcceptanceAuthority(
 ): ValidationResult {
   if (risk === 'R0' || risk === 'R1') return { valid: true, errors: [] }
 
-  if (
-    reviewOwner === undefined
-    || reviewOwner.trim().length === 0
-    || reviewOwner === implementationOwner
-  ) {
+  let normalizedOwner: string
+  let normalizedReviewer: string | undefined
+  try {
+    normalizedOwner = normalizeActorId(implementationOwner)
+    normalizedReviewer = reviewOwner === undefined ? undefined : normalizeActorId(reviewOwner)
+  } catch {
+    return { valid: false, errors: ['INDEPENDENT_REVIEW_REQUIRED'] }
+  }
+  if (normalizedReviewer === undefined || normalizedReviewer === normalizedOwner) {
     return { valid: false, errors: ['INDEPENDENT_REVIEW_REQUIRED'] }
   }
 

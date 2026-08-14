@@ -12,6 +12,11 @@ import { verifyGitIdentity, type GitIdentityInput } from '../evidence/git-identi
 import type { Risk, ValidationResult } from '../model/types.js'
 import { validateDocument } from '../policy/load.js'
 import { canonicalDigest } from '../model/digest.js'
+import {
+  verifyHardenedCandidate,
+  type HardenedCandidateEligibilityInput,
+  type HardenedVerificationArtifact,
+} from './task-verify-v2.js'
 
 interface CandidateVerificationInput {
   contractPath: string
@@ -33,7 +38,7 @@ interface CandidateAuthorizationInput {
   status: 'approved'
 }
 
-export interface CandidateEligibilityInput {
+export interface LegacyCandidateEligibilityInput {
   risk: Risk
   requiredGateErrors?: string[]
   authorizationRequired: boolean
@@ -43,10 +48,19 @@ export interface CandidateEligibilityInput {
   requestedAuthorizationScope?: string[]
 }
 
+export type CandidateEligibilityInput = LegacyCandidateEligibilityInput | HardenedCandidateEligibilityInput
+
+export function isHardenedCandidate(
+  input: CandidateEligibilityInput,
+): input is HardenedCandidateEligibilityInput {
+  return 'schemaVersion' in input && input.schemaVersion === 2
+}
+
 export interface CandidateVerificationContext {
   authorizationCheckTime?: Date
   evidenceVerificationTime?: Date
   evidenceReplayPlanDigest?: string
+  candidatePath?: string
 }
 
 const maximumEvidenceAgeMs = 24 * 60 * 60 * 1000
@@ -57,7 +71,7 @@ function sameScope(left: string[], right: string[]): boolean {
 }
 
 function verifyAuthorization(
-  input: CandidateEligibilityInput,
+  input: LegacyCandidateEligibilityInput,
   context: CandidateVerificationContext,
 ): string[] {
   if (!input.authorizationRequired) return []
@@ -212,19 +226,23 @@ function verifyCandidateArtifacts(
 export function verifyCandidateEligibility(
   input: CandidateEligibilityInput,
   context: CandidateVerificationContext = {},
-): ValidationResult {
-  const candidateSchema = validateDocument('candidate', input)
+): ValidationResult & { verificationArtifact?: HardenedVerificationArtifact } {
+  if (isHardenedCandidate(input)) {
+    return verifyHardenedCandidate(input, context)
+  }
+  const legacyInput = input as LegacyCandidateEligibilityInput
+  const candidateSchema = validateDocument('candidate', legacyInput)
   const errors = candidateSchema.valid
-    ? [...(input.requiredGateErrors ?? [])]
+    ? [...(legacyInput.requiredGateErrors ?? [])]
     : candidateSchema.errors.map((error) => `CANDIDATE_SCHEMA_INVALID:${error}`)
-  if (candidateSchema.valid && (input.risk === 'R2' || input.risk === 'R3')) {
-    if (input.verification === undefined) {
+  if (candidateSchema.valid && (legacyInput.risk === 'R2' || legacyInput.risk === 'R3')) {
+    if (legacyInput.verification === undefined) {
       errors.push('CANDIDATE_VERIFICATION_REQUIRED')
     } else {
-      errors.push(...verifyCandidateArtifacts(input.risk, input.verification, context))
+      errors.push(...verifyCandidateArtifacts(legacyInput.risk, legacyInput.verification, context))
     }
   }
-  if (candidateSchema.valid) errors.push(...verifyAuthorization(input, context))
+  if (candidateSchema.valid) errors.push(...verifyAuthorization(legacyInput, context))
   const uniqueErrors = [...new Set(errors)].sort()
   return { valid: uniqueErrors.length === 0, errors: uniqueErrors }
 }

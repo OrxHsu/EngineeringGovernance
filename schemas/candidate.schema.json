@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://engineering-governance.local/schemas/candidate.schema.json",
   "$defs": {
-    "identity": {
+    "identityV1": {
       "type": "object",
       "additionalProperties": false,
       "required": ["repository", "commit", "tree"],
@@ -11,56 +11,131 @@
         "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
         "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
       }
-    }
-  },
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["risk", "authorizationRequired", "authorizationApproved"],
-  "properties": {
-    "risk": { "enum": ["R0", "R1", "R2", "R3"] },
-    "requiredGateErrors": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
-    "authorizationRequired": { "type": "boolean" },
-    "authorizationApproved": { "type": "boolean" },
-    "authorizationCheckTime": { "type": "string", "minLength": 1 },
-    "authorization": { "type": "object" },
-    "requestedAuthorizationScope": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
-    "verification": {
+    },
+    "identityV2": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contractPath", "evidencePath", "artifactRoot", "requiredEvidenceKinds", "expectedImplementationIdentities", "maxEvidenceAgeMs", "gitIdentities"],
+      "required": ["repositoryId", "repository", "commit", "tree", "checkoutDigest"],
       "properties": {
-        "contractPath": { "type": "string", "minLength": 1 },
-        "evidencePath": { "type": "string", "minLength": 1 },
-        "artifactRoot": { "type": "string", "minLength": 1 },
-        "requiredEvidenceKinds": {
+        "repositoryId": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "checkoutDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "legacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["risk", "authorizationRequired", "authorizationApproved"],
+      "properties": {
+        "risk": { "enum": ["R0", "R1", "R2", "R3"] },
+        "requiredGateErrors": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "authorizationRequired": { "type": "boolean" },
+        "authorizationApproved": { "type": "boolean" },
+        "authorizationCheckTime": { "type": "string", "minLength": 1 },
+        "authorization": { "type": "object" },
+        "requestedAuthorizationScope": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "verification": {
           "type": "object",
-          "minProperties": 1,
-          "additionalProperties": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] }
-        },
-        "expectedImplementationIdentities": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/identity" }
-        },
-        "maxEvidenceAgeMs": { "type": "integer", "minimum": 1 },
-        "verificationTime": { "type": "string", "minLength": 1 },
+          "additionalProperties": false,
+          "required": ["contractPath", "evidencePath", "artifactRoot", "requiredEvidenceKinds", "expectedImplementationIdentities", "maxEvidenceAgeMs", "gitIdentities"],
+          "properties": {
+            "contractPath": { "type": "string", "minLength": 1 },
+            "evidencePath": { "type": "string", "minLength": 1 },
+            "artifactRoot": { "type": "string", "minLength": 1 },
+            "requiredEvidenceKinds": { "type": "object", "minProperties": 1, "additionalProperties": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] } },
+            "expectedImplementationIdentities": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identityV1" } },
+            "maxEvidenceAgeMs": { "type": "integer", "minimum": 1 },
+            "verificationTime": { "type": "string", "minLength": 1 },
+            "gitIdentities": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["repository", "implementationCommit", "implementationTree", "closureCommit", "allowedClosurePaths"],
+                "properties": {
+                  "repository": { "type": "string", "minLength": 1 },
+                  "implementationCommit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+                  "implementationTree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+                  "closureCommit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+                  "allowedClosurePaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hardened": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "taskId", "contract", "evidence", "implementationIdentities", "gitIdentities", "authorizationArtifacts", "extensionArtifacts"],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "taskId": { "type": "string", "minLength": 1 },
+        "contract": { "$ref": "#/$defs/artifact" },
+        "evidence": { "$ref": "#/$defs/artifact" },
+        "implementationIdentities": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identityV2" } },
         "gitIdentities": {
           "type": "array",
           "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["repository", "implementationCommit", "implementationTree", "closureCommit", "allowedClosurePaths"],
+            "required": ["repositoryId", "repository", "implementationCommit", "implementationTree", "closureCommit", "allowedClosurePaths"],
             "properties": {
-              "repository": { "type": "string", "minLength": 1 },
+              "repositoryId": { "type": "string", "minLength": 1 },
+              "repository": { "type": "string", "pattern": "^/", "minLength": 2 },
               "implementationCommit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
               "implementationTree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
               "closureCommit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
               "allowedClosurePaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
             }
           }
+        },
+        "authorizationArtifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["requirementId", "path", "sha256"],
+            "properties": {
+              "requirementId": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        },
+        "extensionArtifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["extensionId", "kind", "path", "sha256"],
+            "properties": {
+              "extensionId": { "type": "string", "minLength": 1 },
+              "kind": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
         }
       }
     }
-  }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/legacy" },
+    { "$ref": "#/$defs/hardened" }
+  ]
 }

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/verification.schema.json",
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "artifactWithDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "digest"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acceptanceId", "path", "sha256"],
+      "properties": {
+        "acceptanceId": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "producer", "taskId", "contract", "candidate", "evidence", "receipts", "implementationIdentities", "authorizationTrust", "verifiedAt", "decision"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "artifactType": { "const": "sop-candidate-verification-v2" },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "policyDigest"],
+      "properties": {
+        "name": { "const": "@xgh/engineering-governance" },
+        "version": { "type": "string", "minLength": 1 },
+        "policyDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "taskId": { "type": "string", "minLength": 1 },
+    "contract": { "$ref": "#/$defs/artifactWithDigest" },
+    "candidate": { "$ref": "#/$defs/artifactWithDigest" },
+    "evidence": { "$ref": "#/$defs/artifact" },
+    "receipts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/receipt" }
+    },
+    "implementationIdentities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["repositoryId", "repository", "commit", "tree", "checkoutDigest"],
+        "properties": {
+          "repositoryId": { "type": "string", "minLength": 1 },
+          "repository": { "type": "string", "pattern": "^/", "minLength": 2 },
+          "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+          "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+          "checkoutDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "authorizationTrust": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["requirementId", "trustLevel"],
+        "properties": {
+          "requirementId": { "type": "string", "minLength": 1 },
+          "trustLevel": { "const": "local-claim" }
+        }
+      }
+    },
+    "verifiedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+    "decision": { "const": "eligible" }
+  }
+}

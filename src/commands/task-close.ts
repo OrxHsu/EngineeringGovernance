@@ -7,6 +7,7 @@ import { deriveMetrics, type TaskMetricRecord, type WorkflowMetrics } from '../m
 import { validateDocument } from '../policy/load.js'
 import { checkProject } from './check.js'
 import { artifactDigest, verifyReviewEligibility } from './task-review.js'
+import { verifyHardenedClose, type HardenedCloseDecision } from './task-close-v2.js'
 
 interface ClosureArtifactReference {
   path: string
@@ -56,12 +57,18 @@ function statusCoherenceErrors(closure: ClosureDocument): string[] {
   }
 }
 
-export function verifyCloseEligibility(input: CloseEligibilityInput): ValidationResult {
+export function verifyCloseEligibility(
+  input: CloseEligibilityInput,
+): ValidationResult & Partial<HardenedCloseDecision> {
   let closure: ClosureDocument
   try {
     closure = parse(readFileSync(input.closurePath, 'utf8')) as ClosureDocument
   } catch {
     return { valid: false, errors: ['CLOSURE_FILE_UNREADABLE'] }
+  }
+
+  if ((closure as unknown as { schemaVersion?: number }).schemaVersion === 2) {
+    return verifyHardenedClose(input.closurePath)
   }
 
   const schema = validateDocument('closure', closure)

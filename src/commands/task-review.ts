@@ -7,7 +7,12 @@ import type { Risk, ValidationResult } from '../model/types.js'
 import { validateDocument } from '../policy/load.js'
 import { validateAcceptanceAuthority } from '../state/transitions.js'
 import { canonicalDigest } from '../model/digest.js'
-import { verifyCandidateEligibility, type CandidateEligibilityInput } from './task-verify.js'
+import {
+  isHardenedCandidate,
+  verifyCandidateEligibility,
+  type CandidateEligibilityInput,
+} from './task-verify.js'
+import { verifyHardenedReview, type HardenedReviewDecision } from './task-review-v2.js'
 
 interface ReviewDocument {
   schemaVersion: 1
@@ -36,6 +41,10 @@ export interface ReviewEligibilityInput {
   replayPlanDigest: string
 }
 
+export interface HardenedReviewEligibilityInput {
+  reviewPath: string
+}
+
 function digest(content: string | Uint8Array): string {
   return createHash('sha256').update(content).digest('hex')
 }
@@ -58,7 +67,20 @@ function sameIdentities(
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right))
 }
 
-export function verifyReviewEligibility(input: ReviewEligibilityInput): ValidationResult {
+export function verifyReviewEligibility(
+  input: ReviewEligibilityInput | HardenedReviewEligibilityInput,
+): ValidationResult & Partial<HardenedReviewDecision> {
+  let reviewSchemaVersion: number | undefined
+  try {
+    const review = readStructured(input.reviewPath).value as { schemaVersion?: number }
+    reviewSchemaVersion = review.schemaVersion
+  } catch {
+    return { valid: false, errors: ['REVIEW_FILE_UNREADABLE'] }
+  }
+  if (reviewSchemaVersion === 2) return verifyHardenedReview(input.reviewPath)
+  if (!('candidatePath' in input) || !('replayPlanDigest' in input)) {
+    return { valid: false, errors: ['LEGACY_REVIEW_REQUIRES_PINNED_V1_RUNNER'] }
+  }
   const errors: string[] = []
   let candidate: CandidateEligibilityInput
   try {
@@ -74,6 +96,9 @@ export function verifyReviewEligibility(input: ReviewEligibilityInput): Validati
       valid: false,
       errors: candidateSchema.errors.map((error) => `CANDIDATE_SCHEMA_INVALID:${error}`),
     }
+  }
+  if (isHardenedCandidate(candidate)) {
+    return { valid: false, errors: ['REVIEW_V2_VERIFICATION_ARTIFACT_REQUIRED'] }
   }
   const candidateDecision = verifyCandidateEligibility(candidate, {
     evidenceReplayPlanDigest: input.replayPlanDigest,

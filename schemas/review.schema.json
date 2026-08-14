@@ -1,73 +1,142 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://engineering-governance.local/schemas/review.schema.json",
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["schemaVersion", "taskId", "contractDigest", "reviewedImplementation", "reviewer", "decision", "findings", "nextStage", "userActionRequired"],
-  "properties": {
-    "schemaVersion": { "const": 1 },
-    "taskId": { "type": "string", "minLength": 1 },
-    "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "candidateDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "replayPlanDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "reviewedImplementation": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["repository", "commit"],
-        "properties": {
-          "repository": { "type": "string", "minLength": 1 },
-          "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
-          "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
-        }
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     },
-    "reviewer": { "type": "string", "minLength": 1 },
-    "decision": { "enum": ["ACCEPTED", "REPAIR_REQUIRED"] },
-    "findings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["id", "severity", "classification", "observation"],
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "severity": { "enum": ["P0", "P1", "P2", "P3"] },
-          "classification": { "enum": ["contract_violation", "newly_discovered_defect", "new_requirement"] },
-          "observation": { "type": "string", "minLength": 1 },
-          "defectClass": { "type": "string", "minLength": 1 },
-          "permanentGateId": { "type": "string", "minLength": 1 }
-        }
+    "artifactWithDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "digest"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     },
-    "nextStage": { "type": "string", "minLength": 1 },
-    "userActionRequired": { "type": "boolean" }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": { "decision": { "const": "ACCEPTED" } },
-        "required": ["decision"]
+    "identityV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositoryId", "repository", "commit", "tree", "checkoutDigest"],
+      "properties": {
+        "repositoryId": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "checkoutDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "classification", "observation"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["P0", "P1", "P2", "P3"] },
+        "classification": { "enum": ["contract_violation", "newly_discovered_defect", "new_requirement"] },
+        "observation": { "type": "string", "minLength": 1 },
+        "defectClass": { "type": "string", "minLength": 1 },
+        "permanentGateId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "legacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "taskId", "contractDigest", "reviewedImplementation", "reviewer", "decision", "findings", "nextStage", "userActionRequired"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "taskId": { "type": "string", "minLength": 1 },
+        "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "candidateDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "replayPlanDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "reviewedImplementation": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["repository", "commit"],
+            "properties": {
+              "repository": { "type": "string", "minLength": 1 },
+              "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+              "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
+            }
+          }
+        },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "decision": { "enum": ["ACCEPTED", "REPAIR_REQUIRED"] },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "nextStage": { "type": "string", "minLength": 1 },
+        "userActionRequired": { "type": "boolean" }
       },
-      "then": {
-        "required": ["candidateDigest", "replayPlanDigest"],
-        "properties": {
-          "candidateDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-          "replayPlanDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-          "reviewedImplementation": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["tree"],
-              "properties": {
-                "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
-              }
+      "allOf": [{
+        "if": { "properties": { "decision": { "const": "ACCEPTED" } }, "required": ["decision"] },
+        "then": {
+          "required": ["candidateDigest", "replayPlanDigest"],
+          "properties": {
+            "candidateDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "replayPlanDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        }
+      }]
+    },
+    "hardened": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "artifactType", "taskId", "reviewer", "decision", "contract", "candidate", "verification", "reviewedImplementation", "findings", "nextStage", "userActionRequired"],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "artifactType": { "const": "sop-review-v2" },
+        "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "reviewer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "trustLevel"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "trustLevel": { "const": "local-claim" }
+          }
+        },
+        "decision": { "enum": ["ACCEPTED", "REPAIR_REQUIRED"] },
+        "contract": { "$ref": "#/$defs/artifactWithDigest" },
+        "candidate": { "$ref": "#/$defs/artifactWithDigest" },
+        "verification": { "$ref": "#/$defs/artifact" },
+        "reviewedImplementation": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identityV2" } },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "nextStage": { "enum": ["close", "repair"] },
+        "userActionRequired": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "decision": { "const": "ACCEPTED" } }, "required": ["decision"] },
+          "then": {
+            "properties": {
+              "findings": { "type": "array", "maxItems": 0 },
+              "nextStage": { "type": "string", "const": "close" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "decision": { "const": "REPAIR_REQUIRED" } }, "required": ["decision"] },
+          "then": {
+            "properties": {
+              "findings": { "type": "array", "minItems": 1 },
+              "nextStage": { "type": "string", "const": "repair" }
             }
           }
         }
-      }
+      ]
     }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/legacy" },
+    { "$ref": "#/$defs/hardened" }
   ]
 }

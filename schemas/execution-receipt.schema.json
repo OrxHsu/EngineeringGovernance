@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/execution-receipt.schema.json",
+  "$defs": {
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repository", "head", "tree", "trackedDiffSha256", "untracked", "statusDigest"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "head": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "trackedDiffSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "untracked": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "type", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "type": { "enum": ["file", "symlink"] },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        },
+        "statusDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "producer", "taskId", "contract", "acceptanceId", "evidenceKind", "gateDigest", "runId", "command", "repositoriesBefore", "repositoriesAfter", "startedAt", "endedAt", "exitCode", "environment", "stdout", "stderr", "stdoutSha256", "stderrSha256", "policyErrors"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "artifactType": { "const": "sop-command-execution-v2" },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "policyDigest"],
+      "properties": {
+        "name": { "const": "@xgh/engineering-governance" },
+        "version": { "type": "string", "minLength": 1 },
+        "policyDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "taskId": { "type": "string", "minLength": 1 },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "digest"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "acceptanceId": { "type": "string", "minLength": 1 },
+    "evidenceKind": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] },
+    "gateDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "runId": { "type": "string", "minLength": 1 },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executable", "arguments", "cwd"],
+      "properties": {
+        "executable": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "cwd": { "type": "string", "pattern": "^/", "minLength": 2 }
+      }
+    },
+    "repositoriesBefore": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/snapshot" } },
+    "repositoriesAfter": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/snapshot" } },
+    "startedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+    "endedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+    "exitCode": { "type": "integer" },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "platform", "arch"],
+      "properties": {
+        "node": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "arch": { "type": "string", "minLength": 1 }
+      }
+    },
+    "stdout": { "type": "string" },
+    "stderr": { "type": "string" },
+    "stdoutSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "stderrSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "policyErrors": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+  }
+}

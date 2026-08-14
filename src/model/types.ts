@@ -20,6 +20,9 @@ export type DocumentKind =
   | 'closure'
   | 'exception'
   | 'authorization'
+  | 'task-event'
+  | 'execution-receipt'
+  | 'verification'
 
 export interface ValidationResult {
   valid: boolean

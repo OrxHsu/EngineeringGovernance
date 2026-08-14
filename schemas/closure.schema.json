@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://engineering-governance.local/schemas/closure.schema.json",
   "$defs": {
-    "artifact": {
+    "artifactV1": {
       "type": "object",
       "additionalProperties": false,
       "required": ["path", "sha256"],
@@ -10,22 +10,74 @@
         "path": { "type": "string", "minLength": 1 },
         "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "artifactWithDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "digest"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "legacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "taskId", "contractDigest", "state", "replayPlanDigest", "candidate", "review", "projectPath", "statusArtifacts", "nextAction", "userActionRequired"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "taskId": { "type": "string", "minLength": 1 },
+        "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "state": { "const": "ACCEPTED" },
+        "replayPlanDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "candidate": { "$ref": "#/$defs/artifactV1" },
+        "review": { "$ref": "#/$defs/artifactV1" },
+        "projectPath": { "type": "string", "minLength": 1 },
+        "statusArtifacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/artifactV1" } },
+        "nextAction": { "type": "string", "minLength": 1 },
+        "userActionRequired": { "type": "boolean" }
+      }
+    },
+    "hardened": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "artifactType", "taskId", "closer", "contract", "candidate", "verification", "review", "acceptedEventDigest", "statusArtifacts", "nextAction", "userActionRequired"],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "artifactType": { "const": "sop-closure-v2" },
+        "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "closer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "trustLevel"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "trustLevel": { "const": "local-claim" }
+          }
+        },
+        "contract": { "$ref": "#/$defs/artifactWithDigest" },
+        "candidate": { "$ref": "#/$defs/artifactWithDigest" },
+        "verification": { "$ref": "#/$defs/artifact" },
+        "review": { "$ref": "#/$defs/artifact" },
+        "acceptedEventDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "statusArtifacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/artifact" } },
+        "nextAction": { "type": "string", "minLength": 1 },
+        "userActionRequired": { "type": "boolean" }
+      }
     }
   },
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["schemaVersion", "taskId", "contractDigest", "state", "replayPlanDigest", "candidate", "review", "projectPath", "statusArtifacts", "nextAction", "userActionRequired"],
-  "properties": {
-    "schemaVersion": { "const": 1 },
-    "taskId": { "type": "string", "minLength": 1 },
-    "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "state": { "const": "ACCEPTED" },
-    "replayPlanDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "candidate": { "$ref": "#/$defs/artifact" },
-    "review": { "$ref": "#/$defs/artifact" },
-    "projectPath": { "type": "string", "minLength": 1 },
-    "statusArtifacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/artifact" } },
-    "nextAction": { "type": "string", "minLength": 1 },
-    "userActionRequired": { "type": "boolean" }
-  }
+  "oneOf": [
+    { "$ref": "#/$defs/legacy" },
+    { "$ref": "#/$defs/hardened" }
+  ]
 }

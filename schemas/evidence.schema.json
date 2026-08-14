@@ -1,90 +1,139 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://engineering-governance.local/schemas/evidence.schema.json",
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["schemaVersion", "taskId", "contractDigest", "runId", "runnerVersion", "implementationCommits", "records", "summary"],
-  "properties": {
-    "schemaVersion": { "const": 1 },
-    "taskId": { "type": "string", "minLength": 1 },
-    "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "runId": { "type": "string", "minLength": 1 },
-    "runnerVersion": { "type": "string", "minLength": 1 },
-    "implementationCommits": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["repository", "commit", "tree"],
-        "properties": {
-          "repository": { "type": "string", "minLength": 1 },
-          "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
-          "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
-        }
-      }
-    },
-    "records": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["acceptanceId", "runId", "executedCheckIds", "command", "exitCode", "startedAt", "endedAt", "evidenceKind", "implementationIdentities", "rawArtifact", "observation"],
-        "properties": {
-          "acceptanceId": { "type": "string", "minLength": 1 },
-          "runId": { "type": "string", "minLength": 1 },
-          "executedCheckIds": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
-          "command": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["executable", "arguments", "cwd"],
-            "properties": {
-              "executable": { "type": "string", "minLength": 1 },
-              "arguments": { "type": "array", "items": { "type": "string" } },
-              "cwd": { "type": "string", "minLength": 1 }
-            }
-          },
-          "exitCode": { "type": "integer" },
-          "startedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
-          "endedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
-          "evidenceKind": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] },
-          "implementationIdentities": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["repository", "commit", "tree"],
-              "properties": {
-                "repository": { "type": "string", "minLength": 1 },
-                "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
-                "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
-              }
-            }
-          },
-          "rawArtifact": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["path", "sha256", "format"],
-            "properties": {
-              "path": { "type": "string", "minLength": 1 },
-              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-              "format": { "const": "sop-command-execution-v1" }
-            }
-          },
-          "observation": { "type": "string", "minLength": 1 }
-        }
-      }
-    },
-    "summary": {
+  "$defs": {
+    "identityV1": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["passedIds", "failedIds"],
+      "required": ["repository", "commit", "tree"],
       "properties": {
-        "passedIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
-        "failedIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+        "repository": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }
+      }
+    },
+    "identityV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositoryId", "repository", "commit", "tree", "checkoutDigest"],
+      "properties": {
+        "repositoryId": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "checkoutDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "legacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "taskId", "contractDigest", "runId", "runnerVersion", "implementationCommits", "records", "summary"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "taskId": { "type": "string", "minLength": 1 },
+        "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "runId": { "type": "string", "minLength": 1 },
+        "runnerVersion": { "type": "string", "minLength": 1 },
+        "implementationCommits": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identityV1" } },
+        "records": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["acceptanceId", "runId", "executedCheckIds", "command", "exitCode", "startedAt", "endedAt", "evidenceKind", "implementationIdentities", "rawArtifact", "observation"],
+            "properties": {
+              "acceptanceId": { "type": "string", "minLength": 1 },
+              "runId": { "type": "string", "minLength": 1 },
+              "executedCheckIds": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+              "command": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["executable", "arguments", "cwd"],
+                "properties": {
+                  "executable": { "type": "string", "minLength": 1 },
+                  "arguments": { "type": "array", "items": { "type": "string" } },
+                  "cwd": { "type": "string", "minLength": 1 }
+                }
+              },
+              "exitCode": { "type": "integer" },
+              "startedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+              "endedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+              "evidenceKind": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] },
+              "implementationIdentities": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identityV1" } },
+              "rawArtifact": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "sha256", "format"],
+                "properties": {
+                  "path": { "type": "string", "minLength": 1 },
+                  "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                  "format": { "const": "sop-command-execution-v1" }
+                }
+              },
+              "observation": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passedIds", "failedIds"],
+          "properties": {
+            "passedIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+            "failedIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+          }
+        }
+      }
+    },
+    "hardened": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "artifactType", "taskId", "contractDigest", "runId", "runner", "implementationIdentities", "receipts", "summary"],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "artifactType": { "const": "sop-evidence-v2" },
+        "taskId": { "type": "string", "minLength": 1 },
+        "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "runId": { "type": "string", "minLength": 1 },
+        "runner": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "policyDigest"],
+          "properties": {
+            "version": { "type": "string", "minLength": 1 },
+            "policyDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "implementationIdentities": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identityV2" } },
+        "receipts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["acceptanceId", "path", "sha256"],
+            "properties": {
+              "acceptanceId": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passedIds", "failedIds"],
+          "properties": {
+            "passedIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+            "failedIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+          }
+        }
       }
     }
-  }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/legacy" },
+    { "$ref": "#/$defs/hardened" }
+  ]
 }
