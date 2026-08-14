@@ -121,6 +121,223 @@ export interface TaskStartPlan extends TaskStartResult {
   digest: string
 }
 
+const taskIdPattern = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/u
+const riskSignalKeys = new Set<keyof RiskSignals>([
+  'readOnly',
+  'localEdit',
+  'mutation',
+  'classificationComplete',
+  'userVisible',
+  'crossModule',
+  'multiRepository',
+  'persistentData',
+  'authentication',
+  'authorization',
+  'privacy',
+  'security',
+  'migration',
+  'destructive',
+  'payments',
+  'production',
+  'deployment',
+  'remoteMutation',
+  'externalCommunication',
+  'restrictedRuntime',
+  'projectMinimum',
+])
+const evidenceKinds = new Set<HardenedAcceptanceInput['evidenceKind']>([
+  'static',
+  'compile',
+  'unit',
+  'integration',
+  'device',
+  'cloud',
+  'production',
+])
+
+function record(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function exactKeys(value: Record<string, unknown>, required: string[], optional: string[] = []): boolean {
+  const keys = Object.keys(value)
+  const allowed = new Set([...required, ...optional])
+  return required.every((key) => Object.hasOwn(value, key))
+    && keys.every((key) => allowed.has(key))
+}
+
+function nonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0
+}
+
+function uniqueStringArray(value: unknown, minimum: number): value is string[] {
+  return Array.isArray(value)
+    && value.length >= minimum
+    && value.every((item) => nonEmptyString(item))
+    && new Set(value).size === value.length
+}
+
+function stringArray(value: unknown, minimum: number): value is string[] {
+  return Array.isArray(value)
+    && value.length >= minimum
+    && value.every((item) => nonEmptyString(item))
+}
+
+function validHash(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value)
+}
+
+function validRiskSignals(value: unknown): value is RiskSignals {
+  if (!record(value) || Object.keys(value).length === 0) return false
+  for (const [key, signal] of Object.entries(value)) {
+    if (!riskSignalKeys.has(key as keyof RiskSignals)) return false
+    if (key === 'projectMinimum') {
+      if (signal !== 'R0' && signal !== 'R1' && signal !== 'R2' && signal !== 'R3') return false
+    } else if (typeof signal !== 'boolean') {
+      return false
+    }
+  }
+  return true
+}
+
+function validCommand(value: unknown): boolean {
+  if (!record(value) || !exactKeys(value, ['repositoryId', 'cwd', 'executable', 'arguments'], ['environment'])) {
+    return false
+  }
+  if (!nonEmptyString(value.repositoryId)
+    || !taskIdPattern.test(value.repositoryId)
+    || !nonEmptyString(value.cwd)
+    || !nonEmptyString(value.executable)) {
+    return false
+  }
+  if (!Array.isArray(value.arguments) || !value.arguments.every((argument) => typeof argument === 'string')) {
+    return false
+  }
+  if (Object.hasOwn(value, 'environment')) {
+    if (!record(value.environment)) return false
+    for (const [key, environmentValue] of Object.entries(value.environment)) {
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(key) || typeof environmentValue !== 'string' || environmentValue.includes('\0')) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+function validObserverPolicy(value: unknown): boolean {
+  if (!record(value) || !nonEmptyString(value.output)) return false
+  const baseKeys = ['expectedExitCode', 'output', 'checkoutMutation', 'replay']
+  const exactKeysForOutput = value.output === 'exact'
+    ? [...baseKeys, 'expectedStdoutSha256', 'expectedStderrSha256']
+    : baseKeys
+  if (!exactKeys(value, baseKeys, value.output === 'exact'
+    ? ['expectedStdoutSha256', 'expectedStderrSha256']
+    : [])) return false
+  if (!Number.isInteger(value.expectedExitCode)
+    || value.checkoutMutation !== 'forbidden'
+    || (value.replay !== 'required' && value.replay !== 'not-required' && value.replay !== 'prohibited')) {
+    return false
+  }
+  if (value.output !== 'exact' && value.output !== 'nonempty' && value.output !== 'exit-only') return false
+  if (value.output === 'exact') {
+    return exactKeys(value, exactKeysForOutput)
+      && validHash(value.expectedStdoutSha256)
+      && validHash(value.expectedStderrSha256)
+  }
+  return true
+}
+
+function validAcceptance(value: unknown): boolean {
+  if (!record(value) || !exactKeys(value, [
+    'id',
+    'observation',
+    'positiveCases',
+    'negativeCases',
+    'evidenceKind',
+    'command',
+    'observerPolicy',
+  ])) return false
+  return nonEmptyString(value.id)
+    && nonEmptyString(value.observation)
+    && stringArray(value.positiveCases, 1)
+    && stringArray(value.negativeCases, 1)
+    && typeof value.evidenceKind === 'string'
+    && evidenceKinds.has(value.evidenceKind as HardenedAcceptanceInput['evidenceKind'])
+    && validCommand(value.command)
+    && validObserverPolicy(value.observerPolicy)
+}
+
+function validAuthorizationRequirement(value: unknown): boolean {
+  if (!record(value) || !exactKeys(value, [
+    'id',
+    'action',
+    'target',
+    'scope',
+    'trustLevel',
+    'consumeOnce',
+  ])) return false
+  return nonEmptyString(value.id)
+    && nonEmptyString(value.action)
+    && nonEmptyString(value.target)
+    && uniqueStringArray(value.scope, 1)
+    && (value.trustLevel === 'recorded-claim' || value.trustLevel === 'verified-attestation')
+    && typeof value.consumeOnce === 'boolean'
+}
+
+function validateHardenedTaskStartInput(input: unknown): asserts input is TaskStartInput {
+  if (!record(input) || input.schemaVersion !== 2) {
+    throw new Error('ACTIVE_COMMAND_REQUIRES_SCHEMA_VERSION_2')
+  }
+  const evidenceFreshnessMs = input.evidenceFreshnessMs
+  if (!exactKeys(input, [
+    'schemaVersion',
+    'taskId',
+    'implementationOwner',
+    'objective',
+    'scope',
+    'nonGoals',
+    'authorityInputs',
+    'repositories',
+    'acceptance',
+    'authorizationRequirements',
+    'openChoices',
+    'signals',
+  ], ['evidenceFreshnessMs', 'extensionInputs'])
+    || typeof input.taskId !== 'string'
+    || !taskIdPattern.test(input.taskId)
+    || !nonEmptyString(input.implementationOwner)
+    || !nonEmptyString(input.objective)
+    || !uniqueStringArray(input.scope, 1)
+    || !uniqueStringArray(input.nonGoals, 0)
+    || !uniqueStringArray(input.authorityInputs, 1)
+    || !Array.isArray(input.repositories)
+    || input.repositories.length === 0
+    || input.repositories.some((repository) => (
+      !record(repository)
+      || !exactKeys(repository, ['id', 'path'])
+      || typeof repository.id !== 'string'
+      || !taskIdPattern.test(repository.id)
+      || !nonEmptyString(repository.path)
+    ))
+    || !Array.isArray(input.acceptance)
+    || input.acceptance.length === 0
+    || input.acceptance.some((acceptance) => !validAcceptance(acceptance))
+    || !Array.isArray(input.authorizationRequirements)
+    || input.authorizationRequirements.some((requirement) => !validAuthorizationRequirement(requirement))
+    || !uniqueStringArray(input.openChoices, 0)
+    || !validRiskSignals(input.signals)
+    || (Object.hasOwn(input, 'evidenceFreshnessMs')
+      && (typeof evidenceFreshnessMs !== 'number'
+        || !Number.isInteger(evidenceFreshnessMs)
+        || evidenceFreshnessMs < 1
+        || evidenceFreshnessMs > 86_400_000))
+    || (Object.hasOwn(input, 'extensionInputs')
+      && input.extensionInputs !== undefined
+      && !record(input.extensionInputs))) {
+    throw new Error('TASK_START_INPUT_INVALID')
+  }
+}
+
 export function taskContractDigest(input: unknown): string {
   return canonicalDigest(input)
 }
@@ -226,9 +443,7 @@ function validateAcceptanceCommands(
 }
 
 export function startTask(input: TaskStartInput, context: TaskStartContext = {}): TaskStartResult {
-  if ((input as { schemaVersion?: unknown }).schemaVersion !== 2) {
-    throw new Error('ACTIVE_COMMAND_REQUIRES_SCHEMA_VERSION_2')
-  }
+  validateHardenedTaskStartInput(input)
   let risk = classifyRisk(input.signals)
   if (risk === 'R0') return { risk, state: 'DEFINED', artifacts: [] }
   const identity = governanceIdentity()

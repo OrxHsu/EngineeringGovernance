@@ -109,6 +109,32 @@ function safeId(value, label) {
     if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value))
         throw new Error(`${label}_INVALID`);
 }
+function record(value) {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+function exactKeys(value, expected) {
+    const keys = Object.keys(value).sort();
+    return JSON.stringify(keys) === JSON.stringify([...expected].sort());
+}
+function validateHardenedCommandExecutionInput(input) {
+    if (!record(input) || input.schemaVersion !== 2) {
+        throw new Error('LEGACY_EXECUTION_REQUIRES_PINNED_V1_RUNNER');
+    }
+    if (Object.hasOwn(input, 'command')) {
+        throw new Error('COMMAND_EXECUTION_COMMAND_CALLER_CONTROLLED');
+    }
+    if (Object.hasOwn(input, 'contractPath') || Object.hasOwn(input, 'outputPath')) {
+        throw new Error('COMMAND_EXECUTION_PATH_CALLER_CONTROLLED');
+    }
+    if (!exactKeys(input, ['acceptanceId', 'projectRoot', 'runId', 'schemaVersion', 'taskId'])
+        || typeof input.projectRoot !== 'string'
+        || input.projectRoot.length === 0
+        || typeof input.taskId !== 'string'
+        || typeof input.acceptanceId !== 'string'
+        || typeof input.runId !== 'string') {
+        throw new Error('COMMAND_EXECUTION_INPUT_INVALID');
+    }
+}
 function readHardenedContract(input) {
     safeId(input.taskId, 'COMMAND_EXECUTION_TASK_ID');
     const projectRoot = realpathSync(resolve(input.projectRoot));
@@ -241,8 +267,7 @@ function captureHardened(input) {
     return artifact;
 }
 export function captureCommandExecution(input) {
-    if (input.schemaVersion !== 2)
-        throw new Error('LEGACY_EXECUTION_REQUIRES_PINNED_V1_RUNNER');
+    validateHardenedCommandExecutionInput(input);
     return captureHardened(input);
 }
 export function captureLegacyCommandExecution(input) {

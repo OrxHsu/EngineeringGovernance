@@ -225,6 +225,35 @@ function safeId(value: string, label: string): void {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value)) throw new Error(`${label}_INVALID`)
 }
 
+function record(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function exactKeys(value: Record<string, unknown>, expected: string[]): boolean {
+  const keys = Object.keys(value).sort()
+  return JSON.stringify(keys) === JSON.stringify([...expected].sort())
+}
+
+function validateHardenedCommandExecutionInput(input: unknown): asserts input is HardenedCommandExecutionInput {
+  if (!record(input) || input.schemaVersion !== 2) {
+    throw new Error('LEGACY_EXECUTION_REQUIRES_PINNED_V1_RUNNER')
+  }
+  if (Object.hasOwn(input, 'command')) {
+    throw new Error('COMMAND_EXECUTION_COMMAND_CALLER_CONTROLLED')
+  }
+  if (Object.hasOwn(input, 'contractPath') || Object.hasOwn(input, 'outputPath')) {
+    throw new Error('COMMAND_EXECUTION_PATH_CALLER_CONTROLLED')
+  }
+  if (!exactKeys(input, ['acceptanceId', 'projectRoot', 'runId', 'schemaVersion', 'taskId'])
+    || typeof input.projectRoot !== 'string'
+    || input.projectRoot.length === 0
+    || typeof input.taskId !== 'string'
+    || typeof input.acceptanceId !== 'string'
+    || typeof input.runId !== 'string') {
+    throw new Error('COMMAND_EXECUTION_INPUT_INVALID')
+  }
+}
+
 function readHardenedContract(input: HardenedCommandExecutionInput): {
   contract: HardenedContract
   raw: Buffer
@@ -366,7 +395,7 @@ export function captureCommandExecution(
   input: HardenedCommandExecutionInput,
 ): HardenedCommandExecutionArtifact
 export function captureCommandExecution(input: HardenedCommandExecutionInput): HardenedCommandExecutionArtifact {
-  if (input.schemaVersion !== 2) throw new Error('LEGACY_EXECUTION_REQUIRES_PINNED_V1_RUNNER')
+  validateHardenedCommandExecutionInput(input)
   return captureHardened(input)
 }
 

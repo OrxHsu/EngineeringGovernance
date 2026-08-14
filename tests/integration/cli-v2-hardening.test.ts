@@ -18,6 +18,7 @@ import { parse, stringify } from 'yaml'
 import { planAdoption } from '../../src/commands/adopt.js'
 import { applyAdoption } from '../../src/commands/init.js'
 import { startTask } from '../../src/commands/task-start.js'
+import { captureCommandExecution } from '../../src/evidence/capture.js'
 import { buildProgram } from '../../src/cli/main.js'
 import { extensionDescriptor } from '../../src/extensions/registry.js'
 import { canonicalDigest } from '../../src/model/digest.js'
@@ -171,6 +172,23 @@ afterEach(() => {
 })
 
 describe('v2 CLI hardening', () => {
+  it('rejects omitted and partial v2 start and execute inputs with stable errors', () => {
+    for (const input of [
+      { schemaVersion: 2 },
+      { schemaVersion: 2, signals: { mutation: true } },
+      { schemaVersion: 2, signals: {} },
+    ]) {
+      expect(() => startTask(input as never)).toThrow('TASK_START_INPUT_INVALID')
+    }
+
+    for (const input of [
+      { schemaVersion: 2 },
+      { schemaVersion: 2, projectRoot: '/tmp', taskId: 'task', acceptanceId: 'AC-01' },
+    ]) {
+      expect(() => captureCommandExecution(input as never)).toThrow('COMMAND_EXECUTION_INPUT_INVALID')
+    }
+  })
+
   it('starts a v2 task from an explicit adopted project and freezes its extensions', async () => {
     const project = adoptedProject()
     const descriptor = extensionDescriptor('external-source-provenance', '1.0.0')
