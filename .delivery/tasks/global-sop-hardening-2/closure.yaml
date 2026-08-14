@@ -1,0 +1,26 @@
+schemaVersion: 2
+artifactType: sop-closure-v2
+taskId: global-sop-hardening-2
+closer:
+  id: codex
+  trustLevel: local-claim
+contract:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/contract.yaml
+  sha256: 89f66712b6e6a460b1dbb4cf1ed779b08fb4c5eb1b92ce339ff3a50d53ebf0f5
+  digest: 7bd8ccb39a3920964834343c726931deea63b0a43a2079e1b525e41f1d85191d
+candidate:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/candidate.yaml
+  sha256: 6b908128c59d5c50075aa0138d37921ad0c3b5525fcfcd48a370ec31669c98e0
+  digest: 7345e32d15149c57857800b5f196a3c81265dad6ce0068609224f85c298d8055
+verification:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/verification.json
+  sha256: 56fa7dbeed4d983ed2b77b187473f2c1430d96e1979d97688c3a0bd18f7f719e
+review:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/review.yaml
+  sha256: 0bf3ebb0de7444e901377c3a1138ee46808a0d2798d57dd82c69682df703399d
+acceptedEventDigest: c71468fdaa8b04232004dbe63d12858a5d9f16e869d953fb5d04fdb5c435ca68
+statusArtifacts:
+  - path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-hardening-2/status.json
+    sha256: f105f9adc7592caa5158fed2c4e7385bdbf9060c9f54973cfee2ca931aa7205a
+nextAction: No further task action; future changes require a new schema-v2 task.
+userActionRequired: false

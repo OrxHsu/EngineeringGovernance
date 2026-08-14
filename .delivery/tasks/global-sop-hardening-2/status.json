@@ -1,0 +1,8 @@
+{
+  "taskId": "global-sop-hardening-2",
+  "state": "CLOSED",
+  "nextAction": "No further task action; future changes require a new schema-v2 task.",
+  "userActionRequired": false,
+  "reviewDecision": "ACCEPTED",
+  "reviewer": "cursor-independent-r3"
+}
