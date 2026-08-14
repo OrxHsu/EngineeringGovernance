@@ -11,6 +11,7 @@ import { governanceIdentity } from '../../src/commands/adopt.js'
 import { startTask } from '../../src/commands/task-start.js'
 import { verifyCandidateEligibility } from '../../src/commands/task-verify.js'
 import { persistHardenedVerificationArtifact } from '../../src/commands/task-verify-v2.js'
+import { applyCandidateReplay, planCandidateReplay } from '../../src/commands/task-replay-v2.js'
 import { captureCommandExecution } from '../../src/evidence/capture.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { applyTaskTransition, planTaskTransition } from '../../src/state/ledger.js'
@@ -30,7 +31,7 @@ function write(path: string, content: string): void {
   writeFileSync(path, content)
 }
 
-function fixture(): {
+function fixture(replay: 'required' | 'not-required' = 'not-required'): {
   candidate: Record<string, unknown>
   candidatePath: string
   evidencePath: string
@@ -74,11 +75,10 @@ function fixture(): {
         expectedExitCode: 0,
         output: 'nonempty',
         checkoutMutation: 'forbidden',
-        replay: 'not-required',
+        replay,
       },
     }],
     authorizationRequirements: [],
-    sourcePolicy: { mode: 'independent' },
     evidenceFreshnessMs: 60_000,
     openChoices: [],
     signals: { crossModule: true },
@@ -233,5 +233,29 @@ describe('v2 candidate verification', () => {
       candidatePath: wrongState.candidatePath,
       evidenceVerificationTime: new Date(),
     }).errors).toContain('TASK_STATE_NOT_CANDIDATE:IN_PROGRESS')
+  }, 15_000)
+
+  it('requires a separately approved contract-owned replay and binds its artifact', () => {
+    const value = fixture('required')
+    const plan = planCandidateReplay(value.candidatePath)
+    const before = verifyCandidateEligibility(value.candidate as never, {
+      candidatePath: value.candidatePath,
+      evidenceVerificationTime: new Date(),
+    })
+    expect(before.errors).toContain(`EVIDENCE_REPLAY_APPROVAL_REQUIRED:${plan.digest}`)
+
+    expect(() => applyCandidateReplay(plan, '0'.repeat(64))).toThrow('REPLAY_PLAN_DIGEST_MISMATCH')
+    const replay = applyCandidateReplay(plan, plan.digest)
+    expect(replay.artifact.decision).toBe('eligible')
+    const after = verifyCandidateEligibility(value.candidate as never, {
+      candidatePath: value.candidatePath,
+      evidenceVerificationTime: new Date(),
+    })
+    expect(after.errors).toEqual([])
+    expect(after.valid).toBe(true)
+    expect(after.verificationArtifact?.replay).toMatchObject({
+      path: replay.path,
+      planDigest: plan.digest,
+    })
   })
 })

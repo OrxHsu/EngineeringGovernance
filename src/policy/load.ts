@@ -17,6 +17,10 @@ const schemaPaths: Record<DocumentKind, URL> = {
   'task-event': new URL('../../schemas/task-event.schema.json', import.meta.url),
   'execution-receipt': new URL('../../schemas/execution-receipt.schema.json', import.meta.url),
   verification: new URL('../../schemas/verification.schema.json', import.meta.url),
+  'replay-verification': new URL('../../schemas/replay-verification.schema.json', import.meta.url),
+  'extensions-manifest': new URL('../../schemas/extensions-manifest.schema.json', import.meta.url),
+  'external-source-use': new URL('../../schemas/external-source-use.schema.json', import.meta.url),
+  'external-source-release': new URL('../../schemas/external-source-release.schema.json', import.meta.url),
 }
 
 const ajv = new Ajv2020({ allErrors: true, strict: true })

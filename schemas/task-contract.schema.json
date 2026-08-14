@@ -18,24 +18,47 @@
     "command": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["repositoryId", "cwd", "executable", "arguments"],
+      "required": ["repositoryId", "cwd", "executable", "executableSha256", "arguments", "environment"],
       "properties": {
         "repositoryId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
         "cwd": { "type": "string", "minLength": 1 },
-        "executable": { "type": "string", "minLength": 1 },
-        "arguments": { "type": "array", "items": { "type": "string" } }
+        "executable": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "executableSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "environment": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+          "additionalProperties": { "type": "string" }
+        }
       }
     },
     "observerPolicy": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["expectedExitCode", "output", "checkoutMutation", "replay"],
-      "properties": {
-        "expectedExitCode": { "type": "integer" },
-        "output": { "enum": ["exact", "nonempty", "exit-only"] },
-        "checkoutMutation": { "const": "forbidden" },
-        "replay": { "enum": ["required", "not-required", "prohibited"] }
-      }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["expectedExitCode", "output", "expectedStdoutSha256", "expectedStderrSha256", "checkoutMutation", "replay"],
+          "properties": {
+            "expectedExitCode": { "type": "integer" },
+            "output": { "const": "exact" },
+            "expectedStdoutSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "expectedStderrSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "checkoutMutation": { "const": "forbidden" },
+            "replay": { "enum": ["required", "not-required", "prohibited"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["expectedExitCode", "output", "checkoutMutation", "replay"],
+          "properties": {
+            "expectedExitCode": { "type": "integer" },
+            "output": { "enum": ["nonempty", "exit-only"] },
+            "checkoutMutation": { "const": "forbidden" },
+            "replay": { "enum": ["required", "not-required", "prohibited"] }
+          }
+        }
+      ]
     },
     "hardenedAcceptance": {
       "type": "object",
@@ -64,19 +87,13 @@
         "consumeOnce": { "type": "boolean" }
       }
     },
-    "sourcePolicy": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["mode"],
-      "properties": { "mode": { "const": "independent" } }
-    },
     "legacy": {
       "type": "object",
       "additionalProperties": false,
       "required": ["schemaVersion", "taskId", "sopVersion", "contractDigest", "risk", "state", "implementationOwner", "objective", "scope", "nonGoals", "authorityInputs", "acceptance", "requiredGates", "openChoices"],
       "properties": {
         "schemaVersion": { "const": 1 },
-        "taskId": { "type": "string", "minLength": 1 },
+        "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
         "sopVersion": { "type": "string", "minLength": 1 },
         "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "risk": { "$ref": "#/$defs/risk" },
@@ -94,15 +111,42 @@
     "hardened": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "taskId", "sopVersion", "policyDigest", "contractDigest", "risk", "riskSignals", "implementationOwner", "objective", "scope", "nonGoals", "authorityInputs", "repositories", "acceptance", "evidenceFreshnessMs", "authorizationRequirements", "sourcePolicy", "openChoices"],
+      "required": ["schemaVersion", "taskId", "sopVersion", "policyDigest", "contractDigest", "risk", "riskSignals", "implementationOwner", "objective", "scope", "nonGoals", "authorityInputs", "repositories", "acceptance", "evidenceFreshnessMs", "authorizationRequirements", "extensions", "openChoices"],
       "properties": {
         "schemaVersion": { "const": 2 },
-        "taskId": { "type": "string", "minLength": 1 },
+        "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
         "sopVersion": { "type": "string", "minLength": 1 },
         "policyDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "risk": { "$ref": "#/$defs/risk" },
-        "riskSignals": { "type": "object", "minProperties": 1, "additionalProperties": { "oneOf": [{ "type": "boolean" }, { "type": "string" }] } },
+        "riskSignals": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "readOnly": { "type": "boolean" },
+            "localEdit": { "type": "boolean" },
+            "mutation": { "type": "boolean" },
+            "classificationComplete": { "type": "boolean" },
+            "userVisible": { "type": "boolean" },
+            "crossModule": { "type": "boolean" },
+            "multiRepository": { "type": "boolean" },
+            "persistentData": { "type": "boolean" },
+            "authentication": { "type": "boolean" },
+            "authorization": { "type": "boolean" },
+            "privacy": { "type": "boolean" },
+            "security": { "type": "boolean" },
+            "migration": { "type": "boolean" },
+            "destructive": { "type": "boolean" },
+            "payments": { "type": "boolean" },
+            "production": { "type": "boolean" },
+            "deployment": { "type": "boolean" },
+            "remoteMutation": { "type": "boolean" },
+            "externalCommunication": { "type": "boolean" },
+            "restrictedRuntime": { "type": "boolean" },
+            "projectMinimum": { "$ref": "#/$defs/risk" }
+          }
+        },
         "implementationOwner": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$" },
         "objective": { "type": "string", "minLength": 1 },
         "scope": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
@@ -114,17 +158,42 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["id", "path"],
+            "required": ["id", "path", "baseline"],
             "properties": {
               "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
-              "path": { "type": "string", "pattern": "^/", "minLength": 2 }
+              "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+              "baseline": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["head", "tree", "checkoutDigest", "trackedPaths", "untrackedPaths"],
+                "properties": {
+                  "head": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+                  "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+                  "checkoutDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                  "trackedPaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+                  "untrackedPaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+                }
+              }
             }
           }
         },
         "acceptance": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hardenedAcceptance" } },
         "evidenceFreshnessMs": { "type": "integer", "minimum": 1, "maximum": 86400000 },
         "authorizationRequirements": { "type": "array", "items": { "$ref": "#/$defs/authorizationRequirement" } },
-        "sourcePolicy": { "$ref": "#/$defs/sourcePolicy" },
+        "extensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "version", "digest", "input"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+              "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+              "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "input": { "type": "object" }
+            }
+          }
+        },
         "openChoices": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
       }
     }

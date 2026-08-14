@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -6,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 
 import { startTask } from '../../src/commands/task-start.js'
+import { canonicalDigest } from '../../src/model/digest.js'
 import {
   applyTaskTransition,
   planTaskTransition,
@@ -19,6 +21,12 @@ function fixture(): { root: string; contract: Record<string, unknown> } {
   const created = mkdtempSync(join(tmpdir(), 'sop-v2-ledger-'))
   temporaryDirectories.push(created)
   const root = realpathSync(created)
+  execFileSync('git', ['-C', root, 'init', '-b', 'main'])
+  execFileSync('git', ['-C', root, 'config', 'user.email', 'test@example.com'])
+  execFileSync('git', ['-C', root, 'config', 'user.name', 'Test'])
+  writeFileSync(join(root, 'baseline.txt'), 'baseline\n')
+  execFileSync('git', ['-C', root, 'add', 'baseline.txt'])
+  execFileSync('git', ['-C', root, 'commit', '-m', 'baseline'])
   const task = startTask({
     schemaVersion: 2,
     taskId: 'ledger-task',
@@ -45,9 +53,8 @@ function fixture(): { root: string; contract: Record<string, unknown> } {
       },
     }],
     authorizationRequirements: [],
-    sourcePolicy: { mode: 'independent' },
     openChoices: [],
-    signals: { mutation: true, architecture: true },
+    signals: { mutation: true, crossModule: true },
   })
   for (const artifact of task.artifacts) {
     const path = join(root, artifact.path)
@@ -104,6 +111,28 @@ describe('v2 task ledger', () => {
     const { root } = fixture()
     const triggerPath = join(root, '.delivery/tasks/ledger-task/invalid.json')
     writeFileSync(triggerPath, '{}\n')
+    expect(() => planTaskTransition({
+      projectRoot: root,
+      taskId: 'ledger-task',
+      actorId: 'reviewer',
+      to: 'IN_PROGRESS',
+      artifacts: [{ kind: 'transition-request', path: triggerPath }],
+    })).toThrow('TASK_TRANSITION_IMPLEMENTATION_OWNER_REQUIRED')
+    const forged = planTaskTransition({
+      projectRoot: root,
+      taskId: 'ledger-task',
+      actorId: 'codex',
+      to: 'IN_PROGRESS',
+      artifacts: [{ kind: 'transition-request', path: triggerPath }],
+    })
+    forged.event.actorId = 'reviewer'
+    const { eventDigest: _eventDigest, ...unsignedEvent } = forged.event
+    forged.event.eventDigest = canonicalDigest(unsignedEvent)
+    const { digest: _digest, ...unsignedPlan } = forged
+    forged.digest = canonicalDigest(unsignedPlan)
+    expect(applyTaskTransition(forged, forged.digest).errors).toContain(
+      'TASK_TRANSITION_IMPLEMENTATION_OWNER_REQUIRED',
+    )
     expect(() => planTaskTransition({
       projectRoot: root,
       taskId: 'ledger-task',

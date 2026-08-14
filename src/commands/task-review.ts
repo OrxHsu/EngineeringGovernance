@@ -9,7 +9,7 @@ import { validateAcceptanceAuthority } from '../state/transitions.js'
 import { canonicalDigest } from '../model/digest.js'
 import {
   isHardenedCandidate,
-  verifyCandidateEligibility,
+  verifyLegacyCandidateEligibility,
   type CandidateEligibilityInput,
 } from './task-verify.js'
 import { verifyHardenedReview, type HardenedReviewDecision } from './task-review-v2.js'
@@ -78,9 +78,12 @@ export function verifyReviewEligibility(
     return { valid: false, errors: ['REVIEW_FILE_UNREADABLE'] }
   }
   if (reviewSchemaVersion === 2) return verifyHardenedReview(input.reviewPath)
-  if (!('candidatePath' in input) || !('replayPlanDigest' in input)) {
-    return { valid: false, errors: ['LEGACY_REVIEW_REQUIRES_PINNED_V1_RUNNER'] }
-  }
+  return { valid: false, errors: ['LEGACY_REVIEW_REQUIRES_PINNED_V1_RUNNER'] }
+}
+
+export function verifyLegacyReviewEligibility(
+  input: ReviewEligibilityInput,
+): ValidationResult {
   const errors: string[] = []
   let candidate: CandidateEligibilityInput
   try {
@@ -100,7 +103,7 @@ export function verifyReviewEligibility(
   if (isHardenedCandidate(candidate)) {
     return { valid: false, errors: ['REVIEW_V2_VERIFICATION_ARTIFACT_REQUIRED'] }
   }
-  const candidateDecision = verifyCandidateEligibility(candidate, {
+  const candidateDecision = verifyLegacyCandidateEligibility(candidate, {
     evidenceReplayPlanDigest: input.replayPlanDigest,
   })
   errors.push(...candidateDecision.errors.map((error) => `CANDIDATE_INVALID:${error}`))

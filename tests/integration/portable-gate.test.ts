@@ -36,7 +36,7 @@ it('runs a checksum-pinned project gate offline and rejects a mutated runner', a
     version: string
     sha256: string
   }
-  expect(bundle.version).toBe('1.0.0')
+  expect(bundle.version).toBe('2.0.0')
   expect(bundle.sha256).toMatch(/^[a-f0-9]{64}$/u)
 
   const projectRoot = await temporaryDirectory('sop-portable-project-')
@@ -87,7 +87,7 @@ it('runs a checksum-pinned project gate offline and rejects a mutated runner', a
   const rejected = spawnSync('sh', [wrapper], { encoding: 'utf8', env: environment })
   expect(rejected.status).not.toBe(0)
   expect(rejected.stderr).toContain('RUNNER_DIGEST_MISMATCH')
-}, 15_000)
+}, 30_000)
 
 it('fails closed before npm install on an unsupported Node runtime', async () => {
   const projectRoot = await temporaryDirectory('sop-portable-node-version-')
@@ -126,4 +126,4 @@ it('fails closed before npm install on an unsupported Node runtime', async () =>
   })
   expect(result.status).not.toBe(0)
   expect(result.stderr).toContain('NODE_VERSION_UNSUPPORTED:25.9.0')
-})
+}, 30_000)

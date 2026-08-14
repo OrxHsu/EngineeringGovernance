@@ -224,13 +224,17 @@ function verifyCandidateArtifacts(
 }
 
 export function verifyCandidateEligibility(
-  input: CandidateEligibilityInput,
+  input: HardenedCandidateEligibilityInput,
   context: CandidateVerificationContext = {},
 ): ValidationResult & { verificationArtifact?: HardenedVerificationArtifact } {
-  if (isHardenedCandidate(input)) {
-    return verifyHardenedCandidate(input, context)
-  }
-  const legacyInput = input as LegacyCandidateEligibilityInput
+  if (!isHardenedCandidate(input)) return { valid: false, errors: ['LEGACY_CANDIDATE_REQUIRES_PINNED_V1_RUNNER'] }
+  return verifyHardenedCandidate(input, context)
+}
+
+export function verifyLegacyCandidateEligibility(
+  legacyInput: LegacyCandidateEligibilityInput,
+  context: CandidateVerificationContext = {},
+): ValidationResult {
   const candidateSchema = validateDocument('candidate', legacyInput)
   const errors = candidateSchema.valid
     ? [...(legacyInput.requiredGateErrors ?? [])]

@@ -7,7 +7,7 @@ import { stringify } from 'yaml'
 import { verifyCloseEligibility } from '../../src/commands/task-close.js'
 import { verifyReviewEligibility } from '../../src/commands/task-review.js'
 import { canonicalDigest } from '../../src/model/digest.js'
-import { applyTaskTransition } from '../../src/state/ledger.js'
+import { applyTaskTransition, planTaskTransition } from '../../src/state/ledger.js'
 import { hardenedTaskFixture, sha256 } from '../helpers/hardened-task.js'
 
 const temporaryDirectories: string[] = []
@@ -139,5 +139,74 @@ describe('non-executing v2 close', () => {
     closure.review.sha256 = '0'.repeat(64)
     writeFileSync(closurePath, stringify(closure))
     expect(verifyCloseEligibility({ closurePath }).errors).toContain('REVIEW_ARTIFACT_DIGEST_MISMATCH')
+  })
+
+  it('recomputes a recorded review before allowing close', () => {
+    const fixture = hardenedTaskFixture()
+    temporaryDirectories.push(fixture.root)
+    fixture.verification.producer.version = '9.9.9'
+    writeFileSync(fixture.verificationPath, `${JSON.stringify(fixture.verification, null, 2)}\n`)
+    const review = {
+      schemaVersion: 2,
+      artifactType: 'sop-review-v2',
+      taskId: fixture.taskId,
+      reviewer: { id: 'reviewer', trustLevel: 'local-claim' },
+      decision: 'ACCEPTED',
+      contract: {
+        path: fixture.contractPath,
+        sha256: sha256(readFileSync(fixture.contractPath)),
+        digest: fixture.contract.contractDigest,
+      },
+      candidate: {
+        path: fixture.candidatePath,
+        sha256: sha256(readFileSync(fixture.candidatePath)),
+        digest: canonicalDigest(fixture.candidate),
+      },
+      verification: {
+        path: fixture.verificationPath,
+        sha256: sha256(readFileSync(fixture.verificationPath)),
+      },
+      reviewedImplementation: fixture.verification.implementationIdentities,
+      findings: [],
+      nextStage: 'close',
+      userActionRequired: false,
+    }
+    const reviewPath = join(fixture.root, `.delivery/tasks/${fixture.taskId}/review.yaml`)
+    writeFileSync(reviewPath, stringify(review))
+    const forgedAcceptance = planTaskTransition({
+      projectRoot: fixture.root,
+      taskId: fixture.taskId,
+      actorId: 'reviewer',
+      to: 'ACCEPTED',
+      artifacts: [
+        { kind: 'review', path: reviewPath },
+        { kind: 'verification', path: fixture.verificationPath },
+      ],
+    })
+    expect(applyTaskTransition(forgedAcceptance, forgedAcceptance.digest)).toEqual({
+      applied: true,
+      errors: [],
+    })
+    const statusPath = join(fixture.root, 'STATUS.md')
+    writeFileSync(statusPath, `Task ${fixture.taskId}. Next: release planning.\n`)
+    const closurePath = join(fixture.root, `.delivery/tasks/${fixture.taskId}/closure.yaml`)
+    writeFileSync(closurePath, stringify({
+      schemaVersion: 2,
+      artifactType: 'sop-closure-v2',
+      taskId: fixture.taskId,
+      closer: { id: 'reviewer', trustLevel: 'local-claim' },
+      contract: review.contract,
+      candidate: review.candidate,
+      verification: review.verification,
+      review: { path: reviewPath, sha256: sha256(readFileSync(reviewPath)) },
+      acceptedEventDigest: forgedAcceptance.event.eventDigest,
+      statusArtifacts: [{ path: statusPath, sha256: sha256(readFileSync(statusPath)) }],
+      nextAction: 'release planning',
+      userActionRequired: false,
+    }))
+
+    expect(verifyCloseEligibility({ closurePath }).errors).toContain(
+      'REVIEW_REVALIDATION_FAILED:VERIFICATION_RECOMPUTATION_MISMATCH',
+    )
   })
 })

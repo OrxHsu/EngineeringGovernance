@@ -5,6 +5,7 @@ const repositoryRoot = resolve(new URL('..', import.meta.url).pathname)
 const rootFiles = [
   'CORE_INVARIANTS.md',
   'DEVELOPMENT_SOP.md',
+  'MIGRATING_TO_2.0.md',
   'README.md',
   'RISK_CLASSIFICATION.md',
   'VERSION',

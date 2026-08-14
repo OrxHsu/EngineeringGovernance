@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/replay-verification.schema.json",
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "digest"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "sha256": { "$ref": "#/$defs/digest" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositoryId", "repository", "commit", "tree", "checkoutDigest"],
+      "properties": {
+        "repositoryId": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^/" },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "checkoutDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repository", "head", "tree", "trackedDiffSha256", "trackedPaths", "untracked", "statusDigest"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^/" },
+        "head": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "trackedDiffSha256": { "$ref": "#/$defs/digest" },
+        "trackedPaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "untracked": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "type", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "type": { "enum": ["file", "symlink"] },
+              "sha256": { "$ref": "#/$defs/digest" }
+            }
+          }
+        },
+        "statusDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executable", "executableSha256", "arguments", "cwd", "environment"],
+      "properties": {
+        "executable": { "type": "string", "pattern": "^/" },
+        "executableSha256": { "$ref": "#/$defs/digest" },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "cwd": { "type": "string", "pattern": "^/" },
+        "environment": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "producer", "taskId", "contract", "candidate", "planDigest", "implementationIdentities", "executions", "verifiedAt", "decision"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "artifactType": { "const": "sop-replay-verification-v2" },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "policyDigest"],
+      "properties": {
+        "name": { "const": "@xgh/engineering-governance" },
+        "version": { "type": "string", "minLength": 1 },
+        "policyDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "contract": { "$ref": "#/$defs/artifact" },
+    "candidate": { "$ref": "#/$defs/artifact" },
+    "planDigest": { "$ref": "#/$defs/digest" },
+    "implementationIdentities": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identity" } },
+    "executions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["acceptanceId", "gateDigest", "command", "repositoriesBefore", "repositoriesAfter", "startedAt", "endedAt", "exitCode", "stdout", "stderr", "stdoutSha256", "stderrSha256", "policyErrors"],
+        "properties": {
+          "acceptanceId": { "type": "string", "minLength": 1 },
+          "gateDigest": { "$ref": "#/$defs/digest" },
+          "command": { "$ref": "#/$defs/command" },
+          "repositoriesBefore": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/snapshot" } },
+          "repositoriesAfter": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/snapshot" } },
+          "startedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+          "endedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+          "exitCode": { "type": "integer" },
+          "stdout": { "type": "string" },
+          "stderr": { "type": "string" },
+          "stdoutSha256": { "$ref": "#/$defs/digest" },
+          "stderrSha256": { "$ref": "#/$defs/digest" },
+          "policyErrors": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "verifiedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+    "decision": { "enum": ["eligible", "failed"] }
+  }
+}

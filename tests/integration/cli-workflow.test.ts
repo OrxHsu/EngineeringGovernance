@@ -13,7 +13,7 @@ import { verifyCloseEligibility } from '../../src/commands/task-close.js'
 import { buildProgram } from '../../src/cli/main.js'
 import { testRunnerBundle } from '../helpers/runner-bundle.js'
 
-const taskBase = {
+const legacyTaskBase = {
   taskId: 'task-1',
   implementationOwner: 'codex',
   objective: 'Implement one bounded behavior.',
@@ -49,8 +49,7 @@ describe('project command workflow', () => {
 
   it('includes the pinned runner in a bootstrap adoption plan', async () => {
     const project = mkdtempSync(join(tmpdir(), 'governance-cli-runner-'))
-    const bundle = join(project, 'engineering-governance-1.0.0.tgz')
-    writeFileSync(bundle, 'test runner archive\n')
+    const bundle = testRunnerBundle()
     let output = ''
     await buildProgram({ write: (text) => { output += text } }).parseAsync([
       'node',
@@ -65,8 +64,15 @@ describe('project command workflow', () => {
     expect(plan.writes.every((write) => write.after === undefined)).toBe(true)
     expect(plan.writes.map((write) => write.path)).toContain(join(
       project,
-      '.delivery/runtime/engineering-governance-1.0.0.tgz',
+      '.delivery/runtime/engineering-governance-2.0.0.tgz',
     ))
+  }, 15_000)
+
+  it('rejects a correctly named runner archive with unverified internals', () => {
+    const project = mkdtempSync(join(tmpdir(), 'governance-cli-invalid-runner-'))
+    const bundle = join(project, 'engineering-governance-2.0.0.tgz')
+    writeFileSync(bundle, 'not a governance runner\n')
+    expect(() => planAdoption(project, { runnerBundlePath: bundle })).toThrow()
   })
 
   it('plans before applying and verifies the adopted project', () => {
@@ -88,34 +94,21 @@ describe('project command workflow', () => {
 })
 
 describe('task command workflow', () => {
-  it('keeps R1 lightweight', () => {
-    const result = startTask({
-      ...taskBase,
-      signals: { localEdit: true, classificationComplete: true },
-    })
-    expect(result.risk).toBe('R1')
-    expect(result.state).toBe('DEFINED')
-    expect(result.artifacts).toEqual([])
+  it('rejects legacy task starts instead of silently generating v1 artifacts', () => {
+    expect(() => startTask(legacyTaskBase as never)).toThrow(
+      'ACTIVE_COMMAND_REQUIRES_SCHEMA_VERSION_2',
+    )
   })
 
-  it('creates a frozen R2 contract artifact', () => {
-    const result = startTask({ ...taskBase, signals: { crossModule: true } })
-    expect(result.risk).toBe('R2')
-    expect(result.artifacts).toHaveLength(1)
-    expect(result.artifacts[0]?.path).toBe('.delivery/tasks/task-1/contract.yaml')
-    expect(result.artifacts[0]?.content).toContain('contractDigest:')
-  })
-
-  it('keeps an unauthorized R3 task out of candidate state', () => {
-    const task = startTask({ ...taskBase, signals: { production: true } })
+  it('keeps legacy candidate declarations on the pinned v1 runner', () => {
     expect(verifyCandidateEligibility({
-      risk: task.risk,
+      risk: 'R3',
       requiredGateErrors: [],
       authorizationRequired: true,
       authorizationApproved: false,
     })).toEqual({
       valid: false,
-      errors: ['CANDIDATE_VERIFICATION_REQUIRED', 'USER_AUTHORIZATION_REQUIRED'],
+      errors: ['LEGACY_CANDIDATE_REQUIRES_PINNED_V1_RUNNER'],
     })
   })
 
@@ -125,7 +118,7 @@ describe('task command workflow', () => {
       implementationOwner: 'qoder',
       reviewOwner: 'qoder',
       blockingFindingIds: [],
-    } as never).errors).toContain('CANDIDATE_FILE_UNREADABLE')
+    } as never).errors).toContain('REVIEW_FILE_UNREADABLE')
   })
 
   it('rejects artifact-free review and close declarations', () => {

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/external-source-release.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "extension", "taskId", "contractDigest", "allocationId", "decision", "decidedBy", "destinationIds", "dispositionId", "basis"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "external-source-release" },
+    "extension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "digest"],
+      "properties": {
+        "id": { "const": "external-source-provenance" },
+        "version": { "const": "1.0.0" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "taskId": { "type": "string", "minLength": 1 },
+    "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "allocationId": { "type": "string", "minLength": 1 },
+    "decision": { "enum": ["approved", "blocked"] },
+    "decidedBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "trustLevel"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "trustLevel": { "const": "local-claim" }
+      }
+    },
+    "destinationIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "dispositionId": { "type": "string", "minLength": 1 },
+    "basis": { "type": "string", "minLength": 1 }
+  }
+}

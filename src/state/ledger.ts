@@ -7,9 +7,11 @@ import { parse } from 'yaml'
 import { normalizeActorId } from '../model/actor.js'
 import { canonicalDigest } from '../model/digest.js'
 import type { TaskState, ValidationResult } from '../model/types.js'
+import type { Risk } from '../model/types.js'
 import { validateDocument } from '../policy/load.js'
+import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { applyPlannedWrites } from '../project/mutate.js'
-import { canTransition } from './transitions.js'
+import { canTransition, validateAcceptanceAuthority } from './transitions.js'
 
 export interface ArtifactReference {
   kind: string
@@ -40,7 +42,47 @@ interface LedgerContract {
   taskId: string
   contractDigest: string
   implementationOwner: string
+  risk: Risk
   [key: string]: unknown
+}
+
+const ownerTransitionTargets = new Set<TaskState>([
+  'IN_PROGRESS',
+  'CANDIDATE',
+  'BLOCKED',
+  'CANCELLED',
+  'SUPERSEDED',
+])
+
+function transitionAuthorityErrors(input: {
+  contract: LedgerContract
+  actorId: string
+  to: TaskState
+  artifacts: Array<{ kind: string; path: string }>
+}): string[] {
+  const errors: string[] = []
+  if (ownerTransitionTargets.has(input.to) && input.actorId !== input.contract.implementationOwner) {
+    errors.push('TASK_TRANSITION_IMPLEMENTATION_OWNER_REQUIRED')
+  }
+  if (input.to === 'ACCEPTED' || input.to === 'REPAIR_REQUIRED') {
+    errors.push(...validateAcceptanceAuthority(
+      input.contract.risk,
+      input.contract.implementationOwner,
+      input.actorId,
+    ).errors)
+  }
+  const kindCount = (kind: string): number => input.artifacts.filter((artifact) => artifact.kind === kind).length
+  if (input.to === 'CANDIDATE' && (kindCount('candidate') !== 1 || kindCount('evidence') !== 1)) {
+    errors.push('TASK_CANDIDATE_TRANSITION_ARTIFACT_SET_INVALID')
+  }
+  if ((input.to === 'ACCEPTED' || input.to === 'REPAIR_REQUIRED')
+    && (kindCount('review') !== 1 || kindCount('verification') !== 1)) {
+    errors.push('TASK_REVIEW_TRANSITION_ARTIFACT_SET_INVALID')
+  }
+  if (input.to === 'CLOSED' && (kindCount('closure') !== 1 || kindCount('status') < 1)) {
+    errors.push('TASK_CLOSE_TRANSITION_ARTIFACT_SET_INVALID')
+  }
+  return [...new Set(errors)].sort()
 }
 
 export interface TaskTransitionPlan {
@@ -108,21 +150,33 @@ export function readTaskLedger(input: {
   contractSha256: string
   implementationOwner: string
 }): TaskLedgerValidation {
+  const errors: string[] = []
+  let authorityContract: LedgerContract | undefined
+  try {
+    const loaded = loadLedgerContract(input.projectRoot, input.taskId)
+    authorityContract = loaded.contract
+    if (
+      sha256(loaded.raw) !== input.contractSha256
+      || loaded.contract.contractDigest !== input.contractDigest
+      || loaded.contract.implementationOwner !== input.implementationOwner
+    ) errors.push('TASK_LEDGER_CONTRACT_IDENTITY_MISMATCH')
+  } catch {
+    errors.push('TASK_LEDGER_CONTRACT_INVALID')
+  }
   let ledgerPath: string
   try {
     ledgerPath = canonicalTaskPath(input.projectRoot, input.taskId, 'ledger.jsonl')
     if (!existsSync(ledgerPath) || lstatSync(ledgerPath).isSymbolicLink() || !lstatSync(ledgerPath).isFile()) {
-      return { valid: false, errors: ['TASK_LEDGER_UNREADABLE'], events: [] }
+      return { valid: false, errors: [...errors, 'TASK_LEDGER_UNREADABLE'], events: [] }
     }
     ledgerPath = realpathSync(ledgerPath)
   } catch {
-    return { valid: false, errors: ['TASK_LEDGER_UNREADABLE'], events: [] }
+    return { valid: false, errors: [...errors, 'TASK_LEDGER_UNREADABLE'], events: [] }
   }
 
   const lines = readFileSync(ledgerPath, 'utf8').split('\n').filter((line) => line.length > 0)
   if (lines.length === 0) return { valid: false, errors: ['TASK_LEDGER_EMPTY'], events: [], ledgerPath }
   const events: TaskEvent[] = []
-  const errors: string[] = []
   for (const [index, line] of lines.entries()) {
     let event: TaskEvent
     try {
@@ -162,6 +216,14 @@ export function readTaskLedger(input: {
       if (event.from !== previous.to || !canTransition(previous.to, event.to)) {
         errors.push(`TASK_EVENT_TRANSITION_INVALID:${index + 1}`)
       }
+      if (authorityContract !== undefined) {
+        errors.push(...transitionAuthorityErrors({
+          contract: authorityContract,
+          actorId: event.actorId,
+          to: event.to,
+          artifacts: event.artifactRefs,
+        }).map((error) => `${error}:${index + 1}`))
+      }
     }
     events.push(event)
   }
@@ -193,10 +255,8 @@ function loadLedgerContract(projectRoot: string, taskId: string): {
   const path = realpathSync(unresolved)
   const raw = readFileSync(path)
   const contract = parse(raw.toString('utf8')) as LedgerContract
-  const schema = validateDocument('task-contract', contract)
-  if (!schema.valid || contract.schemaVersion !== 2) throw new Error('TASK_CONTRACT_SCHEMA_INVALID')
-  const { contractDigest, ...unsigned } = contract
-  if (canonicalDigest(unsigned) !== contractDigest) throw new Error('TASK_CONTRACT_DIGEST_INVALID')
+  const semantic = validateHardenedTaskContract(contract)
+  if (!semantic.valid) throw new Error(`TASK_CONTRACT_INVALID:${semantic.errors.join(',')}`)
   if (contract.taskId !== taskId) throw new Error('TASK_CONTRACT_ID_MISMATCH')
   return { root, path, raw, contract }
 }
@@ -237,6 +297,14 @@ export function planTaskTransition(input: {
   if (!canTransition(ledger.currentState, input.to)) {
     throw new Error(`TASK_TRANSITION_NOT_ALLOWED:${ledger.currentState}:${input.to}`)
   }
+  const actorId = normalizeActorId(input.actorId)
+  const authorityErrors = transitionAuthorityErrors({
+    contract: loaded.contract,
+    actorId,
+    to: input.to,
+    artifacts: input.artifacts,
+  })
+  if (authorityErrors.length > 0) throw new Error(authorityErrors.join(','))
   const previous = ledger.events.at(-1)!
   const event = createTaskEvent({
     schemaVersion: 2,
@@ -244,7 +312,7 @@ export function planTaskTransition(input: {
     previousEventDigest: previous.eventDigest,
     from: previous.to,
     to: input.to,
-    actorId: normalizeActorId(input.actorId),
+    actorId,
     contractDigest: loaded.contract.contractDigest,
     artifactRefs: input.artifacts.map((artifact) => artifactReference(loaded.root, artifact)),
   })
@@ -310,6 +378,12 @@ function planErrors(plan: TaskTransitionPlan, approvedDigest: string): string[] 
     || normalizeActorId(plan.event.actorId) !== plan.event.actorId
     || plan.event.contractDigest !== loaded.contract.contractDigest
   ) errors.push('TASK_TRANSITION_EVENT_INVALID')
+  errors.push(...transitionAuthorityErrors({
+    contract: loaded.contract,
+    actorId: plan.event.actorId,
+    to: plan.event.to,
+    artifacts: plan.event.artifactRefs,
+  }))
   for (const reference of plan.event.artifactRefs) {
     try {
       const current = artifactReference(loaded.root, {

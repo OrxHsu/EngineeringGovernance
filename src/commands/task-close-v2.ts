@@ -8,7 +8,9 @@ import { governanceIdentity } from './adopt.js'
 import { canonicalDigest } from '../model/digest.js'
 import { normalizeActorId } from '../model/actor.js'
 import { validateDocument } from '../policy/load.js'
+import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { planTaskTransition, readTaskLedger, type TaskTransitionPlan } from '../state/ledger.js'
+import { verifyHardenedReview } from './task-review-v2.js'
 
 interface ArtifactReference { path: string; sha256: string }
 interface ArtifactWithDigest extends ArtifactReference { digest: string }
@@ -38,7 +40,13 @@ interface ContractV2 {
   [key: string]: unknown
 }
 
-interface CandidateV2 { schemaVersion: 2; taskId: string; [key: string]: unknown }
+interface CandidateV2 {
+  schemaVersion: 2
+  taskId: string
+  authorizationArtifacts: Array<ArtifactReference & { requirementId: string }>
+  extensionArtifacts: Array<ArtifactReference & { extensionId: string; kind: string }>
+  [key: string]: unknown
+}
 
 interface VerificationV2 {
   schemaVersion: 2
@@ -47,6 +55,8 @@ interface VerificationV2 {
   candidate: ArtifactWithDigest
   evidence: ArtifactReference
   receipts: ArtifactReference[]
+  authorizationArtifacts: Array<ArtifactReference & { requirementId: string }>
+  extensionArtifacts: Array<ArtifactReference & { extensionId: string; kind: string }>
   implementationIdentities: unknown[]
 }
 
@@ -98,7 +108,33 @@ function statusArtifactErrors(root: string, reference: ArtifactReference): strin
   }
 }
 
-export function verifyHardenedClose(closurePathInput: string): HardenedCloseDecision {
+function boundArtifactErrors(root: string, reference: ArtifactReference, label: string): string[] {
+  try {
+    const unresolved = resolve(reference.path)
+    if (lstatSync(unresolved).isSymbolicLink() || !lstatSync(unresolved).isFile()) {
+      return [`${label}_ARTIFACT_UNSAFE`]
+    }
+    const path = realpathSync(unresolved)
+    const relativePath = relative(root, path)
+    if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+      return [`${label}_ARTIFACT_OUTSIDE_PROJECT`]
+    }
+    return sha256(readFileSync(path)) === reference.sha256
+      ? []
+      : [`${label}_ARTIFACT_DIGEST_MISMATCH`]
+  } catch {
+    return [`${label}_ARTIFACT_UNREADABLE`]
+  }
+}
+
+function canonicalBoundArtifacts<T extends ArtifactReference>(
+  artifacts: T[],
+  key: (artifact: T) => string,
+): T[] {
+  return [...artifacts].sort((left, right) => key(left).localeCompare(key(right)))
+}
+
+export function verifyHardenedClose(closurePathInput: string, now = new Date()): HardenedCloseDecision {
   let closurePath: string
   let closure: ClosureV2
   try {
@@ -143,8 +179,8 @@ export function verifyHardenedClose(closurePathInput: string): HardenedCloseDeci
     return { valid: false, errors: [error instanceof Error ? error.message : 'CLOSURE_BOUND_ARTIFACT_UNREADABLE'] }
   }
 
-  const contractSchema = validateDocument('task-contract', contract)
-  if (!contractSchema.valid || contract.schemaVersion !== 2) errors.push('CONTRACT_SCHEMA_INVALID')
+  const contractSchema = validateHardenedTaskContract(contract)
+  if (!contractSchema.valid) errors.push(...contractSchema.errors.map((error) => `CONTRACT_INVALID:${error}`))
   else {
     const { contractDigest, ...unsigned } = contract
     if (canonicalDigest(unsigned) !== contractDigest) errors.push('CONTRACT_DIGEST_INVALID')
@@ -177,6 +213,46 @@ export function verifyHardenedClose(closurePathInput: string): HardenedCloseDeci
   }
   if (JSON.stringify(review.verification) !== JSON.stringify(closure.verification)) {
     errors.push('CLOSURE_VERIFICATION_REF_MISMATCH')
+  }
+  const recordedReview = verifyHardenedReview(closure.review.path, now, { mode: 'recorded' })
+  if (!recordedReview.valid) {
+    errors.push(...recordedReview.errors.map((error) => `REVIEW_REVALIDATION_FAILED:${error}`))
+  }
+  const expectedAuthorizations = canonicalBoundArtifacts(
+    candidate.authorizationArtifacts,
+    (artifact) => artifact.requirementId,
+  )
+  const verifiedAuthorizations = canonicalBoundArtifacts(
+    verification.authorizationArtifacts,
+    (artifact) => artifact.requirementId,
+  )
+  if (JSON.stringify(verifiedAuthorizations) !== JSON.stringify(expectedAuthorizations)) {
+    errors.push('VERIFICATION_AUTHORIZATION_ARTIFACT_SET_MISMATCH')
+  }
+  for (const artifact of verifiedAuthorizations) {
+    errors.push(...boundArtifactErrors(
+      projectRoot,
+      artifact,
+      `VERIFIED_AUTHORIZATION:${artifact.requirementId}`,
+    ))
+  }
+  const expectedExtensions = canonicalBoundArtifacts(
+    candidate.extensionArtifacts,
+    (artifact) => `${artifact.extensionId}:${artifact.kind}`,
+  )
+  const verifiedExtensions = canonicalBoundArtifacts(
+    verification.extensionArtifacts,
+    (artifact) => `${artifact.extensionId}:${artifact.kind}`,
+  )
+  if (JSON.stringify(verifiedExtensions) !== JSON.stringify(expectedExtensions)) {
+    errors.push('VERIFICATION_EXTENSION_ARTIFACT_SET_MISMATCH')
+  }
+  for (const artifact of verifiedExtensions) {
+    errors.push(...boundArtifactErrors(
+      projectRoot,
+      artifact,
+      `VERIFIED_EXTENSION:${artifact.extensionId}:${artifact.kind}`,
+    ))
   }
 
   const ledger = readTaskLedger({

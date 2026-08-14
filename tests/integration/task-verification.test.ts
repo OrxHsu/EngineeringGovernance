@@ -5,10 +5,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { afterEach, expect, it } from 'vitest'
-import { parse } from 'yaml'
+import { parse, stringify } from 'yaml'
 
-import { startTask } from '../../src/commands/task-start.js'
-import { verifyCandidateEligibility } from '../../src/commands/task-verify.js'
+import { taskContractDigest } from '../../src/commands/task-start.js'
+import { verifyLegacyCandidateEligibility as verifyCandidateEligibility } from '../../src/commands/task-verify.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 
 const temporaryDirectories: string[] = []
@@ -45,8 +45,12 @@ function candidate(): {
   const implementationCommit = git(repository, 'rev-parse', 'HEAD')
   const implementationTree = git(repository, 'rev-parse', 'HEAD^{tree}')
 
-  const task = startTask({
+  const unsignedContract = {
+    schemaVersion: 1,
     taskId: 'candidate-task',
+    sopVersion: '1.0.0',
+    risk: 'R2',
+    state: 'DEFINED',
     implementationOwner: 'codex',
     objective: 'Verify a real candidate.',
     scope: ['implementation.txt'],
@@ -60,13 +64,16 @@ function candidate(): {
     }],
     requiredGates: ['test:ac-01'],
     openChoices: [],
-    signals: { crossModule: true },
+  }
+  const contractContent = stringify({
+    ...unsignedContract,
+    contractDigest: taskContractDigest(unsignedContract),
   })
   const taskDirectory = join(repository, '.delivery', 'tasks', 'candidate-task')
   const artifactDirectory = join(taskDirectory, 'artifacts')
   mkdirSync(artifactDirectory, { recursive: true })
   const contractPath = join(taskDirectory, 'contract.yaml')
-  writeFileSync(contractPath, task.artifacts[0]!.content)
+  writeFileSync(contractPath, contractContent)
   const contract = parse(readFileSync(contractPath, 'utf8')) as { contractDigest: string }
 
   const artifactPath = join(artifactDirectory, 'unit.json')

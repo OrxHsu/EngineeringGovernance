@@ -6,7 +6,18 @@ describe('sop CLI', () => {
   it('registers the required top-level commands', () => {
     const names = buildProgram().commands.map((command) => command.name())
 
-    expect(names).toEqual(['init', 'adopt', 'check', 'upgrade', 'task', 'global'])
+    expect(names).toEqual([
+      'init',
+      'adopt',
+      'unadopt',
+      'check',
+      'upgrade',
+      'task',
+      'legacy',
+      'global',
+    ])
+    const task = buildProgram().commands.find((command) => command.name() === 'task')!
+    expect(task.commands.map((command) => command.name())).toContain('transition')
   })
 })
 

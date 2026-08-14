@@ -5,11 +5,15 @@ import { dirname, join, resolve } from 'node:path'
 import { parse } from 'yaml'
 
 import { governanceIdentity } from './adopt.js'
-import type { HardenedCandidateEligibilityInput } from './task-verify-v2.js'
+import {
+  verifyHardenedCandidate,
+  type HardenedCandidateEligibilityInput,
+} from './task-verify-v2.js'
 import type { Risk } from '../model/types.js'
 import { canonicalDigest } from '../model/digest.js'
 import { normalizeActorId } from '../model/actor.js'
 import { validateDocument } from '../policy/load.js'
+import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { planTaskTransition, readTaskLedger, type TaskTransitionPlan } from '../state/ledger.js'
 import { validateAcceptanceAuthority } from '../state/transitions.js'
 
@@ -66,9 +70,12 @@ interface VerificationV2 {
   candidate: ArtifactWithDigest
   evidence: ArtifactReference
   receipts: Array<ArtifactReference & { acceptanceId: string }>
+  authorizationArtifacts: Array<ArtifactReference & { requirementId: string }>
+  extensionArtifacts: Array<ArtifactReference & { extensionId: string; kind: string }>
   implementationIdentities: ImplementationIdentityV2[]
   verifiedAt: string
   decision: 'eligible'
+  replay?: ArtifactReference & { planDigest: string }
 }
 
 export interface HardenedReviewDecision {
@@ -76,6 +83,10 @@ export interface HardenedReviewDecision {
   errors: string[]
   reviewerTrust?: 'local-claim'
   transitionPlan?: TaskTransitionPlan
+}
+
+export interface HardenedReviewContext {
+  mode?: 'candidate' | 'recorded'
 }
 
 function sha256(input: string | Uint8Array): string {
@@ -114,7 +125,19 @@ function referenceErrors(reference: ArtifactReference, label: string): string[] 
   }
 }
 
-export function verifyHardenedReview(reviewPathInput: string, now = new Date()): HardenedReviewDecision {
+function canonicalBoundArtifacts<T extends ArtifactReference>(
+  artifacts: T[],
+  key: (artifact: T) => string,
+): T[] {
+  return [...artifacts].sort((left, right) => key(left).localeCompare(key(right)))
+}
+
+export function verifyHardenedReview(
+  reviewPathInput: string,
+  now = new Date(),
+  context: HardenedReviewContext = {},
+): HardenedReviewDecision {
+  const mode = context.mode ?? 'candidate'
   let reviewPath: string
   let reviewRaw: Buffer
   let review: ReviewV2
@@ -182,8 +205,8 @@ export function verifyHardenedReview(reviewPathInput: string, now = new Date()):
     return { valid: false, errors: [error instanceof Error ? error.message : 'VERIFICATION_ARTIFACT_UNREADABLE'] }
   }
 
-  const contractSchema = validateDocument('task-contract', contract)
-  if (!contractSchema.valid || contract.schemaVersion !== 2) errors.push('CONTRACT_SCHEMA_INVALID')
+  const contractSchema = validateHardenedTaskContract(contract)
+  if (!contractSchema.valid) errors.push(...contractSchema.errors.map((error) => `CONTRACT_INVALID:${error}`))
   else {
     const { contractDigest, ...unsigned } = contract
     if (canonicalDigest(unsigned) !== contractDigest) errors.push('CONTRACT_DIGEST_INVALID')
@@ -214,11 +237,56 @@ export function verifyHardenedReview(reviewPathInput: string, now = new Date()):
     for (const receipt of verification.receipts) {
       errors.push(...referenceErrors(receipt, `VERIFIED_RECEIPT:${receipt.acceptanceId}`))
     }
+    const expectedAuthorizations = canonicalBoundArtifacts(
+      candidate.authorizationArtifacts,
+      (artifact) => artifact.requirementId,
+    )
+    const verifiedAuthorizations = canonicalBoundArtifacts(
+      verification.authorizationArtifacts,
+      (artifact) => artifact.requirementId,
+    )
+    if (JSON.stringify(verifiedAuthorizations) !== JSON.stringify(expectedAuthorizations)) {
+      errors.push('VERIFICATION_AUTHORIZATION_ARTIFACT_SET_MISMATCH')
+    }
+    for (const artifact of verifiedAuthorizations) {
+      errors.push(...referenceErrors(artifact, `VERIFIED_AUTHORIZATION:${artifact.requirementId}`))
+    }
+    const expectedExtensions = canonicalBoundArtifacts(
+      candidate.extensionArtifacts,
+      (artifact) => `${artifact.extensionId}:${artifact.kind}`,
+    )
+    const verifiedExtensions = canonicalBoundArtifacts(
+      verification.extensionArtifacts,
+      (artifact) => `${artifact.extensionId}:${artifact.kind}`,
+    )
+    if (JSON.stringify(verifiedExtensions) !== JSON.stringify(expectedExtensions)) {
+      errors.push('VERIFICATION_EXTENSION_ARTIFACT_SET_MISMATCH')
+    }
+    for (const artifact of verifiedExtensions) {
+      errors.push(...referenceErrors(
+        artifact,
+        `VERIFIED_EXTENSION:${artifact.extensionId}:${artifact.kind}`,
+      ))
+    }
+    if (verification.replay !== undefined) {
+      errors.push(...referenceErrors(verification.replay, 'VERIFIED_REPLAY'))
+    }
     const verifiedAt = Date.parse(verification.verifiedAt)
     const age = now.getTime() - verifiedAt
     if (!Number.isFinite(verifiedAt) || !Number.isFinite(now.getTime())) errors.push('VERIFICATION_TIME_INVALID')
     else if (age < 0) errors.push('VERIFICATION_TIME_IN_FUTURE')
     else if (age > contract.evidenceFreshnessMs) errors.push('VERIFICATION_STALE')
+
+    const recomputed = verifyHardenedCandidate(candidate, {
+      candidatePath: review.candidate.path,
+      evidenceVerificationTime: new Date(verification.verifiedAt),
+      requireCandidateState: mode === 'candidate',
+    })
+    if (!recomputed.valid || recomputed.verificationArtifact === undefined) {
+      errors.push(...recomputed.errors.map((error) => `VERIFICATION_RECOMPUTATION_FAILED:${error}`))
+    } else if (canonicalDigest(recomputed.verificationArtifact) !== canonicalDigest(verification)) {
+      errors.push('VERIFICATION_RECOMPUTATION_MISMATCH')
+    }
   }
   if (review.taskId !== contract.taskId || review.taskId !== candidate.taskId) {
     errors.push('REVIEW_TASK_ID_MISMATCH')
@@ -247,13 +315,36 @@ export function verifyHardenedReview(reviewPathInput: string, now = new Date()):
     implementationOwner: contract.implementationOwner,
   })
   if (!ledger.valid) errors.push(...ledger.errors.map((error) => `TASK_LEDGER_INVALID:${error}`))
-  else if (ledger.currentState !== 'CANDIDATE') {
-    errors.push(`TASK_STATE_NOT_REVIEWABLE:${ledger.currentState ?? 'UNKNOWN'}`)
+  else if (mode === 'candidate') {
+    if (ledger.currentState !== 'CANDIDATE') {
+      errors.push(`TASK_STATE_NOT_REVIEWABLE:${ledger.currentState ?? 'UNKNOWN'}`)
+    }
+  } else {
+    const recordedEvent = [...ledger.events].reverse().find((event) => (
+      event.to === review.decision
+      && event.artifactRefs.some((reference) => (
+        reference.kind === 'review'
+        && reference.path === `.delivery/tasks/${review.taskId}/review.yaml`
+        && reference.sha256 === sha256(reviewRaw)
+      ))
+      && event.artifactRefs.some((reference) => (
+        reference.kind === 'verification'
+        && reference.path === `.delivery/tasks/${review.taskId}/verification.json`
+        && reference.sha256 === review.verification.sha256
+      ))
+    ))
+    if (recordedEvent === undefined) errors.push('REVIEW_LEDGER_EVENT_MISSING')
+    else if (reviewerId !== undefined && recordedEvent.actorId !== reviewerId) {
+      errors.push('REVIEW_LEDGER_ACTOR_MISMATCH')
+    }
   }
 
   const uniqueErrors = [...new Set(errors)].sort()
   if (uniqueErrors.length > 0 || reviewerId === undefined) {
     return { valid: false, errors: uniqueErrors, reviewerTrust: 'local-claim' }
+  }
+  if (mode === 'recorded') {
+    return { valid: true, errors: [], reviewerTrust: 'local-claim' }
   }
   const transitionPlan = planTaskTransition({
     projectRoot,

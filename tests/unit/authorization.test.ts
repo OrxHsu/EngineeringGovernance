@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { verifyCandidateEligibility } from '../../src/commands/task-verify.js'
+import { verifyLegacyCandidateEligibility as verifyCandidateEligibility } from '../../src/commands/task-verify.js'
 
 const approvedAuthorization = {
   schemaVersion: 1 as const,

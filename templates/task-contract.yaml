@@ -1,9 +1,12 @@
-schemaVersion: 1
+schemaVersion: 2
 taskId: example-task
-sopVersion: 1.0.0
+sopVersion: 2.0.0
+policyDigest: 0000000000000000000000000000000000000000000000000000000000000000
 contractDigest: 0000000000000000000000000000000000000000000000000000000000000000
 risk: R2
-state: DEFINED
+riskSignals:
+  mutation: true
+  userVisible: true
 implementationOwner: example-owner
 objective: Deliver one bounded, observable behavior.
 scope:
@@ -12,6 +15,15 @@ nonGoals:
   - deployment
 authorityInputs:
   - spec.md
+repositories:
+  - id: root
+    path: /absolute/path/to/project
+    baseline:
+      head: 0000000000000000000000000000000000000000
+      tree: 0000000000000000000000000000000000000000
+      checkoutDigest: 0000000000000000000000000000000000000000000000000000000000000000
+      trackedPaths: []
+      untrackedPaths: []
 acceptance:
   - id: AC-01
     observation: The named check observes the required production behavior.
@@ -19,7 +31,22 @@ acceptance:
       - valid input
     negativeCases:
       - invalid input
-requiredGates:
-  - project test command
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /absolute/path/to/executable
+      executableSha256: 0000000000000000000000000000000000000000000000000000000000000000
+      arguments:
+        - test
+      environment: {}
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: not-required
+evidenceFreshnessMs: 86400000
+authorizationRequirements: []
+extensions: []
 openChoices:
   - internal implementation names

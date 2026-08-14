@@ -9,7 +9,7 @@ import { planCursorAdapter } from '../../src/adapters/cursor.js'
 import { planGenericAdapter } from '../../src/adapters/generic.js'
 import { planQoderAdapter } from '../../src/adapters/qoder.js'
 
-const identity = { version: '1.0.0', digest: 'a'.repeat(64) }
+const identity = { version: '2.0.0', digest: 'a'.repeat(64) }
 const temporaryDirectories: string[] = []
 
 async function project(): Promise<string> {

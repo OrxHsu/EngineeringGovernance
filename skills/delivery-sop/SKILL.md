@@ -20,16 +20,27 @@ restate or invent global policy in this Skill.
 4. Run `~/.codex/bin/sop check <absolute-project-path>` before mutating work.
 5. Stop when the policy is invalid, drifted, or names an unavailable pinned
    runner. Report the exact failure code and do not simulate a pass.
+6. If check reports a task as legacy inspect-only, preserve it as history. Do
+   not run v2 mutation, review, or closure commands against that task; follow
+   the package migration guide or start a new v2 task.
 
 ## Start or resume work
 
-1. For a new task, prepare the explicit YAML input and run
-   `~/.codex/bin/sop task start --input <absolute-input-path>`.
-2. Report the CLI-derived risk, state, required artifacts, and authorization
-   gates. Do not infer a lower risk from task size.
-3. For resumed work, read the existing task artifacts and confirm their policy,
+1. For a new mutating task, prepare a schema-v2 YAML input and run
+   `~/.codex/bin/sop task start --project <absolute-project-path> --input <absolute-input-path>`.
+2. Inspect the returned start plan, then apply only its exact unchanged digest.
+   The runner creates the contract and ledger at their canonical paths. Report
+   the CLI-derived risk, state, required artifacts, and authorization gates. Do
+   not infer a lower risk from task size.
+3. Before implementation, use `~/.codex/bin/sop task transition --input
+   <absolute-input-path>` to inspect the owner transition to `IN_PROGRESS`, then
+   apply only its exact unchanged digest. Use the same dry-run/apply operation
+   for owner transitions to `CANDIDATE`, `BLOCKED`, `CANCELLED`, or
+   `SUPERSEDED`; the `CANDIDATE` input binds its canonical candidate and
+   verification artifacts.
+4. For resumed work, read the existing task artifacts and confirm their policy,
    contract, owner, state, and implementation identities before continuing.
-4. Keep the single recorded implementation owner through repair. A reviewer
+5. Keep the single recorded implementation owner through repair. A reviewer
    inspects the candidate but does not edit it.
 
 ## Verify, review, and close
@@ -40,23 +51,26 @@ restate or invent global policy in this Skill.
    `~/.codex/bin/sop task execute --input <absolute-input-path>`; name one exact
    executable and argument vector, omit caller-defined check IDs, and do not use
    a shell. The runner derives the command check identity.
-3. Evaluate candidate eligibility with
-   `~/.codex/bin/sop task verify --input <absolute-input-path>`. The first call
-   reports the exact replay-plan digest and executes nothing. Inspect every
-   command, then rerun with `--approve-replay <exact-digest>` only when all are
-   safe verification gates rather than deploy, migration, or other mutation
-   actions.
-4. For an independent review, point the eligibility input to both the candidate
-   and review artifacts, then evaluate it with
-   `~/.codex/bin/sop task review --input <absolute-input-path>`.
-   The eligibility input and review artifact bind that same approved replay-plan
-   digest. Review artifacts also bind the canonical structured candidate digest;
-   closure artifact references separately bind exact file bytes.
-5. If repair is required, return one consolidated finding set to the recorded
+3. Evaluate the canonical candidate with
+   `~/.codex/bin/sop task verify --input <absolute-candidate-path>`. Verification
+   consumes persisted receipts and executes no candidate-controlled command.
+   Persist an eligible result with `--persist`, then use the owner transition
+   command to move the ledger to `CANDIDATE`.
+4. When the contract requires replay, run `task replay --input
+   <absolute-candidate-path>` to inspect the plan, then apply only its exact
+   unchanged digest with `--apply-plan <digest>`. Replay is never hidden inside
+   verify, review, or close.
+5. For an independent review, evaluate the canonical review artifact with
+   `~/.codex/bin/sop task review --input <absolute-review-path>`. The review
+   binds the exact contract, candidate, verification, implementation identities,
+   and ledger state. Apply a returned transition only with its exact reviewed
+   plan digest.
+6. If repair is required, return one consolidated finding set to the recorded
    implementation owner and preserve the same contract.
-6. Evaluate closure with `~/.codex/bin/sop task close --input <absolute-input-path>`.
-   The input points to a closure artifact that digest-binds the candidate,
-   accepted review, project, status artifacts, and next action.
+7. Evaluate the canonical closure artifact with
+   `~/.codex/bin/sop task close --input <absolute-closure-path>`. Closure binds
+   the accepted ledger event, candidate, verification, review, status artifacts,
+   and next action. Apply its transition only with the exact reviewed plan digest.
 
 Stop on a blocked authorization instead of performing the restricted action.
 Do not mutate production or external systems through this Skill.

@@ -17,6 +17,7 @@ import { captureCommandExecution } from '../../src/evidence/capture.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import type { RiskSignals } from '../../src/policy/risk.js'
 import { applyTaskTransition, planTaskTransition } from '../../src/state/ledger.js'
+import type { ExtensionDescriptor } from '../../src/extensions/registry.js'
 
 export function sha256(input: string | Buffer): string {
   return createHash('sha256').update(input).digest('hex')
@@ -62,6 +63,13 @@ export function hardenedTaskFixture(options: {
     taskId: string
     contractDigest: string
   }) => Array<{ requirementId: string; document: Record<string, unknown> }>
+  projectExtensions?: ExtensionDescriptor[]
+  extensionInputs?: Record<string, unknown>
+  extensionDocuments?: (input: {
+    root: string
+    taskId: string
+    contractDigest: string
+  }) => Array<{ extensionId: string; kind: string; document: Record<string, unknown> }>
 } = {}): HardenedTaskFixture {
   const created = mkdtempSync(join(tmpdir(), 'sop-v2-flow-'))
   const root = realpathSync(created)
@@ -69,11 +77,9 @@ export function hardenedTaskFixture(options: {
   git(root, 'init', '-b', 'main')
   git(root, 'config', 'user.email', 'test@example.com')
   git(root, 'config', 'user.name', 'Test')
-  write(join(root, 'implementation.txt'), 'implemented\n')
-  git(root, 'add', 'implementation.txt')
-  git(root, 'commit', '-m', 'implementation')
-  const implementationCommit = git(root, 'rev-parse', 'HEAD')
-  const implementationTree = git(root, 'rev-parse', 'HEAD^{tree}')
+  write(join(root, 'baseline.txt'), 'baseline\n')
+  git(root, 'add', 'baseline.txt')
+  git(root, 'commit', '-m', 'baseline')
 
   const task = startTask({
     schemaVersion: 2,
@@ -104,11 +110,11 @@ export function hardenedTaskFixture(options: {
       },
     }],
     authorizationRequirements: options.authorizationRequirements ?? [],
-    sourcePolicy: { mode: 'independent' },
+    extensionInputs: options.extensionInputs,
     evidenceFreshnessMs: 60_000,
     openChoices: [],
     signals: options.signals ?? { security: true },
-  })
+  }, { projectExtensions: options.projectExtensions })
   for (const artifact of task.artifacts) write(join(root, artifact.path), artifact.content)
   const contractPath = join(root, `.delivery/tasks/${taskId}/contract.yaml`)
   const contractRaw = readFileSync(contractPath)
@@ -122,6 +128,19 @@ export function hardenedTaskFixture(options: {
     write(path, `${JSON.stringify(document, null, 2)}\n`)
     return { requirementId, path, sha256: sha256(readFileSync(path)) }
   })
+  const inProgress = planTaskTransition({
+    projectRoot: root,
+    taskId,
+    actorId: options.implementationOwner ?? 'codex',
+    to: 'IN_PROGRESS',
+    artifacts: [{ kind: 'contract', path: contractPath }],
+  })
+  if (!applyTaskTransition(inProgress, inProgress.digest).applied) throw new Error('fixture IN_PROGRESS failed')
+  write(join(root, 'implementation.txt'), 'implemented\n')
+  git(root, 'add', 'implementation.txt')
+  git(root, 'commit', '-m', 'implementation')
+  const implementationCommit = git(root, 'rev-parse', 'HEAD')
+  const implementationTree = git(root, 'rev-parse', 'HEAD^{tree}')
   const receiptPath = join(root, `.delivery/tasks/${taskId}/receipts/run-1/AC-01.json`)
   const receipt = captureCommandExecution({
     schemaVersion: 2,
@@ -129,6 +148,15 @@ export function hardenedTaskFixture(options: {
     taskId,
     acceptanceId: 'AC-01',
     runId: 'run-1',
+  })
+  const extensionArtifacts = (options.extensionDocuments?.({
+    root,
+    taskId,
+    contractDigest: String(contract.contractDigest),
+  }) ?? []).map(({ extensionId, kind, document }) => {
+    const path = join(root, `.delivery/tasks/${taskId}/extensions/${extensionId}/${kind}.json`)
+    write(path, `${JSON.stringify(document, null, 2)}\n`)
+    return { extensionId, kind, path, sha256: sha256(readFileSync(path)) }
   })
   const identity = governanceIdentity()
   const implementationIdentities = [{
@@ -173,18 +201,10 @@ export function hardenedTaskFixture(options: {
       allowedClosurePaths: ['.delivery/tasks/**'],
     }],
     authorizationArtifacts,
-    extensionArtifacts: [],
+    extensionArtifacts,
   }
   const candidatePath = join(root, `.delivery/tasks/${taskId}/candidate.yaml`)
   write(candidatePath, stringify(candidate))
-  const inProgress = planTaskTransition({
-    projectRoot: root,
-    taskId,
-    actorId: options.implementationOwner ?? 'codex',
-    to: 'IN_PROGRESS',
-    artifacts: [{ kind: 'contract', path: contractPath }],
-  })
-  if (!applyTaskTransition(inProgress, inProgress.digest).applied) throw new Error('fixture IN_PROGRESS failed')
   const candidatePlan = planTaskTransition({
     projectRoot: root,
     taskId,
@@ -195,6 +215,10 @@ export function hardenedTaskFixture(options: {
       { kind: 'evidence', path: evidencePath },
       ...authorizationArtifacts.map((artifact) => ({
         kind: `authorization:${artifact.requirementId}`,
+        path: artifact.path,
+      })),
+      ...extensionArtifacts.map((artifact) => ({
+        kind: `extension:${artifact.extensionId}:${artifact.kind}`,
         path: artifact.path,
       })),
     ],

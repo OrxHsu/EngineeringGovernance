@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/external-source-use.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "extension", "taskId", "contractDigest", "allocationId", "sourceUses", "destinationUses"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "external-source-use" },
+    "extension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "digest"],
+      "properties": {
+        "id": { "const": "external-source-provenance" },
+        "version": { "const": "1.0.0" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "taskId": { "type": "string", "minLength": 1 },
+    "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "allocationId": { "type": "string", "minLength": 1 },
+    "sourceUses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceUnitId", "use"],
+        "properties": {
+          "sourceUnitId": { "type": "string", "minLength": 1 },
+          "use": { "enum": ["inspect", "adapt", "copy-exact"] }
+        }
+      }
+    },
+    "destinationUses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["repositoryId", "path", "symbols", "sourceUnitIds", "use"],
+        "properties": {
+          "repositoryId": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "symbols": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "sourceUnitIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "use": { "enum": ["inspect", "adapt", "copy-exact"] }
+        }
+      }
+    }
+  }
+}

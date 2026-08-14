@@ -1,14 +1,24 @@
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { realpathSync } from 'node:fs'
-import { isAbsolute, relative, resolve } from 'node:path'
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 
 import { stringify } from 'yaml'
 
 import { canonicalDigest } from '../model/digest.js'
 import { normalizeActorId } from '../model/actor.js'
 import type { Risk } from '../model/types.js'
-import { classifyRisk, type RiskSignals } from '../policy/risk.js'
+import { classifyRisk, highestRisk, type RiskSignals } from '../policy/risk.js'
+import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { initialTaskEvent } from '../state/ledger.js'
+import { captureCheckoutSnapshot } from '../evidence/checkout-snapshot.js'
+import type { ExtensionDescriptor } from '../extensions/registry.js'
+import {
+  externalSourceExtensionId,
+  externalSourceExtensionVersion,
+  externalSourceMinimumRisk,
+  validateExternalSourceTaskInput,
+} from '../extensions/external-source.js'
 import { governanceIdentity } from './adopt.js'
 
 interface LegacyAcceptanceInput {
@@ -23,14 +33,22 @@ interface ContractCommandInput {
   cwd: string
   executable: string
   arguments: string[]
+  environment?: Record<string, string>
 }
 
-interface ObserverPolicyInput {
+interface ObserverPolicyBase {
   expectedExitCode: number
-  output: 'exact' | 'nonempty' | 'exit-only'
   checkoutMutation: 'forbidden'
   replay: 'required' | 'not-required' | 'prohibited'
 }
+
+type ObserverPolicyInput = ObserverPolicyBase & ({
+  output: 'exact'
+  expectedStdoutSha256: string
+  expectedStderrSha256: string
+} | {
+  output: 'nonempty' | 'exit-only'
+})
 
 interface HardenedAcceptanceInput extends LegacyAcceptanceInput {
   evidenceKind: 'static' | 'compile' | 'unit' | 'integration' | 'device' | 'cloud' | 'production'
@@ -45,10 +63,6 @@ interface AuthorizationRequirementInput {
   scope: string[]
   trustLevel: 'recorded-claim' | 'verified-attestation'
   consumeOnce: boolean
-}
-
-interface IndependentSourcePolicy {
-  mode: 'independent'
 }
 
 export interface LegacyTaskStartInput {
@@ -76,13 +90,17 @@ export interface HardenedTaskStartInput {
   repositories: Array<{ id: string; path: string }>
   acceptance: HardenedAcceptanceInput[]
   authorizationRequirements: AuthorizationRequirementInput[]
-  sourcePolicy: IndependentSourcePolicy
   evidenceFreshnessMs?: number
+  extensionInputs?: Record<string, unknown>
   openChoices: string[]
   signals: RiskSignals
 }
 
-export type TaskStartInput = LegacyTaskStartInput | HardenedTaskStartInput
+export type TaskStartInput = HardenedTaskStartInput
+
+export interface TaskStartContext {
+  projectExtensions?: ExtensionDescriptor[]
+}
 
 export interface TaskArtifact {
   path: string
@@ -95,6 +113,14 @@ export interface TaskStartResult {
   artifacts: TaskArtifact[]
 }
 
+export interface TaskStartPlan extends TaskStartResult {
+  schemaVersion: 2
+  artifactType: 'sop-task-start-plan-v2'
+  projectRoot: string
+  taskId: string
+  digest: string
+}
+
 export function taskContractDigest(input: unknown): string {
   return canonicalDigest(input)
 }
@@ -103,19 +129,71 @@ function sha256(input: string): string {
   return createHash('sha256').update(input).digest('hex')
 }
 
-function hardenedTask(input: TaskStartInput): input is HardenedTaskStartInput {
-  return input.schemaVersion === 2
+function sha256Bytes(input: Uint8Array): string {
+  return createHash('sha256').update(input).digest('hex')
+}
+
+function resolvedExecutable(input: string): { path: string; sha256: string } {
+  if (input.trim().length === 0) throw new Error('TASK_GATE_EXECUTABLE_REQUIRED')
+  let unresolved = input
+  if (!isAbsolute(unresolved)) {
+    try {
+      unresolved = execFileSync('/usr/bin/which', [unresolved], {
+        encoding: 'utf8',
+        env: { PATH: process.env.PATH ?? '/usr/bin:/bin:/usr/sbin:/sbin' },
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim()
+    } catch {
+      throw new Error(`TASK_GATE_EXECUTABLE_NOT_FOUND:${input}`)
+    }
+  }
+  const path = realpathSync(resolve(unresolved))
+  if (!lstatSync(path).isFile()) throw new Error(`TASK_GATE_EXECUTABLE_UNSAFE:${input}`)
+  return { path, sha256: sha256Bytes(readFileSync(path)) }
+}
+
+function frozenEnvironment(input?: Record<string, string>): Record<string, string> {
+  const environment = input ?? {
+    PATH: `${dirname(realpathSync(process.execPath))}:/usr/bin:/bin:/usr/sbin:/sbin`,
+  }
+  for (const [key, value] of Object.entries(environment)) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(key) || typeof value !== 'string' || value.includes('\0')) {
+      throw new Error(`TASK_GATE_ENVIRONMENT_INVALID:${key}`)
+    }
+  }
+  return Object.fromEntries(Object.entries(environment).sort(([left], [right]) => left.localeCompare(right)))
 }
 
 function canonicalRepositories(
   repositories: HardenedTaskStartInput['repositories'],
-): HardenedTaskStartInput['repositories'] {
+): Array<{
+  id: string
+  path: string
+  baseline: {
+    head: string
+    tree: string
+    checkoutDigest: string
+    trackedPaths: string[]
+    untrackedPaths: string[]
+  }
+}> {
   const ids = repositories.map((repository) => repository.id)
   if (new Set(ids).size !== ids.length) throw new Error('TASK_REPOSITORY_IDS_DUPLICATED')
-  const canonical = repositories.map((repository) => ({
-    id: repository.id,
-    path: realpathSync(resolve(repository.path)),
-  }))
+  const canonical = repositories.map((repository) => {
+    const path = realpathSync(resolve(repository.path))
+    const snapshot = captureCheckoutSnapshot({ id: repository.id, path })
+    return {
+      id: repository.id,
+      path,
+      baseline: {
+        head: snapshot.head,
+        tree: snapshot.tree,
+        checkoutDigest: canonicalDigest(snapshot),
+        trackedPaths: snapshot.trackedPaths,
+        untrackedPaths: snapshot.untracked.map((item) => item.path),
+      },
+    }
+  })
   if (new Set(canonical.map((repository) => repository.path)).size !== canonical.length) {
     throw new Error('TASK_REPOSITORY_PATHS_DUPLICATED')
   }
@@ -124,7 +202,7 @@ function canonicalRepositories(
 
 function validateAcceptanceCommands(
   acceptance: HardenedAcceptanceInput[],
-  repositories: HardenedTaskStartInput['repositories'],
+  repositories: Array<{ id: string; path: string }>,
 ): void {
   const acceptanceIds = acceptance.map((item) => item.id)
   if (new Set(acceptanceIds).size !== acceptanceIds.length) {
@@ -147,43 +225,48 @@ function validateAcceptanceCommands(
   }
 }
 
-export function startTask(input: TaskStartInput): TaskStartResult {
-  const risk = classifyRisk(input.signals)
-  if (!hardenedTask(input)) {
-    if (risk === 'R0' || risk === 'R1') return { risk, state: 'DEFINED', artifacts: [] }
-
-    const identity = governanceIdentity()
-    const unsigned = {
-      schemaVersion: 1,
-      taskId: input.taskId,
-      sopVersion: identity.version,
-      risk,
-      state: 'DEFINED',
-      implementationOwner: input.implementationOwner,
-      objective: input.objective,
-      scope: input.scope,
-      nonGoals: input.nonGoals,
-      authorityInputs: input.authorityInputs,
-      acceptance: input.acceptance,
-      requiredGates: input.requiredGates,
-      openChoices: input.openChoices,
-    }
-    const contract = { ...unsigned, contractDigest: taskContractDigest(unsigned) }
-    return {
-      risk,
-      state: 'DEFINED',
-      artifacts: [{
-        path: `.delivery/tasks/${input.taskId}/contract.yaml`,
-        content: stringify(contract),
-      }],
-    }
+export function startTask(input: TaskStartInput, context: TaskStartContext = {}): TaskStartResult {
+  if ((input as { schemaVersion?: unknown }).schemaVersion !== 2) {
+    throw new Error('ACTIVE_COMMAND_REQUIRES_SCHEMA_VERSION_2')
   }
-
+  let risk = classifyRisk(input.signals)
   if (risk === 'R0') return { risk, state: 'DEFINED', artifacts: [] }
   const identity = governanceIdentity()
   const implementationOwner = normalizeActorId(input.implementationOwner)
   const repositories = canonicalRepositories(input.repositories)
   validateAcceptanceCommands(input.acceptance, repositories)
+  const acceptance = input.acceptance.map((gate) => {
+    const executable = resolvedExecutable(gate.command.executable)
+    return {
+      ...gate,
+      command: {
+        ...gate.command,
+        executable: executable.path,
+        executableSha256: executable.sha256,
+        environment: frozenEnvironment(gate.command.environment),
+      },
+    }
+  })
+  const projectExtensions = context.projectExtensions ?? []
+  const extensionKeys = projectExtensions.map((extension) => `${extension.id}@${extension.version}`)
+  if (new Set(extensionKeys).size !== extensionKeys.length) throw new Error('TASK_EXTENSIONS_DUPLICATED')
+  const providedInputs = input.extensionInputs ?? {}
+  for (const key of Object.keys(providedInputs)) {
+    if (!extensionKeys.includes(key)) throw new Error(`TASK_EXTENSION_INPUT_UNBOUND:${key}`)
+  }
+  const extensions = projectExtensions.map((extension) => {
+    const key = `${extension.id}@${extension.version}`
+    let extensionInput = providedInputs[key]
+    if (extension.id === externalSourceExtensionId && extension.version === externalSourceExtensionVersion) {
+      const validatedInput = validateExternalSourceTaskInput(extensionInput ?? { mode: 'independent' })
+      extensionInput = validatedInput
+      const minimum = externalSourceMinimumRisk(validatedInput)
+      if (minimum !== undefined) risk = highestRisk([risk, minimum])
+    } else if (extensionInput === undefined) {
+      extensionInput = {}
+    }
+    return { id: extension.id, version: extension.version, digest: extension.digest, input: extensionInput }
+  })
   const evidenceFreshnessMs = input.evidenceFreshnessMs ?? 86_400_000
   if (!Number.isInteger(evidenceFreshnessMs) || evidenceFreshnessMs < 1 || evidenceFreshnessMs > 86_400_000) {
     throw new Error('TASK_EVIDENCE_FRESHNESS_INVALID')
@@ -202,13 +285,15 @@ export function startTask(input: TaskStartInput): TaskStartResult {
     nonGoals: input.nonGoals,
     authorityInputs: input.authorityInputs,
     repositories,
-    acceptance: input.acceptance,
+    acceptance,
     evidenceFreshnessMs,
     authorizationRequirements: input.authorizationRequirements,
-    sourcePolicy: input.sourcePolicy,
+    extensions,
     openChoices: input.openChoices,
   }
   const contract = { ...unsigned, contractDigest: taskContractDigest(unsigned) }
+  const semantic = validateHardenedTaskContract(contract)
+  if (!semantic.valid) throw new Error(semantic.errors.join(','))
   const contractContent = stringify(contract)
   const event = initialTaskEvent({
     actorId: implementationOwner,
@@ -227,4 +312,63 @@ export function startTask(input: TaskStartInput): TaskStartResult {
       },
     ],
   }
+}
+
+export function planTaskStart(
+  projectPath: string,
+  input: TaskStartInput,
+  context: TaskStartContext = {},
+): TaskStartPlan {
+  const projectRoot = realpathSync(resolve(projectPath))
+  const result = startTask(input, context)
+  const unsigned = {
+    schemaVersion: 2 as const,
+    artifactType: 'sop-task-start-plan-v2' as const,
+    projectRoot,
+    taskId: input.taskId,
+    ...result,
+    artifacts: result.artifacts.map((artifact) => ({
+      path: join(projectRoot, artifact.path),
+      content: artifact.content,
+    })),
+  }
+  return { ...unsigned, digest: canonicalDigest(unsigned) }
+}
+
+function assertSafeTaskTarget(projectRoot: string, path: string): void {
+  const relativePath = relative(projectRoot, path)
+  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+    throw new Error(`TASK_START_TARGET_OUTSIDE_PROJECT:${path}`)
+  }
+  let current = projectRoot
+  for (const segment of relativePath.split('/').slice(0, -1)) {
+    current = join(current, segment)
+    if (existsSync(current) && (lstatSync(current).isSymbolicLink() || !lstatSync(current).isDirectory())) {
+      throw new Error(`TASK_START_TARGET_PARENT_UNSAFE:${current}`)
+    }
+  }
+  if (existsSync(path)) throw new Error(`TASK_START_TARGET_EXISTS:${path}`)
+}
+
+export function applyTaskStart(
+  plan: TaskStartPlan,
+  reviewedDigest: string,
+): { applied: string[] } {
+  const { digest, ...unsigned } = plan
+  if (reviewedDigest !== digest || canonicalDigest(unsigned) !== digest) {
+    throw new Error('TASK_START_PLAN_DIGEST_MISMATCH')
+  }
+  for (const artifact of plan.artifacts) assertSafeTaskTarget(plan.projectRoot, artifact.path)
+  const applied: string[] = []
+  try {
+    for (const artifact of plan.artifacts) {
+      mkdirSync(dirname(artifact.path), { recursive: true })
+      writeFileSync(artifact.path, artifact.content, { flag: 'wx', mode: 0o644 })
+      applied.push(artifact.path)
+    }
+  } catch (error) {
+    for (const path of applied.reverse()) unlinkSync(path)
+    throw error
+  }
+  return { applied }
 }

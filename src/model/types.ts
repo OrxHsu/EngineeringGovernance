@@ -23,6 +23,10 @@ export type DocumentKind =
   | 'task-event'
   | 'execution-receipt'
   | 'verification'
+  | 'replay-verification'
+  | 'extensions-manifest'
+  | 'external-source-use'
+  | 'external-source-release'
 
 export interface ValidationResult {
   valid: boolean

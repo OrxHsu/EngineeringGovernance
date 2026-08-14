@@ -6,7 +6,7 @@ import type { ValidationResult } from '../model/types.js'
 import { deriveMetrics, type TaskMetricRecord, type WorkflowMetrics } from '../metrics/derive.js'
 import { validateDocument } from '../policy/load.js'
 import { checkProject } from './check.js'
-import { artifactDigest, verifyReviewEligibility } from './task-review.js'
+import { artifactDigest, verifyLegacyReviewEligibility } from './task-review.js'
 import { verifyHardenedClose, type HardenedCloseDecision } from './task-close-v2.js'
 
 interface ClosureArtifactReference {
@@ -70,6 +70,18 @@ export function verifyCloseEligibility(
   if ((closure as unknown as { schemaVersion?: number }).schemaVersion === 2) {
     return verifyHardenedClose(input.closurePath)
   }
+  return { valid: false, errors: ['LEGACY_CLOSE_REQUIRES_PINNED_V1_RUNNER'] }
+}
+
+export function verifyLegacyCloseEligibility(
+  input: CloseEligibilityInput,
+): ValidationResult {
+  let closure: ClosureDocument
+  try {
+    closure = parse(readFileSync(input.closurePath, 'utf8')) as ClosureDocument
+  } catch {
+    return { valid: false, errors: ['CLOSURE_FILE_UNREADABLE'] }
+  }
 
   const schema = validateDocument('closure', closure)
   if (!schema.valid) {
@@ -88,7 +100,7 @@ export function verifyCloseEligibility(
   ]
   if (errors.length === 0) errors.push(...statusCoherenceErrors(closure))
   if (errors.length === 0) {
-    errors.push(...verifyReviewEligibility({
+    errors.push(...verifyLegacyReviewEligibility({
       candidatePath: closure.candidate.path,
       reviewPath: closure.review.path,
       replayPlanDigest: closure.replayPlanDigest,

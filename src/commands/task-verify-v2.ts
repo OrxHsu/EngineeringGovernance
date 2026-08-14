@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { existsSync, lstatSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 
@@ -9,7 +10,16 @@ import { verifyGitIdentity } from '../evidence/git-identity.js'
 import type { HardenedCommandExecutionArtifact } from '../evidence/capture.js'
 import { canonicalDigest } from '../model/digest.js'
 import { validateDocument } from '../policy/load.js'
+import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { readTaskLedger } from '../state/ledger.js'
+import { extensionDescriptor } from '../extensions/registry.js'
+import {
+  externalSourceExtensionId,
+  externalSourceExtensionVersion,
+  verifyExternalSourceArtifacts,
+  type ExternalSourceVerificationResult,
+} from '../extensions/external-source.js'
+import { verifyCandidateReplay } from './task-replay-v2.js'
 
 interface ArtifactReference {
   path: string
@@ -51,7 +61,17 @@ interface HardenedContract {
   policyDigest: string
   contractDigest: string
   implementationOwner: string
-  repositories: Array<{ id: string; path: string }>
+  repositories: Array<{
+    id: string
+    path: string
+    baseline: {
+      head: string
+      tree: string
+      checkoutDigest: string
+      trackedPaths: string[]
+      untrackedPaths: string[]
+    }
+  }>
   acceptance: Array<{
     id: string
     evidenceKind: string
@@ -59,11 +79,15 @@ interface HardenedContract {
       repositoryId: string
       cwd: string
       executable: string
+      executableSha256: string
       arguments: string[]
+      environment: Record<string, string>
     }
     observerPolicy: {
       expectedExitCode: number
       output: 'exact' | 'nonempty' | 'exit-only'
+      expectedStdoutSha256?: string
+      expectedStderrSha256?: string
       checkoutMutation: 'forbidden'
       replay: 'required' | 'not-required' | 'prohibited'
     }
@@ -77,7 +101,7 @@ interface HardenedContract {
     consumeOnce: boolean
   }>
   evidenceFreshnessMs: number
-  sourcePolicy: { mode: 'independent' }
+  extensions: Array<{ id: string; version: string; digest: string; input: Record<string, unknown> }>
   [key: string]: unknown
 }
 
@@ -102,8 +126,12 @@ export interface HardenedVerificationArtifact {
   candidate: ArtifactReference & { digest: string }
   evidence: ArtifactReference
   receipts: Array<ArtifactReference & { acceptanceId: string }>
+  authorizationArtifacts: Array<ArtifactReference & { requirementId: string }>
+  extensionArtifacts: Array<ArtifactReference & { extensionId: string; kind: string }>
   implementationIdentities: ImplementationIdentityV2[]
   authorizationTrust: Array<{ requirementId: string; trustLevel: 'local-claim' }>
+  extensionResults: ExternalSourceVerificationResult[]
+  replay?: ArtifactReference & { planDigest: string }
   verifiedAt: string
   decision: 'eligible'
 }
@@ -134,6 +162,7 @@ export interface HardenedCandidateVerificationDecision {
 interface HardenedVerificationContext {
   candidatePath?: string
   evidenceVerificationTime?: Date
+  requireCandidateState?: boolean
 }
 
 function sha256(input: string | Uint8Array): string {
@@ -166,13 +195,21 @@ function sameIdentities(left: ImplementationIdentityV2[], right: ImplementationI
 function expectedCommand(
   gate: HardenedContract['acceptance'][number],
   contract: HardenedContract,
-): { executable: string; arguments: string[]; cwd: string } | undefined {
+): {
+  executable: string
+  executableSha256: string
+  arguments: string[]
+  cwd: string
+  environment: Record<string, string>
+} | undefined {
   const repository = contract.repositories.find((candidate) => candidate.id === gate.command.repositoryId)
   if (repository === undefined) return undefined
   return {
     executable: gate.command.executable,
+    executableSha256: gate.command.executableSha256,
     arguments: gate.command.arguments,
     cwd: realpathSync(resolve(repository.path, gate.command.cwd)),
+    environment: gate.command.environment,
   }
 }
 
@@ -191,6 +228,11 @@ function receiptErrors(input: {
   const errors: string[] = []
   const schema = validateDocument('execution-receipt', receipt)
   if (!schema.valid) return schema.errors.map((error) => `RECEIPT_SCHEMA_INVALID:${prefix}:${error}`)
+  const identity = governanceIdentity()
+  if (receipt.producer.version !== identity.version || receipt.producer.policyDigest !== identity.digest) {
+    errors.push(`RECEIPT_RUNNER_IDENTITY_MISMATCH:${prefix}`)
+  }
+  if (receipt.acceptanceId !== gate.id) errors.push(`RECEIPT_ACCEPTANCE_ID_MISMATCH:${prefix}`)
   if (receipt.taskId !== contract.taskId) errors.push(`RECEIPT_TASK_MISMATCH:${prefix}`)
   if (
     receipt.contract.digest !== contract.contractDigest
@@ -204,6 +246,13 @@ function receiptErrors(input: {
   if (command === undefined || JSON.stringify(receipt.command) !== JSON.stringify(command)) {
     errors.push(`RECEIPT_COMMAND_MISMATCH:${prefix}`)
   }
+  try {
+    if (sha256(readFileSync(receipt.command.executable)) !== receipt.command.executableSha256) {
+      errors.push(`RECEIPT_EXECUTABLE_DIGEST_MISMATCH:${prefix}`)
+    }
+  } catch {
+    errors.push(`RECEIPT_EXECUTABLE_UNREADABLE:${prefix}`)
+  }
   if (receipt.exitCode !== gate.observerPolicy.expectedExitCode) {
     errors.push(`RECEIPT_EXIT_MISMATCH:${prefix}`)
   }
@@ -212,6 +261,14 @@ function receiptErrors(input: {
     && receipt.stdout.length === 0
     && receipt.stderr.length === 0
   ) errors.push(`RECEIPT_OUTPUT_EMPTY:${prefix}`)
+  if (gate.observerPolicy.output === 'exact') {
+    if (receipt.stdoutSha256 !== gate.observerPolicy.expectedStdoutSha256) {
+      errors.push(`RECEIPT_STDOUT_EXACT_MISMATCH:${prefix}`)
+    }
+    if (receipt.stderrSha256 !== gate.observerPolicy.expectedStderrSha256) {
+      errors.push(`RECEIPT_STDERR_EXACT_MISMATCH:${prefix}`)
+    }
+  }
   if (sha256(receipt.stdout) !== receipt.stdoutSha256) errors.push(`RECEIPT_STDOUT_DIGEST_MISMATCH:${prefix}`)
   if (sha256(receipt.stderr) !== receipt.stderrSha256) errors.push(`RECEIPT_STDERR_DIGEST_MISMATCH:${prefix}`)
   if (receipt.policyErrors.length > 0) errors.push(...receipt.policyErrors.map((error) => (
@@ -230,9 +287,12 @@ function receiptErrors(input: {
   if (!sameIdentities(snapshotIdentities, identities)) {
     errors.push(`RECEIPT_IMPLEMENTATION_IDENTITY_MISMATCH:${prefix}`)
   }
+  const startedAt = Date.parse(receipt.startedAt)
   const endedAt = Date.parse(receipt.endedAt)
   const age = input.verificationTime.getTime() - endedAt
-  if (!Number.isFinite(endedAt)) errors.push(`RECEIPT_TIME_INVALID:${prefix}`)
+  if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt) || startedAt > endedAt) {
+    errors.push(`RECEIPT_TIME_INVALID:${prefix}`)
+  }
   else if (age < 0) errors.push(`RECEIPT_TIME_IN_FUTURE:${prefix}`)
   else if (age > input.maxEvidenceAgeMs) errors.push(`RECEIPT_STALE:${prefix}`)
   return errors
@@ -240,7 +300,11 @@ function receiptErrors(input: {
 
 function containedArtifact(root: string, path: string): string {
   const realRoot = realpathSync(root)
-  const candidate = realpathSync(resolve(realRoot, path))
+  const unresolved = resolve(realRoot, path)
+  if (lstatSync(unresolved).isSymbolicLink() || !lstatSync(unresolved).isFile()) {
+    throw new Error('RECEIPT_ARTIFACT_UNSAFE')
+  }
+  const candidate = realpathSync(unresolved)
   const relativePath = relative(realRoot, candidate)
   if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
     throw new Error('RECEIPT_ARTIFACT_OUTSIDE_ROOT')
@@ -251,6 +315,48 @@ function containedArtifact(root: string, path: string): string {
 function sameStringSet(left: string[], right: string[]): boolean {
   const canonical = (values: string[]) => [...new Set(values)].sort()
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right))
+}
+
+function changedPaths(contract: HardenedContract, identities: ImplementationIdentityV2[]): {
+  paths: Array<{ repositoryId: string; path: string }>
+  errors: string[]
+} {
+  const paths: Array<{ repositoryId: string; path: string }> = []
+  const errors: string[] = []
+  for (const repository of contract.repositories) {
+    const identity = identities.find((candidate) => candidate.repositoryId === repository.id)
+    if (identity === undefined) continue
+    try {
+      execFileSync('git', [
+        '-C',
+        repository.path,
+        'merge-base',
+        '--is-ancestor',
+        repository.baseline.head,
+        identity.commit,
+      ], { stdio: ['ignore', 'ignore', 'ignore'] })
+    } catch {
+      errors.push(`IMPLEMENTATION_NOT_DESCENDED_FROM_BASELINE:${repository.id}`)
+      continue
+    }
+    const baselineTree = execFileSync('git', [
+      '-C', repository.path, 'rev-parse', `${repository.baseline.head}^{tree}`,
+    ], { encoding: 'utf8' }).trim()
+    if (baselineTree !== repository.baseline.tree) errors.push(`BASELINE_TREE_MISMATCH:${repository.id}`)
+    const output = execFileSync('git', [
+      '-C',
+      repository.path,
+      'diff',
+      '--name-only',
+      '-z',
+      `${repository.baseline.head}..${identity.commit}`,
+      '--',
+    ])
+    for (const path of output.toString('utf8').split('\0').filter(Boolean).sort()) {
+      if (!path.startsWith('.delivery/')) paths.push({ repositoryId: repository.id, path })
+    }
+  }
+  return { paths, errors }
 }
 
 function authorizationErrors(input: {
@@ -358,10 +464,11 @@ export function verifyHardenedCandidate(
   let candidatePath: string
   let candidateRaw: Buffer
   try {
-    candidatePath = realpathSync(context.candidatePath)
-    if (lstatSync(candidatePath).isSymbolicLink() || !lstatSync(candidatePath).isFile()) {
+    const unresolvedCandidate = resolve(context.candidatePath)
+    if (lstatSync(unresolvedCandidate).isSymbolicLink() || !lstatSync(unresolvedCandidate).isFile()) {
       return { valid: false, errors: ['CANDIDATE_ARTIFACT_UNSAFE'] }
     }
+    candidatePath = realpathSync(unresolvedCandidate)
     candidateRaw = readFileSync(candidatePath)
     const candidateOnDisk = parse(candidateRaw.toString('utf8')) as unknown
     if (canonicalDigest(candidateOnDisk) !== canonicalDigest(input)) {
@@ -384,9 +491,9 @@ export function verifyHardenedCandidate(
     return { valid: false, errors: [error instanceof Error ? error.message : 'EVIDENCE_ARTIFACT_UNREADABLE'] }
   }
   const contract = contractArtifact.value as HardenedContract
-  const contractSchema = validateDocument('task-contract', contract)
-  if (!contractSchema.valid || contract.schemaVersion !== 2) {
-    return { valid: false, errors: ['CONTRACT_SCHEMA_INVALID'] }
+  const contractValidation = validateHardenedTaskContract(contract)
+  if (!contractValidation.valid) {
+    return { valid: false, errors: contractValidation.errors.map((error) => `CONTRACT_INVALID:${error}`) }
   }
   const { contractDigest, ...unsignedContract } = contract
   if (canonicalDigest(unsignedContract) !== contractDigest) errors.push('CONTRACT_DIGEST_INVALID')
@@ -413,23 +520,28 @@ export function verifyHardenedCandidate(
   })
   if (!ledger.valid) {
     errors.push(...ledger.errors.map((error) => `TASK_LEDGER_INVALID:${error}`))
-  } else if (ledger.currentState !== 'CANDIDATE') {
-    errors.push(`TASK_STATE_NOT_CANDIDATE:${ledger.currentState ?? 'UNKNOWN'}`)
   } else {
-    const candidateEvent = ledger.events.at(-1)!
-    const expectedReferences = [
-      { kind: 'candidate', path: relative(projectRoot, candidatePath), sha256: sha256(candidateRaw) },
-      {
-        kind: 'evidence',
-        path: relative(projectRoot, evidenceArtifact.path),
-        sha256: input.evidence.sha256,
-      },
-    ].sort((left, right) => left.kind.localeCompare(right.kind))
-    const actualReferences = [...candidateEvent.artifactRefs]
-      .filter((reference) => reference.kind === 'candidate' || reference.kind === 'evidence')
-      .sort((left, right) => left.kind.localeCompare(right.kind))
-    if (JSON.stringify(actualReferences) !== JSON.stringify(expectedReferences)) {
-      errors.push('TASK_CANDIDATE_EVENT_ARTIFACT_MISMATCH')
+    if (context.requireCandidateState !== false && ledger.currentState !== 'CANDIDATE') {
+      errors.push(`TASK_STATE_NOT_CANDIDATE:${ledger.currentState ?? 'UNKNOWN'}`)
+    }
+    const candidateEvent = [...ledger.events].reverse().find((event) => event.to === 'CANDIDATE')
+    if (candidateEvent === undefined) {
+      errors.push('TASK_CANDIDATE_EVENT_MISSING')
+    } else {
+      const expectedReferences = [
+        { kind: 'candidate', path: relative(projectRoot, candidatePath), sha256: sha256(candidateRaw) },
+        {
+          kind: 'evidence',
+          path: relative(projectRoot, evidenceArtifact.path),
+          sha256: input.evidence.sha256,
+        },
+      ].sort((left, right) => left.kind.localeCompare(right.kind))
+      const actualReferences = [...candidateEvent.artifactRefs]
+        .filter((reference) => reference.kind === 'candidate' || reference.kind === 'evidence')
+        .sort((left, right) => left.kind.localeCompare(right.kind))
+      if (JSON.stringify(actualReferences) !== JSON.stringify(expectedReferences)) {
+        errors.push('TASK_CANDIDATE_EVENT_ARTIFACT_MISMATCH')
+      }
     }
   }
   const identity = governanceIdentity()
@@ -455,6 +567,9 @@ export function verifyHardenedCandidate(
 
   const expectedRepositories = contract.repositories.map((repository) => repository.id).sort()
   const actualRepositories = input.implementationIdentities.map((item) => item.repositoryId).sort()
+  if (new Set(actualRepositories).size !== actualRepositories.length) {
+    errors.push('IMPLEMENTATION_REPOSITORY_IDS_DUPLICATED')
+  }
   if (JSON.stringify(expectedRepositories) !== JSON.stringify(actualRepositories)) {
     errors.push('IMPLEMENTATION_REPOSITORY_SET_MISMATCH')
   }
@@ -468,6 +583,9 @@ export function verifyHardenedCandidate(
   }
   const expectedAcceptance = contract.acceptance.map((acceptance) => acceptance.id)
   const actualAcceptance = evidence.receipts?.map((receipt) => receipt.acceptanceId) ?? []
+  if (new Set(actualAcceptance).size !== actualAcceptance.length) {
+    errors.push('EVIDENCE_RECEIPT_IDS_DUPLICATED')
+  }
   if (JSON.stringify(expectedAcceptance) !== JSON.stringify(actualAcceptance)) {
     errors.push('EVIDENCE_RECEIPT_ORDER_MISMATCH')
   }
@@ -554,9 +672,46 @@ export function verifyHardenedCandidate(
     verificationTime,
   })
   errors.push(...authorization.errors)
-  if (contract.sourcePolicy.mode === 'independent' && input.extensionArtifacts.length > 0) {
-    errors.push('INDEPENDENT_SOURCE_POLICY_HAS_EXTENSION_ARTIFACTS')
+  const extensionResults: ExternalSourceVerificationResult[] = []
+  const implementationChanges = changedPaths(contract, input.implementationIdentities)
+  errors.push(...implementationChanges.errors)
+  const extensionKeys = contract.extensions.map((binding) => `${binding.id}@${binding.version}`)
+  if (new Set(extensionKeys).size !== extensionKeys.length) errors.push('CONTRACT_EXTENSIONS_DUPLICATED')
+  for (const binding of contract.extensions) {
+    let descriptor: ReturnType<typeof extensionDescriptor>
+    try {
+      descriptor = extensionDescriptor(binding.id, binding.version)
+    } catch {
+      errors.push(`CONTRACT_EXTENSION_UNKNOWN:${binding.id}@${binding.version}`)
+      continue
+    }
+    if (descriptor.digest !== binding.digest) {
+      errors.push(`CONTRACT_EXTENSION_DIGEST_MISMATCH:${binding.id}@${binding.version}`)
+      continue
+    }
+    const references = input.extensionArtifacts.filter((artifact) => artifact.extensionId === binding.id)
+    if (binding.id === externalSourceExtensionId && binding.version === externalSourceExtensionVersion) {
+      const extension = verifyExternalSourceArtifacts({
+        binding,
+        references,
+        projectRoot,
+        taskDirectory: expectedTaskDirectory,
+        taskId: contract.taskId,
+        contractDigest: contract.contractDigest,
+        ledgerEvents: ledger.events,
+        changedPaths: implementationChanges.paths,
+      })
+      errors.push(...extension.errors)
+      if (extension.result !== undefined) extensionResults.push(extension.result)
+    }
   }
+  for (const reference of input.extensionArtifacts) {
+    if (!contract.extensions.some((binding) => binding.id === reference.extensionId)) {
+      errors.push(`EXTENSION_ARTIFACT_UNBOUND:${reference.extensionId}:${reference.kind}`)
+    }
+  }
+  const replay = verifyCandidateReplay(candidatePath, verificationTime, contract.evidenceFreshnessMs)
+  errors.push(...replay.errors)
 
   const uniqueErrors = [...new Set(errors)].sort()
   if (uniqueErrors.length > 0) return { valid: false, errors: uniqueErrors }
@@ -581,8 +736,18 @@ export function verifyHardenedCandidate(
     },
     evidence: { path: evidenceArtifact.path, sha256: input.evidence.sha256 },
     receipts: verifiedReceipts,
+    authorizationArtifacts: input.authorizationArtifacts
+      .map((artifact) => ({ ...artifact, path: realpathSync(artifact.path) }))
+      .sort((left, right) => left.requirementId.localeCompare(right.requirementId)),
+    extensionArtifacts: input.extensionArtifacts
+      .map((artifact) => ({ ...artifact, path: realpathSync(artifact.path) }))
+      .sort((left, right) => (
+        `${left.extensionId}:${left.kind}`.localeCompare(`${right.extensionId}:${right.kind}`)
+      )),
     implementationIdentities: canonicalIdentities(input.implementationIdentities),
     authorizationTrust: authorization.trust,
+    extensionResults: extensionResults.sort((left, right) => left.extensionId.localeCompare(right.extensionId)),
+    ...(replay.reference === undefined ? {} : { replay: replay.reference }),
     verifiedAt: verificationTime.toISOString(),
     decision: 'eligible',
   }

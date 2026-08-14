@@ -11,6 +11,7 @@ export interface CheckoutSnapshot {
   head: string
   tree: string
   trackedDiffSha256: string
+  trackedPaths: string[]
   untracked: Array<{ path: string; type: 'file' | 'symlink'; sha256: string }>
   statusDigest: string
 }
@@ -46,6 +47,8 @@ export function captureCheckoutSnapshot(input: { id: string; path: string }): Ch
   const head = (git(repository, ['rev-parse', 'HEAD']) as string).trim()
   const tree = (git(repository, ['rev-parse', 'HEAD^{tree}']) as string).trim()
   const trackedDiff = git(repository, ['diff', '--binary', 'HEAD', '--'], 'buffer') as Buffer
+  const trackedPaths = (git(repository, ['diff', '--name-only', '-z', 'HEAD', '--'], 'buffer') as Buffer)
+    .toString('utf8').split('\0').filter(Boolean).sort()
   const trackedDiffSha256 = sha256(trackedDiff)
   const untracked = untrackedFiles(repository)
   return {
@@ -54,8 +57,9 @@ export function captureCheckoutSnapshot(input: { id: string; path: string }): Ch
     head,
     tree,
     trackedDiffSha256,
+    trackedPaths,
     untracked,
-    statusDigest: canonicalDigest({ trackedDiffSha256, untracked }),
+    statusDigest: canonicalDigest({ trackedDiffSha256, trackedPaths, untracked }),
   }
 }
 

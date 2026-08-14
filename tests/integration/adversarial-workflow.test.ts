@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { verifyReviewEligibility } from '../../src/commands/task-review.js'
+import { verifyLegacyReviewEligibility as verifyReviewEligibility } from '../../src/commands/task-review.js'
 import { verifyEvidence } from '../../src/evidence/verify.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { validateException } from '../../src/policy/exceptions.js'

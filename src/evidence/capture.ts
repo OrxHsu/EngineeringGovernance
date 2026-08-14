@@ -8,6 +8,7 @@ import { parse } from 'yaml'
 import { governanceIdentity } from '../commands/adopt.js'
 import { canonicalDigest } from '../model/digest.js'
 import { validateDocument } from '../policy/load.js'
+import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { canonicalTaskPath, readTaskLedger } from '../state/ledger.js'
 import { captureRepositorySet, type CheckoutSnapshot } from './checkout-snapshot.js'
 
@@ -15,6 +16,11 @@ export interface ExactCommand {
   executable: string
   arguments: string[]
   cwd: string
+}
+
+export interface FrozenCommand extends ExactCommand {
+  executableSha256: string
+  environment: Record<string, string>
 }
 
 export interface LegacyCommandExecutionInput {
@@ -64,11 +70,15 @@ interface HardenedContract {
       repositoryId: string
       cwd: string
       executable: string
+      executableSha256: string
       arguments: string[]
+      environment: Record<string, string>
     }
     observerPolicy: {
       expectedExitCode: number
       output: 'exact' | 'nonempty' | 'exit-only'
+      expectedStdoutSha256?: string
+      expectedStderrSha256?: string
       checkoutMutation: 'forbidden'
       replay: 'required' | 'not-required' | 'prohibited'
     }
@@ -86,7 +96,7 @@ export interface HardenedCommandExecutionArtifact {
   evidenceKind: string
   gateDigest: string
   runId: string
-  command: ExactCommand
+  command: FrozenCommand
   repositoriesBefore: CheckoutSnapshot[]
   repositoriesAfter: CheckoutSnapshot[]
   startedAt: string
@@ -110,7 +120,7 @@ function sha256(input: string | Uint8Array): string {
   return createHash('sha256').update(input).digest('hex')
 }
 
-function execute(command: ExactCommand): {
+function execute(command: ExactCommand, environment: NodeJS.ProcessEnv = process.env): {
   startedAt: string
   endedAt: string
   exitCode: number
@@ -121,7 +131,7 @@ function execute(command: ExactCommand): {
   const result = spawnSync(command.executable, command.arguments, {
     cwd: command.cwd,
     encoding: 'utf8',
-    env: process.env,
+    env: environment,
     maxBuffer: 64 * 1024 * 1024,
     shell: false,
   })
@@ -148,6 +158,27 @@ function prepareOutput(path: string): string {
 function writeArtifact(outputPath: string, artifact: CommandExecutionArtifact): void {
   mkdirSync(dirname(outputPath), { recursive: true })
   writeFileSync(outputPath, `${JSON.stringify(artifact, null, 2)}\n`, { flag: 'wx' })
+}
+
+function taskOutputPath(projectRoot: string, segments: string[]): string {
+  let parent = realpathSync(projectRoot)
+  for (const segment of segments.slice(0, -1)) {
+    const next = join(parent, segment)
+    if (existsSync(next)) {
+      if (lstatSync(next).isSymbolicLink() || !lstatSync(next).isDirectory()) {
+        throw new Error(`COMMAND_EXECUTION_OUTPUT_PARENT_UNSAFE:${segment}`)
+      }
+    } else {
+      mkdirSync(next, { mode: 0o755 })
+    }
+    const canonical = realpathSync(next)
+    const relativePath = relative(projectRoot, canonical)
+    if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+      throw new Error('COMMAND_EXECUTION_OUTPUT_OUTSIDE_PROJECT')
+    }
+    parent = canonical
+  }
+  return prepareOutput(join(parent, segments.at(-1)!))
 }
 
 function captureLegacy(input: LegacyCommandExecutionInput): LegacyCommandExecutionArtifact {
@@ -212,10 +243,9 @@ function readHardenedContract(input: HardenedCommandExecutionInput): {
   }
   const raw = readFileSync(contractPath)
   const contract = parse(raw.toString('utf8')) as HardenedContract
-  const schema = validateDocument('task-contract', contract)
-  if (!schema.valid || contract.schemaVersion !== 2) throw new Error('CONTRACT_SCHEMA_INVALID')
-  const { contractDigest, ...unsigned } = contract
-  if (canonicalDigest(unsigned) !== contractDigest) throw new Error('CONTRACT_DIGEST_INVALID')
+  const semantic = validateHardenedTaskContract(contract)
+  if (!semantic.valid) throw new Error(`CONTRACT_INVALID:${semantic.errors.join(',')}`)
+  const { contractDigest } = contract
   if (contract.taskId !== input.taskId) throw new Error('CONTRACT_TASK_ID_MISMATCH')
   const identity = governanceIdentity()
   if (contract.sopVersion !== identity.version || contract.policyDigest !== identity.digest) {
@@ -246,15 +276,9 @@ function captureHardened(input: HardenedCommandExecutionInput): HardenedCommandE
   safeId(input.runId, 'COMMAND_EXECUTION_RUN_ID')
   if (input.runId.trim().length === 0) throw new Error('COMMAND_EXECUTION_RUN_ID_REQUIRED')
   const loaded = readHardenedContract(input)
-  const outputPath = prepareOutput(join(
-    loaded.projectRoot,
-    '.delivery',
-    'tasks',
-    input.taskId,
-    'receipts',
-    input.runId,
-    `${input.acceptanceId}.json`,
-  ))
+  const outputPath = taskOutputPath(loaded.projectRoot, [
+    '.delivery', 'tasks', input.taskId, 'receipts', input.runId, `${input.acceptanceId}.json`,
+  ])
   const gate = loaded.contract.acceptance.find((acceptance) => acceptance.id === input.acceptanceId)
   if (gate === undefined) throw new Error('COMMAND_EXECUTION_ACCEPTANCE_UNKNOWN')
   const repository = loaded.contract.repositories.find((candidate) => (
@@ -269,11 +293,16 @@ function captureHardened(input: HardenedCommandExecutionInput): HardenedCommandE
   }
   const command = {
     executable: gate.command.executable,
+    executableSha256: gate.command.executableSha256,
     arguments: [...gate.command.arguments],
     cwd,
+    environment: { ...gate.command.environment },
+  }
+  if (sha256(readFileSync(command.executable)) !== command.executableSha256) {
+    throw new Error('COMMAND_EXECUTION_EXECUTABLE_DIGEST_MISMATCH')
   }
   const repositoriesBefore = captureRepositorySet(loaded.contract.repositories)
-  const result = execute(command)
+  const result = execute(command, command.environment)
   const repositoriesAfter = captureRepositorySet(loaded.contract.repositories)
   const policyErrors: string[] = []
   if (result.exitCode !== gate.observerPolicy.expectedExitCode) {
@@ -284,6 +313,14 @@ function captureHardened(input: HardenedCommandExecutionInput): HardenedCommandE
     && result.stdout.length === 0
     && result.stderr.length === 0
   ) policyErrors.push('COMMAND_OUTPUT_EMPTY')
+  if (gate.observerPolicy.output === 'exact') {
+    if (sha256(result.stdout) !== gate.observerPolicy.expectedStdoutSha256) {
+      policyErrors.push('COMMAND_STDOUT_EXACT_MISMATCH')
+    }
+    if (sha256(result.stderr) !== gate.observerPolicy.expectedStderrSha256) {
+      policyErrors.push('COMMAND_STDERR_EXACT_MISMATCH')
+    }
+  }
   if (
     gate.observerPolicy.checkoutMutation === 'forbidden'
     && JSON.stringify(repositoriesBefore) !== JSON.stringify(repositoriesAfter)
@@ -326,14 +363,15 @@ function captureHardened(input: HardenedCommandExecutionInput): HardenedCommandE
 }
 
 export function captureCommandExecution(
-  input: LegacyCommandExecutionInput,
-): LegacyCommandExecutionArtifact
-export function captureCommandExecution(
   input: HardenedCommandExecutionInput,
 ): HardenedCommandExecutionArtifact
-export function captureCommandExecution(input: CommandExecutionInput): CommandExecutionArtifact
-export function captureCommandExecution(input: CommandExecutionInput): CommandExecutionArtifact {
-  if (input.schemaVersion === 1) return captureLegacy(input)
-  if (input.schemaVersion === 2) return captureHardened(input)
-  throw new Error('COMMAND_EXECUTION_SCHEMA_INVALID')
+export function captureCommandExecution(input: HardenedCommandExecutionInput): HardenedCommandExecutionArtifact {
+  if (input.schemaVersion !== 2) throw new Error('LEGACY_EXECUTION_REQUIRES_PINNED_V1_RUNNER')
+  return captureHardened(input)
+}
+
+export function captureLegacyCommandExecution(
+  input: LegacyCommandExecutionInput,
+): LegacyCommandExecutionArtifact {
+  return captureLegacy(input)
 }

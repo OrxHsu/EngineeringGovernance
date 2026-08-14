@@ -40,19 +40,21 @@ async function copyPackageClosure(sourcePackage, targetPackage, ancestry = new S
   }
 }
 
-run('pnpm', ['build'])
 const stage = await mkdtemp(join(outputDirectory, '.runner-stage-'))
 try {
+  run('pnpm', ['exec', 'tsc', '-p', 'tsconfig.json', '--outDir', resolve(stage, 'dist')])
   const packagePaths = [
     'package.json',
     'CORE_INVARIANTS.md',
     'DEVELOPMENT_SOP.md',
+    'MIGRATING_TO_2.0.md',
     'RISK_CLASSIFICATION.md',
     'VERSION',
     'adapters',
-    'dist',
     'schemas',
+    'scripts',
     'skills/delivery-sop',
+    'src',
     'templates',
   ]
   for (const relativePath of packagePaths) {

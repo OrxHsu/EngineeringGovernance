@@ -2,7 +2,7 @@
 
 Status: canonical development policy
 
-Version: 1.0.0
+Version: 2.0.0
 
 ## 1. Applicability and authority
 
@@ -14,6 +14,12 @@ architecture, data, and operations documents continue to own their domains.
 Agent entrypoints, Skills, prompts, templates, and generated rules are adapters.
 They must point to this package version and digest rather than evolve a parallel
 workflow.
+
+A project owner may leave a project unadopted and use another workflow. Once a
+project is adopted, agents must not silently bypass its pinned policy. Leaving
+the SOP uses `sop unadopt <project>` as a read-only plan followed by the exact
+unchanged `--apply-plan <digest>`. Unadoption preserves `.delivery/tasks/**`,
+`.delivery/evidence/**`, Git history, and unrelated project content.
 
 ## 2. Default operating model
 
@@ -36,9 +42,37 @@ non-goals, authoritative inputs, acceptance observations, positive/negative
 cases, required evidence kinds, open implementation choices, and legitimate
 blockers.
 
+`task start` is dry-run-first. It binds the adopted project, current checkout,
+enabled extension identities, frozen commands, and initial ledger event into one
+plan. Only the exact unchanged `--apply-plan <digest>` creates the canonical
+contract and ledger; existing targets, path indirection, or intervening drift
+fail without overwrite.
+
 R2/R3 requirements are frozen before implementation. Requirements and review
 criteria are identical. Natural-language properties such as secure, private,
 bound, executed, or complete require observable checks.
+
+### External implementation sources
+
+External-source use is default-deny and vendor-neutral. Without an enabled,
+version-and-digest-bound provenance extension, the task remains `independent`:
+no external implementation material is inspected, adapted, or copied.
+
+A source-assisted task is R3 and freezes one just-in-time allocation containing:
+
+- one immutable locator and pin;
+- exact source units and symbols;
+- exact destination repositories, paths, and symbols;
+- one maximum access mode: `inspect`, `adapt`, or `copy-exact`;
+- every changed destination classified exactly once as source-assisted or
+  independent;
+- actual-use records and an approved project-specific release disposition.
+
+`copy-exact` is permitted only when the allocation itself permits
+`copy-exact`, actual use stays within the exact source and destination subsets,
+and the release disposition is approved. The global extension does not decide
+vendor licenses or product policy; a project may prohibit a source entirely or
+add stricter review and release rules.
 
 ## 4. State machine
 
@@ -57,6 +91,24 @@ CANDIDATE -> REPAIR_REQUIRED -> IN_PROGRESS
 Incomplete states may become BLOCKED, CANCELLED, or SUPERSEDED only through a
 recorded legal transition. Accepted and closed history is immutable; a later
 defect opens a new task.
+
+The implementation owner moves a v2 task to `IN_PROGRESS`, `CANDIDATE`,
+`BLOCKED`, `CANCELLED`, or `SUPERSEDED` through a dry-run-first `task
+transition` command and applies only the exact returned plan digest. The runner
+checks owner identity at plan time, apply time, and project-check time. A
+`CANDIDATE` transition must bind the canonical candidate and verification
+artifacts required for that state. Review and close use their dedicated
+commands and enforce independent reviewer authority rather than accepting a
+caller-selected generic actor.
+
+For v2 mutating tasks, `.delivery/tasks/<task-id>/contract.yaml` and
+`ledger.jsonl` are the canonical contract and state record. Candidate,
+verification, review, and closure artifacts use the exact canonical filenames
+defined by their schemas. Project check rejects duplicate or orphan artifacts,
+cross-task ancestry, stale byte references, and state that disagrees with the
+ledger. A v1 task directory remains historical evidence and is reported as
+legacy inspect-only; the v2 runner must not silently continue its active
+lifecycle.
 
 ## 5. Implementation
 
@@ -87,15 +139,21 @@ and production. One kind cannot be relabeled as another.
 
 Imported local execution evidence must use a supported machine format. The
 default format is a `task execute` receipt produced by the pinned runner from
-one exact executable invocation without a shell. The runner derives the single
-check identity from the normalized executable, arguments, and working directory;
-callers cannot name checks. Candidate verification rejects a caller-authored
-pass list and recomputes the receipt digest. It reports a canonical replay-plan
-digest before executing anything and freshly replays the exact local command
-only after the caller explicitly approves that digest. Verification then
-requires exact command, timing, exit, runner, commit, tree, and
-repository-set equality. A non-replayable external result needs a separately
-supported adapter and cannot be relabeled as a local command receipt.
+one exact contract-frozen executable invocation without a shell. Candidate
+verification is static and never executes candidate-controlled commands. When
+fresh replay is contract-required, `task replay` first returns a digest-bound
+plan containing only the frozen executable, arguments, working directory,
+environment, repository set, and checkout state. Only the exact unchanged
+`--apply-plan <digest>` executes it and emits a separate replay-verification
+artifact. Verification binds exact command, output, timing, runner, commit,
+tree, checkout, evidence, authorization, and extension-artifact identities. A
+non-replayable external result needs a separately supported adapter and cannot
+be relabeled as a local command receipt.
+
+Review and project check re-evaluate the persisted verification from its bound
+contract, candidate, receipts, replay artifact, authorization records, and
+extension results. A schema-valid or internally hashed verification document is
+not sufficient when those semantics no longer validate.
 
 The implementation identity and optional evidence-closure identity are separate.
 An evidence-only closure commit may change only contract-allowlisted evidence or
@@ -138,6 +196,11 @@ A closure report states the outcome, verified commands/results, exact commits,
 remaining risks or pending authorized runtime work, the next permitted stage,
 and whether user action is required.
 
+Project check validates the complete v2 task graph, including contract and
+policy identity, ledger continuity, the unique current candidate and accepted
+review, closure ancestry, and every exact current artifact reference. It does
+not infer active v2 state from legacy filenames or caller-authored state labels.
+
 ## 9. Exceptions and authorization
 
 Only waiverable/default rules accept exception records. Each exception names the
@@ -147,6 +210,12 @@ status. Non-waivable exceptions fail validation.
 User-authorization-required actions need approval for the exact action and
 target. A prior approval for another task, device, environment, or time does not
 silently carry forward.
+
+The built-in file-backed actor and approval records have trust level
+`local-claim`. Their exact bytes and scope are bound, but they do not prove who
+created the file. A requirement for authenticated identity must name and verify
+an external attestation provider; when none is configured, the runner fails
+closed instead of upgrading a local claim.
 
 ## 10. Continuous improvement
 
@@ -158,3 +227,11 @@ process, not individual owners.
 When the same defect class repeats, update the contract template, test, scanner,
 or CI gate so future tasks fail earlier. Do not normalize an endless
 author-review-repair loop.
+
+## 11. Breaking migration from 1.x
+
+Version 2.0.0 is a breaking governance release. Adopted 1.x projects remain
+pinned to their existing runner until an explicit dry-run upgrade is reviewed
+and applied. Active v1 artifacts are not relabeled as v2. Follow
+`MIGRATING_TO_2.0.md` for project policy, extension manifest, task, and runner
+migration rules.

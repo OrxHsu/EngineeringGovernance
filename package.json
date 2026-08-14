@@ -1,6 +1,6 @@
 {
   "name": "@xgh/engineering-governance",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,11 +12,14 @@
   "files": [
     "adapters",
     "dist",
+    "src",
     "schemas",
     "skills/delivery-sop",
     "templates",
+    "scripts/build-runner-bundle.mjs",
     "CORE_INVARIANTS.md",
     "DEVELOPMENT_SOP.md",
+    "MIGRATING_TO_2.0.md",
     "RISK_CLASSIFICATION.md",
     "VERSION"
   ],
@@ -31,7 +34,7 @@
     "check:licenses": "node scripts/check-licenses.mjs",
     "check:placeholders": "node scripts/check-placeholders.mjs",
     "sop": "tsx src/cli/main.ts",
-    "test": "vitest run",
+    "test": "pnpm build && vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check": "pnpm typecheck && pnpm test && pnpm build && pnpm check:placeholders && pnpm check:licenses"
   },

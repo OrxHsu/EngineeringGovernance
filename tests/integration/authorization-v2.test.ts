@@ -50,6 +50,9 @@ describe('v2 authorization binding', () => {
     expect(fixture.verification.authorizationTrust).toEqual([
       { requirementId: 'AUTH-01', trustLevel: 'local-claim' },
     ])
+    expect(fixture.verification.authorizationArtifacts).toEqual(
+      fixture.candidate.authorizationArtifacts,
+    )
   })
 
   it('rejects target drift and verified attestations without a trusted verifier', () => {

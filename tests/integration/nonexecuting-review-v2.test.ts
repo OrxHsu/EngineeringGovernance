@@ -105,4 +105,45 @@ describe('non-executing v2 review', () => {
       'VERIFICATION_ARTIFACT_DIGEST_MISMATCH',
     )
   })
+
+  it('rejects a schema-valid verification that was not the runner-computed result', () => {
+    const fixture = hardenedTaskFixture()
+    temporaryDirectories.push(fixture.root)
+    const forgedVerification = {
+      ...fixture.verification,
+      producer: { ...fixture.verification.producer, version: 'forged-version' },
+    }
+    writeFileSync(fixture.verificationPath, `${JSON.stringify(forgedVerification, null, 2)}\n`)
+    const review = {
+      schemaVersion: 2,
+      artifactType: 'sop-review-v2',
+      taskId: fixture.taskId,
+      reviewer: { id: 'independent-reviewer', trustLevel: 'local-claim' },
+      decision: 'ACCEPTED',
+      contract: {
+        path: fixture.contractPath,
+        sha256: sha256(readFileSync(fixture.contractPath)),
+        digest: fixture.contract.contractDigest,
+      },
+      candidate: {
+        path: fixture.candidatePath,
+        sha256: sha256(readFileSync(fixture.candidatePath)),
+        digest: canonicalDigest(fixture.candidate),
+      },
+      verification: {
+        path: fixture.verificationPath,
+        sha256: sha256(readFileSync(fixture.verificationPath)),
+      },
+      reviewedImplementation: fixture.verification.implementationIdentities,
+      findings: [],
+      nextStage: 'close',
+      userActionRequired: false,
+    }
+    const reviewPath = join(fixture.root, `.delivery/tasks/${fixture.taskId}/review.yaml`)
+    writeFileSync(reviewPath, stringify(review))
+
+    expect(verifyReviewEligibility({ reviewPath } as never).errors).toContain(
+      'VERIFICATION_RECOMPUTATION_MISMATCH',
+    )
+  })
 })

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { parse, stringify } from 'yaml'
 
@@ -12,7 +13,9 @@ import { adoptionProfile } from '../project/adoption-profile.js'
 import { discoverProject, validateManagedPathOverlap } from '../project/discover.js'
 import { createManagedBlock, planManagedBlockWrite } from '../project/managed-block.js'
 import type { PlannedGuard, PlannedWrite } from '../project/mutate.js'
+import { validateRunnerBundleIdentity } from '../project/runner-bundle.js'
 import { MANAGED_BLOCK_END, MANAGED_BLOCK_START } from '../adapters/render.js'
+import { loadProjectExtensions } from '../extensions/registry.js'
 
 export interface AdoptionPlan {
   projectRoot: string
@@ -43,14 +46,105 @@ function governanceFile(path: string): string {
   return readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8')
 }
 
+const governanceSourceFiles = [
+  'CORE_INVARIANTS.md',
+  'DEVELOPMENT_SOP.md',
+  'MIGRATING_TO_2.0.md',
+  'RISK_CLASSIFICATION.md',
+  'VERSION',
+  'package.json',
+  'scripts/build-runner-bundle.mjs',
+]
+
+const governanceSourceDirectories = [
+  'adapters',
+  'dist',
+  'schemas',
+  'skills/delivery-sop',
+  'src',
+  'templates',
+]
+
+function governanceRoot(): string {
+  return realpathSync(fileURLToPath(new URL('../../', import.meta.url)))
+}
+
+function recursiveFiles(root: string, relativeDirectory: string): string[] {
+  const directory = join(root, relativeDirectory)
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const relativePath = join(relativeDirectory, entry.name)
+    if (entry.name.startsWith('.') || entry.isSymbolicLink()) return []
+    if (entry.isDirectory()) return recursiveFiles(root, relativePath)
+    return entry.isFile() ? [relativePath] : []
+  })
+}
+
+interface IdentitySourceLocation {
+  path: string
+  sourcePath: string
+}
+
+function recursiveDependencyFiles(sourceRoot: string, targetRoot: string): IdentitySourceLocation[] {
+  return readdirSync(sourceRoot, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.isSymbolicLink()) return []
+    const sourcePath = join(sourceRoot, entry.name)
+    const targetPath = join(targetRoot, entry.name)
+    if (entry.isDirectory()) return recursiveDependencyFiles(sourcePath, targetPath)
+    return entry.isFile() ? [{ path: targetPath, sourcePath }] : []
+  })
+}
+
+function runtimeDependencySources(
+  sourcePackageInput: string,
+  targetPackage: string,
+  ancestry = new Set<string>(),
+): IdentitySourceLocation[] {
+  const sourcePackage = realpathSync(sourcePackageInput)
+  const metadata = JSON.parse(readFileSync(join(sourcePackage, 'package.json'), 'utf8')) as {
+    name: string
+    dependencies?: Record<string, string>
+  }
+  const nextAncestry = new Set(ancestry).add(metadata.name)
+  const nested = Object.keys(metadata.dependencies ?? {}).sort().flatMap((dependency) => (
+    nextAncestry.has(dependency)
+      ? []
+      : runtimeDependencySources(
+        existsSync(join(sourcePackage, 'node_modules', dependency))
+          ? join(sourcePackage, 'node_modules', dependency)
+          : join(dirname(sourcePackage), dependency),
+        join(targetPackage, 'node_modules', dependency),
+        nextAncestry,
+      )
+  ))
+  return [...recursiveDependencyFiles(sourcePackage, targetPackage), ...nested]
+}
+
+export function governanceIdentitySources(): Array<{ path: string; sha256: string }> {
+  const root = governanceRoot()
+  const governanceSources = [
+    ...governanceSourceFiles,
+    ...governanceSourceDirectories.flatMap((directory) => recursiveFiles(root, directory)),
+  ].map((path): IdentitySourceLocation => ({ path, sourcePath: join(root, path) }))
+  return governanceSources
+    .sort((left, right) => left.path.localeCompare(right.path))
+    .map((source) => ({ path: source.path, sha256: sha256(readFileSync(source.sourcePath)) }))
+}
+
+function runnerDependencyIdentitySources(): Array<{ path: string; sha256: string }> {
+  const root = governanceRoot()
+  return ['ajv', 'commander', 'yaml'].flatMap((dependency) => (
+    runtimeDependencySources(
+      join(root, 'node_modules', dependency),
+      join('node_modules', dependency),
+    )
+  ))
+    .sort((left, right) => left.path.localeCompare(right.path))
+    .map((source) => ({ path: source.path, sha256: sha256(readFileSync(source.sourcePath)) }))
+}
+
 export function governanceIdentity(): { version: string; digest: string } {
   const version = governanceFile('VERSION').trim()
-  const digest = sha256([
-    governanceFile('CORE_INVARIANTS.md'),
-    governanceFile('DEVELOPMENT_SOP.md'),
-    governanceFile('RISK_CLASSIFICATION.md'),
-    version,
-  ].join('\n--governance-source--\n'))
+  const digest = canonicalDigest(governanceIdentitySources())
   return { version, digest }
 }
 
@@ -167,27 +261,30 @@ function managedBlockMatches(path: string, expectedBlock: string): boolean {
 }
 
 function validateExtensions(projectRoot: string): string[] {
-  const path = join(projectRoot, '.delivery', 'extensions.yaml')
-  if (!existsSync(path)) return ['PROJECT_EXTENSIONS_MISSING']
   try {
-    const document = parse(readFileSync(path, 'utf8')) as unknown
-    if (typeof document !== 'object' || document === null || Array.isArray(document)) {
-      return ['PROJECT_EXTENSIONS_INVALID']
-    }
-    const record = document as Record<string, unknown>
-    const keys = Object.keys(record).sort()
-    if (
-      record.schemaVersion !== 1
-      || !Array.isArray(record.extensions)
-      || !record.extensions.every((extension) => (
-        typeof extension === 'object' && extension !== null && !Array.isArray(extension)
-      ))
-      || JSON.stringify(keys) !== JSON.stringify(['extensions', 'schemaVersion'])
-    ) return ['PROJECT_EXTENSIONS_INVALID']
+    loadProjectExtensions(projectRoot)
     return []
   } catch {
     return ['PROJECT_EXTENSIONS_INVALID']
   }
+}
+
+function plannedExtensionsContent(projectRoot: string): string {
+  const path = join(projectRoot, '.delivery', 'extensions.yaml')
+  if (!existsSync(path)) return stringify({ schemaVersion: 2, extensions: [] })
+  if (lstatSync(path).isSymbolicLink() || !lstatSync(path).isFile()) {
+    throw new Error('PROJECT_EXTENSIONS_MISSING_OR_UNSAFE')
+  }
+  const raw = readFileSync(path, 'utf8')
+  const document = parse(raw) as { schemaVersion?: number; extensions?: unknown[] }
+  if (document.schemaVersion === 1) {
+    if (!Array.isArray(document.extensions) || document.extensions.length > 0) {
+      throw new Error('PROJECT_EXTENSIONS_MIGRATION_REQUIRED')
+    }
+    return stringify({ schemaVersion: 2, extensions: [] })
+  }
+  loadProjectExtensions(projectRoot)
+  return raw
 }
 
 function adapterInventoryErrors(
@@ -391,6 +488,12 @@ export function planAdoption(projectPath: string, options: {
     if (basename(runnerBundlePath) !== expectedName) {
       throw new Error('RUNNER_ARCHIVE_VERSION_MISMATCH')
     }
+    validateRunnerBundleIdentity({
+      archivePath: runnerBundlePath,
+      expectedVersion: identity.version,
+      identitySources: governanceIdentitySources(),
+      dependencySources: runnerDependencyIdentitySources(),
+    })
     const bundle = readFileSync(runnerBundlePath)
     const runnerRelativePath = `.delivery/runtime/${expectedName}`
     runner = {
@@ -440,7 +543,7 @@ export function planAdoption(projectPath: string, options: {
     planFileWrite(join(projectRoot, '.delivery', 'policy.yaml'), stringify(policy)),
     planFileWrite(
       join(projectRoot, '.delivery', 'extensions.yaml'),
-      stringify({ schemaVersion: 1, extensions: [] }),
+      plannedExtensionsContent(projectRoot),
     ),
     ...profile.adapters.map((adapter) => (
       planManagedBlockWrite(join(projectRoot, adapter.source), block)

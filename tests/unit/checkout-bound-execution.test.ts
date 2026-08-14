@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -15,6 +16,10 @@ function git(repository: string, ...arguments_: string[]): string {
   return execFileSync('git', ['-C', repository, ...arguments_], { encoding: 'utf8' }).trim()
 }
 
+function sha256(input: string): string {
+  return createHash('sha256').update(input).digest('hex')
+}
+
 function repository(): string {
   const path = mkdtempSync(join(tmpdir(), 'sop-v2-execute-'))
   temporaryDirectories.push(path)
@@ -27,7 +32,7 @@ function repository(): string {
   return path
 }
 
-function contract(repositoryPath: string, script: string): string {
+function contract(repositoryPath: string, script: string, output: 'nonempty' | 'exact' = 'nonempty'): string {
   const task = startTask({
     schemaVersion: 2,
     taskId: 'checkout-bound-task',
@@ -51,13 +56,16 @@ function contract(repositoryPath: string, script: string): string {
       },
       observerPolicy: {
         expectedExitCode: 0,
-        output: 'nonempty',
+        output,
+        ...(output === 'exact' ? {
+          expectedStdoutSha256: sha256('different\n'),
+          expectedStderrSha256: sha256(''),
+        } : {}),
         checkoutMutation: 'forbidden',
         replay: 'required',
       },
     }],
     authorizationRequirements: [],
-    sourcePolicy: { mode: 'independent' },
     openChoices: [],
     signals: { mutation: true, classificationComplete: true },
   })
@@ -140,5 +148,18 @@ describe('checkout-bound execution', () => {
     })
     expect(artifact.policyErrors).toContain('CHECKOUT_MUTATION_FORBIDDEN')
     expect(artifact.repositoriesBefore).not.toEqual(artifact.repositoriesAfter)
+  })
+
+  it('enforces exact stdout and stderr digests during execution', () => {
+    const root = repository()
+    contract(root, "process.stdout.write('observed\\n')", 'exact')
+    const artifact = captureCommandExecution({
+      schemaVersion: 2,
+      projectRoot: root,
+      taskId: 'checkout-bound-task',
+      acceptanceId: 'AC-01',
+      runId: 'run-exact',
+    })
+    expect(artifact.policyErrors).toEqual(['COMMAND_STDOUT_EXACT_MISMATCH'])
   })
 })

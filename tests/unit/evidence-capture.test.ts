@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { expect, it } from 'vitest'
 
-import { captureCommandExecution } from '../../src/evidence/capture.js'
+import { captureLegacyCommandExecution as captureCommandExecution } from '../../src/evidence/capture.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 
 it('rejects an existing receipt path before executing the command', () => {

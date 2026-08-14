@@ -130,7 +130,7 @@ describe('adopted project verification', () => {
     expect(verifyAdoptedProject(projectRoot)).toEqual({ valid: true, errors: [] })
     const archivePath = join(
       projectRoot,
-      '.delivery/runtime/engineering-governance-1.0.0.tgz',
+      '.delivery/runtime/engineering-governance-2.0.0.tgz',
     )
     write(archivePath, 'forged archive\n')
     expect(verifyAdoptedProject(projectRoot).errors).toContain(
@@ -140,8 +140,15 @@ describe('adopted project verification', () => {
 
   it('validates task contract schemas and canonical digests', () => {
     const projectRoot = temporaryProject('sop-verify-task-')
+    git(projectRoot, 'init', '-b', 'main')
+    git(projectRoot, 'config', 'user.email', 'test@example.com')
+    git(projectRoot, 'config', 'user.name', 'Test')
+    write(join(projectRoot, 'baseline.txt'), 'baseline\n')
+    git(projectRoot, 'add', 'baseline.txt')
+    git(projectRoot, 'commit', '-m', 'baseline')
     adopt(projectRoot)
     const task = startTask({
+      schemaVersion: 2,
       taskId: 'cross-module-task',
       implementationOwner: 'codex',
       objective: 'Deliver one bounded behavior.',
@@ -153,13 +160,31 @@ describe('adopted project verification', () => {
         observation: 'The named command passes.',
         positiveCases: ['valid input'],
         negativeCases: ['missing input'],
+        evidenceKind: 'unit',
+        command: {
+          repositoryId: 'root',
+          cwd: '.',
+          executable: process.execPath,
+          arguments: ['--version'],
+        },
+        observerPolicy: {
+          expectedExitCode: 0,
+          output: 'nonempty',
+          checkoutMutation: 'forbidden',
+          replay: 'not-required',
+        },
       }],
-      requiredGates: ['pnpm test'],
+      repositories: [{ id: 'root', path: projectRoot }],
+      authorizationRequirements: [],
       openChoices: ['internal names'],
       signals: { crossModule: true },
     })
-    const contractPath = join(projectRoot, task.artifacts[0]!.path)
-    write(contractPath, task.artifacts[0]!.content)
+    for (const artifact of task.artifacts) {
+      write(join(projectRoot, artifact.path), artifact.content)
+    }
+    const contractArtifact = task.artifacts.find((artifact) => artifact.path.endsWith('/contract.yaml'))
+    expect(contractArtifact).toBeDefined()
+    const contractPath = join(projectRoot, contractArtifact!.path)
     expect(verifyAdoptedProject(projectRoot)).toEqual({ valid: true, errors: [] })
 
     const contract = parse(readFileSync(contractPath, 'utf8')) as Record<string, unknown>

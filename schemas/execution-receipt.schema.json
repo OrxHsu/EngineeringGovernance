@@ -5,13 +5,14 @@
     "snapshot": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "repository", "head", "tree", "trackedDiffSha256", "untracked", "statusDigest"],
+      "required": ["id", "repository", "head", "tree", "trackedDiffSha256", "trackedPaths", "untracked", "statusDigest"],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "repository": { "type": "string", "pattern": "^/", "minLength": 2 },
         "head": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
         "tree": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
         "trackedDiffSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "trackedPaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "untracked": {
           "type": "array",
           "items": {
@@ -63,11 +64,17 @@
     "command": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["executable", "arguments", "cwd"],
+      "required": ["executable", "executableSha256", "arguments", "cwd", "environment"],
       "properties": {
-        "executable": { "type": "string", "minLength": 1 },
+        "executable": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "executableSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "arguments": { "type": "array", "items": { "type": "string" } },
-        "cwd": { "type": "string", "pattern": "^/", "minLength": 2 }
+        "cwd": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "environment": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+          "additionalProperties": { "type": "string" }
+        }
       }
     },
     "repositoriesBefore": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/snapshot" } },

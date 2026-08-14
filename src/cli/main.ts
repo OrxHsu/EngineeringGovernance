@@ -1,39 +1,58 @@
 #!/usr/bin/env node
 
 import { fileURLToPath } from 'node:url'
-import { readFileSync, realpathSync } from 'node:fs'
+import { realpathSync } from 'node:fs'
 
 import { Command } from 'commander'
-import { parse } from 'yaml'
 
 import { checkProject } from '../commands/check.js'
 import { applyAdoption } from '../commands/init.js'
 import { planAdoption, summarizeAdoptionPlan } from '../commands/adopt.js'
-import { startTask, type TaskStartInput } from '../commands/task-start.js'
+import {
+  applyTaskStart,
+  planTaskStart,
+  type TaskStartInput,
+} from '../commands/task-start.js'
 import {
   verifyCandidateEligibility,
-  type CandidateEligibilityInput,
 } from '../commands/task-verify.js'
-import { verifyReviewEligibility, type ReviewEligibilityInput } from '../commands/task-review.js'
-import { verifyCloseEligibility, type CloseEligibilityInput } from '../commands/task-close.js'
-import { captureCommandExecution, type CommandExecutionInput } from '../evidence/capture.js'
+import {
+  persistHardenedVerificationArtifact,
+  type HardenedCandidateEligibilityInput,
+} from '../commands/task-verify-v2.js'
+import { applyCandidateReplay, planCandidateReplay } from '../commands/task-replay-v2.js'
+import {
+  applyOwnerTaskTransition,
+  planOwnerTaskTransition,
+} from '../commands/task-transition-v2.js'
+import { verifyHardenedReview } from '../commands/task-review-v2.js'
+import { verifyHardenedClose } from '../commands/task-close-v2.js'
+import {
+  captureCommandExecution,
+  type HardenedCommandExecutionInput,
+} from '../evidence/capture.js'
 import { planUpgrade } from '../commands/upgrade.js'
+import {
+  applyUnadoption,
+  planUnadoption,
+  summarizeUnadoptionPlan,
+} from '../commands/unadopt.js'
 import {
   applyGlobalInstall,
   checkGlobalInstall,
   planGlobalInstall,
   summarizeGlobalPlan,
 } from '../commands/install-global.js'
+import { loadCliInput, requireActiveV2 } from './input.js'
+import { inspectLegacyDocument } from './legacy-inspect.js'
+import { loadAdoptedProjectContext } from './project-context.js'
+import { applyCliTransition } from './transition.js'
 
 export interface CliOutput {
   write(text: string): void
 }
 
 const defaultOutput: CliOutput = { write: (text) => process.stdout.write(text) }
-
-function structuredFile<T>(path: string): T {
-  return parse(readFileSync(path, 'utf8')) as T
-}
 
 function writeJson(output: CliOutput, value: unknown): void {
   if (
@@ -79,6 +98,19 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
   adoptionCommand('init')
   adoptionCommand('adopt')
 
+  program.command('unadopt')
+    .argument('<project>')
+    .option('--apply-plan <digest>')
+    .action((project: string, options: { applyPlan?: string }) => {
+      const plan = planUnadoption(project)
+      writeJson(
+        output,
+        options.applyPlan === undefined
+          ? summarizeUnadoptionPlan(plan)
+          : applyUnadoption(plan, options.applyPlan),
+      )
+    })
+
   program.command('check')
     .argument('<project>')
     .option('--json')
@@ -89,39 +121,103 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
   const task = program.command('task')
   task.command('start')
     .requiredOption('--input <path>')
-    .action((options: { input: string }) => {
-      writeJson(output, startTask(structuredFile<TaskStartInput>(options.input)))
+    .requiredOption('--project <path>')
+    .option('--apply-plan <digest>')
+    .action((options: { input: string; project: string; applyPlan?: string }) => {
+      const context = loadAdoptedProjectContext(options.project)
+      const input = loadCliInput<TaskStartInput>(options.input)
+      requireActiveV2(input.value)
+      const plan = planTaskStart(
+        context.projectRoot,
+        input.value,
+        { projectExtensions: context.projectExtensions },
+      )
+      writeJson(output, options.applyPlan === undefined
+        ? plan
+        : applyTaskStart(plan, options.applyPlan))
     })
   task.command('verify')
     .requiredOption('--input <path>')
-    .option('--approve-replay <digest>')
-    .action((options: { input: string; approveReplay?: string }) => {
-      writeJson(
-        output,
-        verifyCandidateEligibility(
-          structuredFile<CandidateEligibilityInput>(options.input),
-          options.approveReplay === undefined
-            ? {}
-            : { evidenceReplayPlanDigest: options.approveReplay },
-        ),
-      )
+    .option('--persist')
+    .action((options: { input: string; persist?: boolean }) => {
+      const input = loadCliInput<HardenedCandidateEligibilityInput>(options.input)
+      requireActiveV2(input.value)
+      const decision = verifyCandidateEligibility(input.value, { candidatePath: input.unresolvedPath })
+      if (options.persist === true && decision.valid && decision.verificationArtifact !== undefined) {
+        writeJson(output, {
+          ...decision,
+          persistedVerification: persistHardenedVerificationArtifact(decision.verificationArtifact),
+        })
+        return
+      }
+      writeJson(output, decision)
+    })
+  task.command('replay')
+    .requiredOption('--input <path>')
+    .option('--apply-plan <digest>')
+    .action((options: { input: string; applyPlan?: string }) => {
+      const input = loadCliInput<unknown>(options.input)
+      requireActiveV2(input.value)
+      const plan = planCandidateReplay(input.unresolvedPath)
+      if (options.applyPlan === undefined) {
+        writeJson(output, plan)
+        return
+      }
+      const result = applyCandidateReplay(plan, options.applyPlan)
+      writeJson(output, result)
+      if (result.artifact.decision !== 'eligible') process.exitCode = 1
     })
   task.command('execute')
     .requiredOption('--input <path>')
     .action((options: { input: string }) => {
-      const artifact = captureCommandExecution(structuredFile<CommandExecutionInput>(options.input))
+      const input = loadCliInput<HardenedCommandExecutionInput>(options.input)
+      requireActiveV2(input.value)
+      const artifact = captureCommandExecution(input.value)
       writeJson(output, artifact)
-      if (artifact.exitCode !== 0) process.exitCode = artifact.exitCode
+      if (artifact.policyErrors.length > 0) process.exitCode = 1
+    })
+  task.command('transition')
+    .requiredOption('--input <path>')
+    .option('--apply-plan <digest>')
+    .action((options: { input: string; applyPlan?: string }) => {
+      const input = loadCliInput<unknown>(options.input)
+      requireActiveV2(input.value)
+      const plan = planOwnerTaskTransition(input.value)
+      writeJson(
+        output,
+        options.applyPlan === undefined
+          ? plan
+          : applyOwnerTaskTransition(plan, options.applyPlan),
+      )
     })
   task.command('review')
     .requiredOption('--input <path>')
-    .action((options: { input: string }) => {
-      writeJson(output, verifyReviewEligibility(structuredFile<ReviewEligibilityInput>(options.input)))
+    .option('--apply-plan <digest>')
+    .action((options: { input: string; applyPlan?: string }) => {
+      const input = loadCliInput<unknown>(options.input)
+      requireActiveV2(input.value)
+      writeJson(
+        output,
+        applyCliTransition(verifyHardenedReview(input.unresolvedPath), options.applyPlan),
+      )
     })
   task.command('close')
     .requiredOption('--input <path>')
+    .option('--apply-plan <digest>')
+    .action((options: { input: string; applyPlan?: string }) => {
+      const input = loadCliInput<unknown>(options.input)
+      requireActiveV2(input.value)
+      writeJson(
+        output,
+        applyCliTransition(verifyHardenedClose(input.unresolvedPath), options.applyPlan),
+      )
+    })
+
+  const legacy = program.command('legacy')
+  legacy.command('inspect')
+    .requiredOption('--input <path>')
     .action((options: { input: string }) => {
-      writeJson(output, verifyCloseEligibility(structuredFile<CloseEligibilityInput>(options.input)))
+      writeJson(output, inspectLegacyDocument(loadCliInput<unknown>(options.input).value))
     })
 
   const global = program.command('global')
