@@ -472,9 +472,7 @@ function validateVerificationGraph(input) {
         candidatePath: candidate.path,
         evidenceVerificationTime: new Date(verifiedAt),
         requireCandidateState: false,
-        ...(input.contract.contractReadiness === undefined
-            ? { runnerIdentity: { version: input.contract.sopVersion, digest: input.contract.policyDigest } }
-            : {}),
+        runnerIdentity: { version: input.contract.sopVersion, digest: input.contract.policyDigest },
     });
     if (!recomputed.valid || recomputed.verificationArtifact === undefined) {
         input.errors.push(`TASK_GRAPH_VERIFICATION_RECOMPUTATION_FAILED:${input.taskId}:${recomputed.errors.join('|')}`);
