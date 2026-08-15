@@ -23,7 +23,11 @@ import { buildProgram } from '../../src/cli/main.js'
 import { extensionDescriptor } from '../../src/extensions/registry.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { applyTaskTransition, planTaskTransition } from '../../src/state/ledger.js'
-import { hardenedTaskFixture, sha256 } from '../helpers/hardened-task.js'
+import {
+  hardenedTaskFixture,
+  sha256,
+  writeAcceptedContractReadinessReview,
+} from '../helpers/hardened-task.js'
 import { testRunnerBundle } from '../helpers/runner-bundle.js'
 
 const temporaryDirectories: string[] = []
@@ -87,13 +91,22 @@ function definedV2Task(
     }],
     authorizationRequirements: [],
     openChoices: [],
-    signals: { mutation: true, classificationComplete: true },
+    signals: { mutation: true, crossModule: true },
   })
   for (const artifact of task.artifacts) {
     const path = join(root, artifact.path)
     mkdirSync(dirname(path), { recursive: true })
     writeFileSync(path, artifact.content)
   }
+  const contractPath = join(root, `.delivery/tasks/${taskId}/contract.yaml`)
+  const contractRaw = readFileSync(contractPath)
+  writeAcceptedContractReadinessReview({
+    root,
+    taskId,
+    contractPath,
+    contractRaw,
+    contract: parse(contractRaw.toString('utf8')) as Record<string, unknown>,
+  })
   const inputPath = join(root, 'execute.yaml')
   writeFileSync(inputPath, stringify({
     schemaVersion: 2,
@@ -141,7 +154,7 @@ function replayCandidateFixture(): { root: string; candidatePath: string; verifi
     taskId: fixture.taskId,
     actorId: 'codex',
     to: 'IN_PROGRESS',
-    artifacts: [{ kind: 'contract', path: contractPath }],
+    artifacts: [{ kind: 'contract-review', path: join(fixture.root, `.delivery/tasks/${fixture.taskId}/contract-review.yaml`) }],
   })
   if (!applyTaskTransition(inProgress, inProgress.digest).applied) {
     throw new Error('replay fixture IN_PROGRESS transition failed')
@@ -230,7 +243,7 @@ describe('v2 CLI hardening', () => {
         'external-source-provenance@1.0.0': { mode: 'independent' },
       },
       openChoices: [],
-    signals: { mutation: true, classificationComplete: true },
+      signals: { mutation: true, crossModule: true },
     }))
 
     let output = ''
@@ -287,8 +300,16 @@ describe('v2 CLI hardening', () => {
       join(taskDirectory, 'ledger.jsonl'),
     ])
 
-    const transitionArtifact = join(taskDirectory, 'in-progress.json')
-    writeFileSync(transitionArtifact, '{"reason":"implementation started"}\n')
+    const contractPath = join(taskDirectory, 'contract.yaml')
+    const contractRaw = readFileSync(contractPath)
+    const reviewPath = writeAcceptedContractReadinessReview({
+      root: project,
+      taskId: 'cli-v2-start',
+      contractPath,
+      contractRaw,
+      contract: parse(contractRaw.toString('utf8')) as Record<string, unknown>,
+    })
+
     const transitionInput = join(project, 'task-transition.yaml')
     writeFileSync(transitionInput, stringify({
       schemaVersion: 2,
@@ -296,7 +317,7 @@ describe('v2 CLI hardening', () => {
       taskId: 'cli-v2-start',
       actorId: 'codex',
       to: 'IN_PROGRESS',
-      artifacts: [{ kind: 'transition-request', path: transitionArtifact }],
+      artifacts: [{ kind: 'contract-review', path: reviewPath }],
     }))
     output = ''
     await buildProgram({ write: (text) => { output += text } }).parseAsync([
@@ -333,7 +354,7 @@ describe('v2 CLI hardening', () => {
       }],
       requiredGates: ['node --version'],
       openChoices: [],
-    signals: { mutation: true, classificationComplete: true },
+      signals: { mutation: true, classificationComplete: true },
     }))
 
     await expect(buildProgram().parseAsync([

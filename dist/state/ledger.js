@@ -47,7 +47,11 @@ function contractReadinessErrors(input) {
     if (input.artifacts[0].path !== expected)
         return ['TASK_CONTRACT_READINESS_PATH_INVALID'];
     const result = verifyContractReadinessArtifact(input.projectRoot, input.taskId, join(input.projectRoot, expected));
-    return result.valid ? [] : result.errors.map((error) => `TASK_CONTRACT_READINESS_INVALID:${error}`);
+    if (!result.valid)
+        return result.errors.map((error) => `TASK_CONTRACT_READINESS_INVALID:${error}`);
+    if (result.review?.decision !== 'ACCEPTED')
+        return ['TASK_CONTRACT_READINESS_NOT_ACCEPTED'];
+    return [];
 }
 function sha256(input) {
     return createHash('sha256').update(input).digest('hex');

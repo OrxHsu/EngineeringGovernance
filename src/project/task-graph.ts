@@ -264,20 +264,16 @@ function validateContractReadinessGraph(input: {
   if (input.readinessArtifacts.some((item) => item.path !== canonicalPath)) {
     input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_CANONICAL_PATH_MISMATCH:${input.taskId}`)
   }
-  const stateRequiresReview = input.currentState === 'IN_PROGRESS'
-    || input.currentState === 'CANDIDATE'
-    || input.currentState === 'ACCEPTED'
-    || input.currentState === 'CLOSED'
-    || input.currentState === 'REPAIR_REQUIRED'
-    || input.currentState === 'BLOCKED'
+  const stateRequiresReview = input.events.some((event) => event.to === 'IN_PROGRESS' || event.from === 'IN_PROGRESS')
   if (artifact === undefined) {
     if (stateRequiresReview) input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_MISSING:${input.taskId}`)
     return
   }
   const verification = verifyContractReadinessArtifact(input.projectRoot, input.taskId, artifact.path)
-  if (!verification.valid || verification.review?.decision !== 'ACCEPTED') {
+  if (!verification.valid) {
     input.errors.push(...verification.errors.map((error) => `TASK_GRAPH_CONTRACT_REVIEW_INVALID:${input.taskId}:${error}`))
-    if (verification.valid) input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_NOT_ACCEPTED:${input.taskId}`)
+  } else if (stateRequiresReview && verification.review?.decision !== 'ACCEPTED') {
+    input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_NOT_ACCEPTED:${input.taskId}`)
   }
   if (!stateRequiresReview) return
   const inProgress = input.events.find((event) => event.to === 'IN_PROGRESS')
@@ -490,6 +486,7 @@ function validateCurrentReview(input: {
 function validateVerificationGraph(input: {
   taskRoot: string
   taskId: string
+  contract: TaskContractV2
   contractPath: string
   contractRaw: Buffer
   contractDigest: string
@@ -555,15 +552,6 @@ function validateVerificationGraph(input: {
     verificationValue: verification.value.extensionArtifacts,
     errors: input.errors,
   })
-  if (typeof input.contractRaw.toString === 'function') {
-    try {
-      const historicalContract = parse(input.contractRaw.toString('utf8')) as Record<string, unknown>
-      if (historicalContract.contractReadiness === undefined) return
-    } catch {
-      input.errors.push(`TASK_GRAPH_VERIFICATION_CONTRACT_HISTORY_INVALID:${input.taskId}`)
-      return
-    }
-  }
   const verifiedAt = verification.value.verifiedAt
   if (typeof verifiedAt !== 'string') {
     input.errors.push(`TASK_GRAPH_VERIFICATION_RECOMPUTATION_FAILED:${input.taskId}:TIME_INVALID`)
@@ -575,6 +563,9 @@ function validateVerificationGraph(input: {
       candidatePath: candidate.path,
       evidenceVerificationTime: new Date(verifiedAt),
       requireCandidateState: false,
+      ...(input.contract.contractReadiness === undefined
+        ? { runnerIdentity: { version: input.contract.sopVersion, digest: input.contract.policyDigest } }
+        : {}),
     },
   )
   if (!recomputed.valid || recomputed.verificationArtifact === undefined) {
@@ -788,6 +779,7 @@ export function validateProjectTaskGraph(projectPath: string): ProjectTaskGraphV
       validateVerificationGraph({
         taskRoot,
         taskId: entry.name,
+        contract,
         contractPath,
         contractRaw,
         contractDigest,

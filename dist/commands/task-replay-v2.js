@@ -262,7 +262,7 @@ function approvedReplayPlan(loaded) {
         throw new Error('REPLAY_APPROVED_PLAN_DRIFTED');
     return plan;
 }
-export function verifyCandidateReplay(candidatePath, verificationTime, maximumAgeMs) {
+export function verifyCandidateReplay(candidatePath, verificationTime, maximumAgeMs, runnerIdentity) {
     const loaded = loadCandidate(candidatePath, false);
     const outputPath = join(dirname(loaded.candidatePath), 'replay-verification.json');
     const required = loaded.contract.acceptance.some((gate) => gate.observerPolicy.replay === 'required');
@@ -299,7 +299,7 @@ export function verifyCandidateReplay(candidatePath, verificationTime, maximumAg
     }
     const approvedSnapshots = plan.checkoutSnapshots;
     const executionSnapshots = normalizeReplaySnapshots(firstExecution.repositoriesBefore, loaded.contract.taskId);
-    const identity = governanceIdentity();
+    const identity = runnerIdentity ?? governanceIdentity();
     if (artifact.producer.version !== identity.version || artifact.producer.policyDigest !== identity.digest) {
         errors.push('REPLAY_RUNNER_IDENTITY_MISMATCH');
     }

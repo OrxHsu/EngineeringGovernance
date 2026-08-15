@@ -1,32 +1,32 @@
 schemaVersion: 2
 artifactType: sop-contract-review-v2
-reviewId: crv-<taskId>-<contractDigest>
-taskId: <taskId>
+reviewId: crv-example-task-0000000000000000000000000000000000000000000000000000000000000000
+taskId: example-task
 risk: R3
 reviewer:
-  id: <independent-reviewer-id>
+  id: independent-reviewer
   trustLevel: local-claim
 decision: ACCEPTED
 contract:
-  path: /absolute/project/.delivery/tasks/<taskId>/contract.yaml
-  rawSha256: <sha256-of-contract-bytes>
-  digest: <contractDigest>
+  path: /absolute/project/.delivery/tasks/example-task/contract.yaml
+  rawSha256: '0000000000000000000000000000000000000000000000000000000000000000'
+  digest: '0000000000000000000000000000000000000000000000000000000000000000'
 checklist:
-  scope_non_goals: { status: PASS, evidenceRefs: [] }
-  authority_dependencies: { status: PASS, evidenceRefs: [] }
-  risk_owner_reviewer: { status: PASS, evidenceRefs: [] }
-  behavior_state_transitions: { status: PASS, evidenceRefs: [] }
-  security_trust: { status: PASS, evidenceRefs: [] }
-  evidence_environment: { status: PASS, evidenceRefs: [] }
-  external_source_provenance: { status: PASS, evidenceRefs: [] }
-  rollout_recovery_compatibility: { status: PASS, evidenceRefs: [] }
-  unresolved_product_decisions: { status: PASS, evidenceRefs: [] }
+  scope_non_goals: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  authority_dependencies: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  risk_owner_reviewer: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  behavior_state_transitions: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  security_trust: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  evidence_environment: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  external_source_provenance: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  rollout_recovery_compatibility: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  unresolved_product_decisions: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
 r3Requirements:
-  trust_threat_analysis: { status: PASS, evidenceRefs: [] }
-  migration_recovery_rollback: { status: PASS, evidenceRefs: [] }
-  specialized_gates: { status: PASS, evidenceRefs: [] }
-  scoped_authorization: { status: NA, applicabilityReason: no-scoped-authorization-action, evidenceRefs: [] }
-  production_observation: { status: NA, applicabilityReason: no-production-action, evidenceRefs: [] }
+  trust_threat_analysis: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  migration_recovery_rollback: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  specialized_gates: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  scoped_authorization: { status: NA, applicabilityReason: no-scoped-authorization-action, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
+  production_observation: { status: NA, applicabilityReason: no-production-action, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/example-task/contract.yaml, sha256: '0000000000000000000000000000000000000000000000000000000000000000', digest: '0000000000000000000000000000000000000000000000000000000000000000' }] }
 findings: []
 nextStage: implementation
 userActionRequired: false

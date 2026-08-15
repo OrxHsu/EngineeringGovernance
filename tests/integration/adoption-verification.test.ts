@@ -177,7 +177,7 @@ describe('adopted project verification', () => {
       repositories: [{ id: 'root', path: projectRoot }],
       authorizationRequirements: [],
       openChoices: ['internal names'],
-      signals: { mutation: true, classificationComplete: true },
+      signals: { crossModule: true },
     })
     for (const artifact of task.artifacts) {
       write(join(projectRoot, artifact.path), artifact.content)

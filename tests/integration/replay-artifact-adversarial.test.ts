@@ -18,6 +18,7 @@ import {
 import { captureCheckoutSnapshot } from '../../src/evidence/checkout-snapshot.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { applyTaskTransition, planTaskTransition } from '../../src/state/ledger.js'
+import { writeAcceptedContractReadinessReview } from '../helpers/hardened-task.js'
 
 const temporaryDirectories: string[] = []
 
@@ -90,7 +91,7 @@ function replayedFixture(): ReplayedFixture {
     authorizationRequirements: [],
     evidenceFreshnessMs: 60_000,
     openChoices: [],
-    signals: { mutation: true, classificationComplete: true },
+    signals: { security: true },
   })
   for (const artifact of task.artifacts) write(join(root, artifact.path), artifact.content)
   const contractPath = join(root, task.artifacts.find((artifact) => (
@@ -98,6 +99,13 @@ function replayedFixture(): ReplayedFixture {
   ))!.path)
   const contractRaw = readFileSync(contractPath)
   const contract = parse(contractRaw.toString('utf8')) as { contractDigest: string }
+  writeAcceptedContractReadinessReview({
+    root,
+    taskId: 'replay-adversarial',
+    contractPath,
+    contractRaw,
+    contract: contract as Record<string, unknown>,
+  })
 
   const snapshot = captureCheckoutSnapshot({ id: 'root', path: root })
   const implementationIdentities = [{
@@ -148,7 +156,7 @@ function replayedFixture(): ReplayedFixture {
     taskId: 'replay-adversarial',
     actorId: 'codex',
     to: 'IN_PROGRESS',
-    artifacts: [{ kind: 'contract', path: contractPath }],
+    artifacts: [{ kind: 'contract-review', path: join(root, '.delivery/tasks/replay-adversarial/contract-review.yaml') }],
   })
   expect(applyTaskTransition(inProgress, inProgress.digest)).toEqual({ applied: true, errors: [] })
   const candidate = planTaskTransition({

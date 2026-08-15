@@ -38,8 +38,11 @@ Any of the following selects at least R2:
 - incomplete classification for a mutating task;
 - a project rule explicitly selects R2.
 
-Required result: frozen task contract, structured evidence manifest, and an
-independent review of the exact candidate.
+Required result: frozen task contract, a canonical contract-readiness review
+accepted by an independent reviewer before `IN_PROGRESS`, structured evidence
+manifest, and an independent review of the exact candidate. The readiness
+review is a completeness gate; it does not replace the later implementation
+candidate review.
 
 ## R3 — high risk
 
@@ -52,7 +55,8 @@ Any of the following selects R3:
 - source-assisted implementation through an external-source provenance allocation;
 - restricted runtime/device action or another explicit authorization gate.
 
-Required result: R2 artifacts plus applicable trust/threat analysis,
+Required result: the R2 pre-implementation contract-readiness gate plus R2
+artifacts and applicable trust/threat analysis,
 migration/recovery/rollback plan, specialized gates, scoped authorization, and
 production observation plan. Independent review is mandatory.
 

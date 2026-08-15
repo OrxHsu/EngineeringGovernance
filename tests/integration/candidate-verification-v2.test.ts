@@ -15,6 +15,7 @@ import { applyCandidateReplay, planCandidateReplay } from '../../src/commands/ta
 import { captureCommandExecution } from '../../src/evidence/capture.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { applyTaskTransition, planTaskTransition } from '../../src/state/ledger.js'
+import { writeAcceptedContractReadinessReview } from '../helpers/hardened-task.js'
 
 const temporaryDirectories: string[] = []
 
@@ -81,12 +82,19 @@ function fixture(replay: 'required' | 'not-required' = 'not-required'): {
     authorizationRequirements: [],
     evidenceFreshnessMs: 60_000,
     openChoices: [],
-    signals: { mutation: true, classificationComplete: true },
+    signals: { mutation: true, crossModule: true },
   })
   for (const artifact of task.artifacts) write(join(repository, artifact.path), artifact.content)
   const contractPath = join(repository, task.artifacts[0]!.path)
   const contractContent = readFileSync(contractPath, 'utf8')
   const contract = parse(contractContent) as { contractDigest: string }
+  writeAcceptedContractReadinessReview({
+    root: repository,
+    taskId: 'candidate-v2',
+    contractPath,
+    contractRaw: contractContent,
+    contract: contract as Record<string, unknown>,
+  })
   const receiptPath = join(repository, '.delivery/tasks/candidate-v2/receipts/run-1/AC-01.json')
   const receipt = captureCommandExecution({
     schemaVersion: 2,
@@ -148,7 +156,7 @@ function fixture(replay: 'required' | 'not-required' = 'not-required'): {
     taskId: 'candidate-v2',
     actorId: 'codex',
     to: 'IN_PROGRESS',
-    artifacts: [{ kind: 'contract', path: contractPath }],
+    artifacts: [{ kind: 'contract-review', path: join(repository, '.delivery/tasks/candidate-v2/contract-review.yaml') }],
   })
   if (!applyTaskTransition(inProgress, inProgress.digest).applied) throw new Error('fixture transition failed')
   const candidateTransition = planTaskTransition({

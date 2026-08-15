@@ -86,12 +86,12 @@ interface ContractReviewArtifact {
   userActionRequired: boolean
 }
 
-function sha256(input: string | Uint8Array): string {
-  return createHash('sha256').update(input).digest('hex')
-}
-
 function sortedIds(items: Array<{ id: string }>): boolean {
   return items.every((item, index) => index === 0 || items[index - 1]!.id < item.id)
+}
+
+function sha256(input: string | Uint8Array): string {
+  return createHash('sha256').update(input).digest('hex')
 }
 
 function findingsOrdered(items: ContractReviewArtifact['findings']): boolean {
@@ -277,7 +277,7 @@ export function verifyContractReadinessArtifact(
       }
     }
   }
-  if (!sortedIds(review.findings) || !findingsOrdered(review.findings)
+  if (!findingsOrdered(review.findings)
     || new Set(review.findings.map((finding) => finding.id)).size !== review.findings.length) {
     errors.push('CONTRACT_REVIEW_FINDINGS_NOT_UNIQUE_SEVERITY_SORTED')
   }

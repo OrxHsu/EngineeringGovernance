@@ -105,7 +105,9 @@ function contractReadinessErrors(input: {
     input.taskId,
     join(input.projectRoot, expected),
   )
-  return result.valid ? [] : result.errors.map((error) => `TASK_CONTRACT_READINESS_INVALID:${error}`)
+  if (!result.valid) return result.errors.map((error) => `TASK_CONTRACT_READINESS_INVALID:${error}`)
+  if (result.review?.decision !== 'ACCEPTED') return ['TASK_CONTRACT_READINESS_NOT_ACCEPTED']
+  return []
 }
 
 export interface TaskTransitionPlan {

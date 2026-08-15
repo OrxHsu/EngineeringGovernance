@@ -51,8 +51,8 @@ function receiptErrors(input) {
     const schema = validateDocument('execution-receipt', receipt);
     if (!schema.valid)
         return schema.errors.map((error) => `RECEIPT_SCHEMA_INVALID:${prefix}:${error}`);
-    const identity = governanceIdentity();
-    if (receipt.producer.version !== identity.version || receipt.producer.policyDigest !== identity.digest) {
+    if (receipt.producer.version !== input.runnerIdentity.version
+        || receipt.producer.policyDigest !== input.runnerIdentity.digest) {
         errors.push(`RECEIPT_RUNNER_IDENTITY_MISMATCH:${prefix}`);
     }
     if (receipt.acceptanceId !== gate.id)
@@ -379,7 +379,7 @@ export function verifyHardenedCandidate(input, context = {}) {
             }
         }
     }
-    const identity = governanceIdentity();
+    const identity = context.runnerIdentity ?? governanceIdentity();
     if (contract.policyDigest !== identity.digest || contract.sopVersion !== identity.version) {
         errors.push('CONTRACT_POLICY_IDENTITY_MISMATCH');
     }
@@ -455,6 +455,7 @@ export function verifyHardenedCandidate(input, context = {}) {
                     identities: input.implementationIdentities,
                     verificationTime,
                     maxEvidenceAgeMs: contract.evidenceFreshnessMs,
+                    runnerIdentity: identity,
                 }));
                 verifiedReceipts.push({
                     acceptanceId: receiptReference.acceptanceId,
@@ -539,7 +540,7 @@ export function verifyHardenedCandidate(input, context = {}) {
             errors.push(`EXTENSION_ARTIFACT_UNBOUND:${reference.extensionId}:${reference.kind}`);
         }
     }
-    const replay = verifyCandidateReplay(candidatePath, verificationTime, contract.evidenceFreshnessMs);
+    const replay = verifyCandidateReplay(candidatePath, verificationTime, contract.evidenceFreshnessMs, identity);
     errors.push(...replay.errors);
     const uniqueErrors = [...new Set(errors)].sort();
     if (uniqueErrors.length > 0)

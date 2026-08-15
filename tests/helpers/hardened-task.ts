@@ -32,6 +32,64 @@ function write(path: string, content: string): void {
   writeFileSync(path, content)
 }
 
+export function writeAcceptedContractReadinessReview(input: {
+  root: string
+  taskId: string
+  contractPath: string
+  contractRaw: Buffer | string
+  contract: Record<string, unknown>
+  authorizationRequirements?: Array<unknown>
+}): string {
+  const contractRaw = Buffer.isBuffer(input.contractRaw)
+    ? input.contractRaw
+    : Buffer.from(input.contractRaw)
+  const evidenceRef = {
+    id: 'E-001',
+    kind: 'contract',
+    path: `.delivery/tasks/${input.taskId}/contract.yaml`,
+    sha256: sha256(contractRaw),
+    digest: canonicalDigest(input.contract),
+  }
+  const checklistItem = { status: 'PASS', evidenceRefs: [evidenceRef] }
+  const r3 = (input.contract.risk === 'R3')
+    ? {
+      trust_threat_analysis: checklistItem,
+      migration_recovery_rollback: checklistItem,
+      specialized_gates: checklistItem,
+      scoped_authorization: (input.authorizationRequirements ?? []).length > 0
+        ? checklistItem
+        : { status: 'NA', applicabilityReason: 'no-scoped-authorization-action', evidenceRefs: [evidenceRef] },
+      production_observation: { status: 'NA', applicabilityReason: 'no-production-action', evidenceRefs: [evidenceRef] },
+    }
+    : Object.fromEntries([
+      'trust_threat_analysis', 'migration_recovery_rollback', 'specialized_gates',
+      'scoped_authorization', 'production_observation',
+    ].map((key) => [key, { status: 'NA', applicabilityReason: 'risk-below-r3', evidenceRefs: [evidenceRef] }]))
+  const review = {
+    schemaVersion: 2,
+    artifactType: 'sop-contract-review-v2',
+    reviewId: `crv-${input.taskId}-${String(input.contract.contractDigest)}`,
+    taskId: input.taskId,
+    risk: input.contract.risk,
+    reviewer: { id: 'independent-test-reviewer', trustLevel: 'local-claim' },
+    decision: 'ACCEPTED',
+    contract: { path: input.contractPath, rawSha256: sha256(contractRaw), digest: input.contract.contractDigest },
+    checklist: Object.fromEntries([
+      'scope_non_goals', 'authority_dependencies', 'risk_owner_reviewer',
+      'behavior_state_transitions', 'security_trust', 'evidence_environment',
+      'external_source_provenance', 'rollout_recovery_compatibility',
+      'unresolved_product_decisions',
+    ].map((key) => [key, checklistItem])),
+    r3Requirements: r3,
+    findings: [],
+    nextStage: 'implementation',
+    userActionRequired: false,
+  }
+  const reviewPath = join(input.root, `.delivery/tasks/${input.taskId}/contract-review.yaml`)
+  write(reviewPath, stringify(review))
+  return reviewPath
+}
+
 export interface HardenedTaskFixture {
   root: string
   taskId: string
@@ -120,49 +178,14 @@ export function hardenedTaskFixture(options: {
   const contractRaw = readFileSync(contractPath)
   const contract = parse(contractRaw.toString('utf8')) as Record<string, unknown>
   if ((contract.contractReadiness as { required?: boolean } | undefined)?.required === true) {
-    const evidenceRef = {
-      id: 'E-001',
-      kind: 'contract',
-      path: `.delivery/tasks/${taskId}/contract.yaml`,
-      sha256: sha256(contractRaw),
-      digest: canonicalDigest(contract),
-    }
-    const checklistItem = { status: 'PASS', evidenceRefs: [evidenceRef] }
-    const r3 = (contract.risk === 'R3')
-      ? {
-        trust_threat_analysis: checklistItem,
-        migration_recovery_rollback: checklistItem,
-        specialized_gates: checklistItem,
-        scoped_authorization: (options.authorizationRequirements ?? []).length > 0
-          ? checklistItem
-          : { status: 'NA', applicabilityReason: 'no-scoped-authorization-action', evidenceRefs: [evidenceRef] },
-        production_observation: { status: 'NA', applicabilityReason: 'no-production-action', evidenceRefs: [evidenceRef] },
-      }
-      : Object.fromEntries([
-        'trust_threat_analysis', 'migration_recovery_rollback', 'specialized_gates',
-        'scoped_authorization', 'production_observation',
-      ].map((key) => [key, { status: 'NA', applicabilityReason: 'risk-below-r3', evidenceRefs: [evidenceRef] }]))
-    const review = {
-      schemaVersion: 2,
-      artifactType: 'sop-contract-review-v2',
-      reviewId: `crv-${taskId}-${String(contract.contractDigest)}`,
+    writeAcceptedContractReadinessReview({
+      root,
       taskId,
-      risk: contract.risk,
-      reviewer: { id: 'independent-test-reviewer', trustLevel: 'local-claim' },
-      decision: 'ACCEPTED',
-      contract: { path: contractPath, rawSha256: sha256(contractRaw), digest: contract.contractDigest },
-      checklist: Object.fromEntries([
-        'scope_non_goals', 'authority_dependencies', 'risk_owner_reviewer',
-        'behavior_state_transitions', 'security_trust', 'evidence_environment',
-        'external_source_provenance', 'rollout_recovery_compatibility',
-        'unresolved_product_decisions',
-      ].map((key) => [key, checklistItem])),
-      r3Requirements: r3,
-      findings: [],
-      nextStage: 'implementation',
-      userActionRequired: false,
-    }
-    write(join(root, `.delivery/tasks/${taskId}/contract-review.yaml`), stringify(review))
+      contractPath,
+      contractRaw,
+      contract,
+      authorizationRequirements: options.authorizationRequirements,
+    })
   }
   const authorizationArtifacts = (options.authorizationDocuments?.({
     root,

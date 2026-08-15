@@ -395,6 +395,7 @@ export function verifyCandidateReplay(
   candidatePath: string,
   verificationTime: Date,
   maximumAgeMs: number,
+  runnerIdentity?: { version: string; digest: string },
 ): ReplayVerificationResult {
   const loaded = loadCandidate(candidatePath, false)
   const outputPath = join(dirname(loaded.candidatePath), 'replay-verification.json')
@@ -434,7 +435,7 @@ export function verifyCandidateReplay(
     firstExecution.repositoriesBefore,
     loaded.contract.taskId,
   )
-  const identity = governanceIdentity()
+  const identity = runnerIdentity ?? governanceIdentity()
   if (artifact.producer.version !== identity.version || artifact.producer.policyDigest !== identity.digest) {
     errors.push('REPLAY_RUNNER_IDENTITY_MISMATCH')
   }

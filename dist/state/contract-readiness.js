@@ -27,11 +27,11 @@ const r3Keys = [
 // Contracts created by the pre-gate 2.0.0 runner are the only markerless
 // histories that remain grandfathered after this gate is introduced.
 export const PRE_GATE_POLICY_DIGEST = 'eba8165bd069c0e85e5b08217ea260e7b027e85158404a50644c03b57a909aca';
-function sha256(input) {
-    return createHash('sha256').update(input).digest('hex');
-}
 function sortedIds(items) {
     return items.every((item, index) => index === 0 || items[index - 1].id < item.id);
+}
+function sha256(input) {
+    return createHash('sha256').update(input).digest('hex');
 }
 function findingsOrdered(items) {
     const severityRank = { BLOCKER: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
@@ -224,7 +224,7 @@ export function verifyContractReadinessArtifact(projectRootInput, taskId, review
             }
         }
     }
-    if (!sortedIds(review.findings) || !findingsOrdered(review.findings)
+    if (!findingsOrdered(review.findings)
         || new Set(review.findings.map((finding) => finding.id)).size !== review.findings.length) {
         errors.push('CONTRACT_REVIEW_FINDINGS_NOT_UNIQUE_SEVERITY_SORTED');
     }

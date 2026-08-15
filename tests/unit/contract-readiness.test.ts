@@ -126,8 +126,14 @@ describe('contract readiness gate', () => {
     review.nextStage = 'contract-repair'
     review.userActionRequired = true
     review.findings = [
-      { id: 'CR-001', severity: 'HIGH', classification: 'contract_violation', observation: 'high', requiredChange: 'fix', evidenceRefs },
       { id: 'CR-002', severity: 'BLOCKER', classification: 'contract_violation', observation: 'blocker', requiredChange: 'fix', evidenceRefs },
+      { id: 'CR-001', severity: 'HIGH', classification: 'contract_violation', observation: 'high', requiredChange: 'fix', evidenceRefs },
+    ]
+    writeFileSync(reviewPath, stringify(review))
+    expect(verifyContractReadinessArtifact(root, taskId, reviewPath).valid).toBe(true)
+    review.findings = [
+      { id: 'CR-002', severity: 'HIGH', classification: 'contract_violation', observation: 'high 2', requiredChange: 'fix', evidenceRefs },
+      { id: 'CR-001', severity: 'HIGH', classification: 'contract_violation', observation: 'high 1', requiredChange: 'fix', evidenceRefs },
     ]
     writeFileSync(reviewPath, stringify(review))
     expect(verifyContractReadinessArtifact(root, taskId, reviewPath).errors)

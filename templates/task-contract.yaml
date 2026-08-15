@@ -1,8 +1,8 @@
 schemaVersion: 2
 taskId: example-task
 sopVersion: 2.0.0
-policyDigest: 0000000000000000000000000000000000000000000000000000000000000000
-contractDigest: 0000000000000000000000000000000000000000000000000000000000000000
+policyDigest: '0000000000000000000000000000000000000000000000000000000000000000'
+contractDigest: '0000000000000000000000000000000000000000000000000000000000000000'
 risk: R2
 riskSignals:
   mutation: true
@@ -19,9 +19,9 @@ repositories:
   - id: root
     path: /absolute/path/to/project
     baseline:
-      head: 0000000000000000000000000000000000000000
-      tree: 0000000000000000000000000000000000000000
-      checkoutDigest: 0000000000000000000000000000000000000000000000000000000000000000
+      head: '0000000000000000000000000000000000000000'
+      tree: '0000000000000000000000000000000000000000'
+      checkoutDigest: '0000000000000000000000000000000000000000000000000000000000000000'
       trackedPaths: []
       untrackedPaths: []
 acceptance:
@@ -36,7 +36,7 @@ acceptance:
       repositoryId: root
       cwd: .
       executable: /absolute/path/to/executable
-      executableSha256: 0000000000000000000000000000000000000000000000000000000000000000
+      executableSha256: '0000000000000000000000000000000000000000000000000000000000000000'
       arguments:
         - test
       environment: {}
@@ -47,6 +47,10 @@ acceptance:
       replay: not-required
 evidenceFreshnessMs: 86400000
 authorizationRequirements: []
+contractReadiness:
+  required: true
+  reviewPath: .delivery/tasks/example-task/contract-review.yaml
+  gateVersion: 2.1.0-beta.0
 extensions: []
 openChoices:
   - internal implementation names

@@ -33,6 +33,44 @@ function sha256(input: string | Uint8Array): string {
   return createHash('sha256').update(input).digest('hex')
 }
 
+function writeAcceptedReadinessReview(root: string, taskId: string): void {
+  const contractPath = join(root, `.delivery/tasks/${taskId}/contract.yaml`)
+  const contractRaw = readFileSync(contractPath)
+  const contract = parse(contractRaw.toString('utf8')) as Record<string, unknown>
+  const evidenceRef = {
+    id: 'E-001',
+    kind: 'contract',
+    path: `.delivery/tasks/${taskId}/contract.yaml`,
+    sha256: sha256(contractRaw),
+    digest: canonicalDigest(contract),
+  }
+  const item = { status: 'PASS', evidenceRefs: [evidenceRef] }
+  const na = { status: 'NA', applicabilityReason: 'risk-below-r3', evidenceRefs: [evidenceRef] }
+  writeFileSync(join(root, `.delivery/tasks/${taskId}/contract-review.yaml`), stringify({
+    schemaVersion: 2,
+    artifactType: 'sop-contract-review-v2',
+    reviewId: `crv-${taskId}-${String(contract.contractDigest)}`,
+    taskId,
+    risk: contract.risk,
+    reviewer: { id: 'independent-graph-reviewer', trustLevel: 'local-claim' },
+    decision: 'ACCEPTED',
+    contract: { path: contractPath, rawSha256: sha256(contractRaw), digest: contract.contractDigest },
+    checklist: Object.fromEntries([
+      'scope_non_goals', 'authority_dependencies', 'risk_owner_reviewer',
+      'behavior_state_transitions', 'security_trust', 'evidence_environment',
+      'external_source_provenance', 'rollout_recovery_compatibility',
+      'unresolved_product_decisions',
+    ].map((key) => [key, item])),
+    r3Requirements: Object.fromEntries([
+      'trust_threat_analysis', 'migration_recovery_rollback', 'specialized_gates',
+      'scoped_authorization', 'production_observation',
+    ].map((key) => [key, na])),
+    findings: [],
+    nextStage: 'implementation',
+    userActionRequired: false,
+  }))
+}
+
 afterEach(() => {
   for (const path of temporaryDirectories.splice(0)) {
     rmSync(path, { recursive: true, force: true })
@@ -76,13 +114,14 @@ function definedTaskFixture(taskId = 'graph-task'): string {
     }],
     authorizationRequirements: [],
     openChoices: [],
-    signals: { mutation: true, classificationComplete: true },
+    signals: { mutation: true, crossModule: true },
   })
   for (const artifact of result.artifacts) {
     const path = join(root, artifact.path)
     mkdirSync(join(path, '..'), { recursive: true })
     writeFileSync(path, artifact.content)
   }
+  writeAcceptedReadinessReview(root, taskId)
   return root
 }
 
@@ -133,12 +172,13 @@ function candidateTaskFixture(taskId = 'candidate-task'): {
   const contractPath = join(taskRoot, 'contract.yaml')
   const contractRaw = readFileSync(contractPath)
   const contract = parse(contractRaw.toString('utf8')) as Record<string, unknown>
+  writeAcceptedReadinessReview(root, taskId)
   const inProgress = planTaskTransition({
     projectRoot: root,
     taskId,
     actorId: 'codex',
     to: 'IN_PROGRESS',
-    artifacts: [{ kind: 'contract', path: contractPath }],
+    artifacts: [{ kind: 'contract-review', path: join(taskRoot, 'contract-review.yaml') }],
   })
   expect(applyTaskTransition(inProgress, inProgress.digest)).toEqual({ applied: true, errors: [] })
 
