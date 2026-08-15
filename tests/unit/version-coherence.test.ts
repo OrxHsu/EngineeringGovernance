@@ -14,7 +14,7 @@ it('keeps package, canonical documents, and governance identity on one release v
     expect(readFileSync(path, 'utf8')).toContain(`Version: ${version}`)
   }
 
-  expect(readFileSync('README.md', 'utf8')).toContain('local `2.0.0` release candidate')
+  expect(readFileSync('README.md', 'utf8')).toContain('local `2.1.0-beta.0` release candidate')
   expect(readFileSync('README.md', 'utf8')).toContain('MIGRATING_TO_2.0.md')
   expect(readFileSync('MIGRATING_TO_2.0.md', 'utf8')).toContain('legacy inspect-only')
   expect(readFileSync('templates/project-extensions.yaml', 'utf8')).toContain('schemaVersion: 2')
