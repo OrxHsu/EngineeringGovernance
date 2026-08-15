@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "engineering-governance-release-record-v1",
+  "taskId": "global-sop-2-1-beta-release-5",
+  "contract": {
+    "path": ".delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml",
+    "rawSha256": "4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7",
+    "digest": "7389dc93c1ea8e3f5a4172ce447904454e5c55bc648ca234a8d3889fa46e6e00"
+  },
+  "sourceRange": {
+    "baseCommit": "8e41388ca14c30646e990fbe2e7c976e0018b9fc",
+    "baseTree": "e8c3e383c20f28a8af80fa961f8d03c7d7fb7781",
+    "commits": [
+      {
+        "commit": "75e70217f11388a37595dd1dcbbbae9a4a38861d",
+        "tree": "98bd5a8b14020b15f35f5687de9303b0d5e5e8f2"
+      },
+      {
+        "commit": "170e2d6294caac337b847459942fec1fd153e8af",
+        "tree": "3a7687414482aedd2a1041c3f93c4c70798d5c9c"
+      },
+      {
+        "commit": "d50292d6280b48053a525f8e84bf6cc3c7abb5c1",
+        "tree": "7735cb046950b59c66b71aa07cf1662236fe6d79"
+      },
+      {
+        "commit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
+        "tree": "2f02144670f27e3abcd6ba69186aadac47ba53f3"
+      }
+    ],
+    "candidateCommit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
+    "candidateTree": "2f02144670f27e3abcd6ba69186aadac47ba53f3"
+  },
+  "archive": {
+    "filename": "engineering-governance-2.1.0-beta.0.tgz",
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz",
+    "sha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+    "version": "2.1.0-beta.0",
+    "verificationReceipt": {
+      "path": "releases/2.1.0-beta.0/archive-verification.json",
+      "rawSha256": "642a257dcc8ae5c5b43b868ed43670d2cb6c40a1e4b4dde2e0debc4bf70a1f56",
+      "digest": "117820fd498f2e6b2dc07df74c0cee8a1f6d9693ff569e29bcadea0c38706bf9",
+      "version": "2.1.0-beta.0",
+      "archivePath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz",
+      "sha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+      "firstBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+      "secondBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+      "candidateCommit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
+      "candidateTree": "2f02144670f27e3abcd6ba69186aadac47ba53f3",
+      "identical": true
+    }
+  },
+  "sourceIdentity": {
+    "packageVersion": "2.1.0-beta.0",
+    "versionFile": "2.1.0-beta.0"
+  },
+  "publicationStatus": "local-unpublished",
+  "priorFinding": {
+    "path": "releases/2.1.0-beta.0/implementation-review-75e70217.yaml",
+    "rawSha256": "1089d7d5e0871c14b28c637ab604978ed224df4677f322fe5d3c4b237f0f9c05",
+    "digest": "0463e5e7dccbe3b74e861e0af0e48c2a1ed3579f069d150b60065bf1235a90aa"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "version": "2.1.0-beta.0",
+  "archivePath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz",
+  "sha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+  "firstBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+  "secondBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+  "candidateCommit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
+  "candidateTree": "2f02144670f27e3abcd6ba69186aadac47ba53f3",
+  "identical": true
+}
