@@ -2,7 +2,7 @@
 
 Status: canonical development policy
 
-Version: 2.0.0
+Version: 2.1.0-beta.0
 
 Select the highest matching risk. Incomplete classification raises a mutating
 task to at least R2. Project extensions may raise but not silently lower risk.
