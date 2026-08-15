@@ -4,7 +4,13 @@ import { dirname, resolve } from 'node:path';
 import { readTaskLedger } from '../state/ledger.js';
 import { verifyContractReadinessArtifact } from '../state/contract-readiness.js';
 export function verifyContractReview(reviewPathInput) {
-    const reviewPath = realpathSync(resolve(reviewPathInput));
+    let reviewPath;
+    try {
+        reviewPath = realpathSync(resolve(reviewPathInput));
+    }
+    catch {
+        return { valid: false, errors: ['CONTRACT_REVIEW_FILE_UNSAFE'] };
+    }
     const taskRoot = dirname(reviewPath);
     const projectRoot = realpathSync(resolve(taskRoot, '../../..'));
     const taskId = taskRoot.split('/').at(-1) ?? '';

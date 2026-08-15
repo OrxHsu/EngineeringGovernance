@@ -1,0 +1,22 @@
+schemaVersion: 1
+artifactType: engineering-governance-prior-review-finding-v1
+recordId: implementation-review-75e70217-p1
+reviewedImplementation:
+  repository: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+  commit: 75e70217f11388a37595dd1dcbbbae9a4a38861d
+  tree: 98bd5a8b14020b15f35f5687de9303b0d5e5e8f2
+reporter:
+  id: independent-implementation-reviewer
+  trustLevel: local-claim
+decision: REPAIR_REQUIRED
+acceptanceStatus: not-accepted
+finding:
+  id: P1
+  severity: BLOCKER
+  classification: newly_discovered_defect
+  observation: Malformed canonical contract-readiness artifacts could crash validation with TypeError instead of returning structured rejection.
+  requiredChange: Return immediately after invalid schema or shape and add verifier, ledger, CLI, and graph adversarial coverage.
+reproduction:
+  input: "schemaVersion: 2\n"
+  failure: "TypeError: Cannot read properties of undefined (reading 'path')"
+recordedAt: 2026-08-15T07:00:00Z

@@ -185,6 +185,28 @@ afterEach(() => {
 })
 
 describe('v2 CLI hardening', () => {
+  it('returns structured invalid JSON for a malformed canonical contract review', async () => {
+    const fixture = hardenedTaskFixture({ taskId: 'cli-malformed-review' })
+    const reviewPath = join(fixture.root, `.delivery/tasks/${fixture.taskId}/contract-review.yaml`)
+    writeFileSync(reviewPath, 'schemaVersion: 2\n')
+    const ledgerPath = join(fixture.root, `.delivery/tasks/${fixture.taskId}/ledger.jsonl`)
+    const beforeLedger = readFileSync(ledgerPath, 'utf8')
+    let output = ''
+    const previousExitCode = process.exitCode
+    process.exitCode = undefined
+    try {
+      await buildProgram({ write: (text) => { output += text } }).parseAsync([
+        'node', 'sop', 'task', 'contract-review', '--input', reviewPath,
+      ])
+    } finally {
+      process.exitCode = previousExitCode
+    }
+    const result = JSON.parse(output) as { valid: boolean; errors: string[] }
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((error) => error.includes('SCHEMA_INVALID'))).toBe(true)
+    expect(output).not.toContain('TypeError')
+    expect(readFileSync(ledgerPath, 'utf8')).toBe(beforeLedger)
+  })
   it('rejects omitted and partial v2 start and execute inputs with stable errors', () => {
     for (const input of [
       { schemaVersion: 2 },

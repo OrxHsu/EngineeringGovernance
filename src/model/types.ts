@@ -28,6 +28,8 @@ export type DocumentKind =
   | 'external-source-use'
   | 'external-source-release'
   | 'contract-review'
+  | 'prior-review-finding'
+  | 'release-record'
 
 export interface ValidationResult {
   valid: boolean

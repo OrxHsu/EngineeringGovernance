@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/release-record.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "taskId", "contract", "sourceRange", "archive", "sourceIdentity", "publicationStatus", "priorFinding"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-release-record-v1" },
+    "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "contract": {
+      "type": "object", "additionalProperties": false, "required": ["path", "rawSha256", "digest"],
+      "properties": { "path": { "type": "string", "pattern": "^\\.delivery/tasks/" }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" } }
+    },
+    "sourceRange": {
+      "type": "object", "additionalProperties": false, "required": ["baseCommit", "baseTree", "commits", "candidateCommit", "candidateTree"],
+      "properties": {
+        "baseCommit": { "$ref": "#/$defs/hash40" }, "baseTree": { "$ref": "#/$defs/hash40" },
+        "candidateCommit": { "$ref": "#/$defs/hash40" }, "candidateTree": { "$ref": "#/$defs/hash40" },
+        "commits": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": false, "required": ["commit", "tree"], "properties": { "commit": { "$ref": "#/$defs/hash40" }, "tree": { "$ref": "#/$defs/hash40" } } } }
+      }
+    },
+    "archive": {
+      "type": "object", "additionalProperties": false, "required": ["filename", "path", "sha256", "version", "verificationReceipt"],
+      "properties": {
+        "filename": { "type": "string", "minLength": 1 }, "path": { "type": "string", "minLength": 1 }, "sha256": { "$ref": "#/$defs/hash" }, "version": { "const": "2.1.0-beta.0" },
+        "verificationReceipt": {
+          "type": "object", "additionalProperties": false, "required": ["path", "rawSha256", "digest", "archivePath", "sha256", "firstBuildSha256", "secondBuildSha256", "candidateCommit", "candidateTree", "version", "identical"],
+          "properties": { "path": { "type": "string", "minLength": 1 }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" }, "archivePath": { "type": "string", "minLength": 1 }, "sha256": { "$ref": "#/$defs/hash" }, "firstBuildSha256": { "$ref": "#/$defs/hash" }, "secondBuildSha256": { "$ref": "#/$defs/hash" }, "candidateCommit": { "$ref": "#/$defs/hash40" }, "candidateTree": { "$ref": "#/$defs/hash40" }, "version": { "const": "2.1.0-beta.0" }, "identical": { "const": true } }
+        }
+      }
+    },
+    "sourceIdentity": { "type": "object", "additionalProperties": false, "required": ["packageVersion", "versionFile"], "properties": { "packageVersion": { "const": "2.1.0-beta.0" }, "versionFile": { "const": "2.1.0-beta.0" } } },
+    "publicationStatus": { "const": "local-unpublished" },
+    "priorFinding": { "type": "object", "additionalProperties": false, "required": ["path", "rawSha256", "digest"], "properties": { "path": { "type": "string", "minLength": 1 }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" } } }
+  },
+  "$defs": { "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "hash40": { "type": "string", "pattern": "^[a-f0-9]{40}$" } }
+}

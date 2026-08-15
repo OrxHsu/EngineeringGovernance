@@ -4,7 +4,7 @@ Engineering Governance is the canonical, versioned development workflow for
 user-owned projects. It defines risk classification, task states, evidence
 integrity, independent review, exception handling, and safe project adoption.
 
-The repository is a local `2.0.0` release candidate and remains unpublished.
+The repository is a local `2.1.0-beta.0` release candidate and remains unpublished.
 Version 2 is a breaking lifecycle and artifact-format release. Existing 1.x
 projects remain pinned until an explicit reviewed upgrade; see
 [`MIGRATING_TO_2.0.md`](MIGRATING_TO_2.0.md).

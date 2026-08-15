@@ -146,7 +146,6 @@ export function buildProgram(output = defaultOutput) {
         .requiredOption('--input <path>')
         .action((options) => {
         const input = loadCliInput(options.input);
-        requireActiveV2(input.value);
         writeJson(output, verifyContractReview(input.unresolvedPath));
     });
     task.command('review')

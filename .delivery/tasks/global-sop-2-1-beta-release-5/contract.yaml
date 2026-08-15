@@ -1,0 +1,502 @@
+schemaVersion: 2
+taskId: global-sop-2-1-beta-release-5
+sopVersion: 2.0.0
+policyDigest: 258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f
+risk: R3
+riskSignals:
+  mutation: true
+  classificationComplete: true
+  crossModule: true
+  security: true
+  projectMinimum: R3
+implementationOwner: codex
+objective: Repair malformed contract-readiness validation and formally produce
+  the local Engineering Governance 2.1.0-beta.0 release candidate. Bind the
+  complete Git range from base commit 8e41388ca14c30646e990fbe2e7c976e0018b9fc,
+  exact-schema prior-finding and release records, and a twice-built
+  byte-identical runner archive. Self-upgrade and consumer migration remain
+  separate reviewed follow-up tasks.
+scope:
+  - Defensively reject null, arrays, schema-only documents, missing nested
+    objects, wrong types, unknown keys, and forged partial contract reviews
+    through verifier, CLI, ledger, and graph paths without TypeError, execution,
+    or ledger mutation.
+  - Preserve CLOSED, CANCELLED, and SUPERSEDED v2 history across policy upgrades
+    while rejecting every non-terminal stale-policy task.
+  - Add exact machine-readable schemas and semantic validators for the durable
+    prior-finding record and runner-produced beta release record.
+  - Add one verifier that builds the beta runner twice in separate temporary
+    directories, compares bytes and SHA-256, validates required archive
+    identity/content, and installs only the verified bytes at the declared local
+    release path.
+  - Add adversarial unit/integration tests for malformed readiness inputs, both
+    record schemas, semantic binding, cumulative range completeness, and archive
+    nondeterminism.
+  - Bump VERSION and package.json to exactly 2.1.0-beta.0 and update README.md
+    only after this task enters IN_PROGRESS.
+  - Record the reported P1 finding against commit
+    75e70217f11388a37595dd1dcbbbae9a4a38861d without relabeling that commit as
+    accepted.
+nonGoals:
+  - Do not apply a self-upgrade/adoption plan, migrate a consumer project,
+    publish, push, deploy, restart services, mutate persistent data, or
+    communicate externally.
+  - Do not change ProjTrav, NoMe, product code, or historical task artifacts.
+  - Do not inspect, adapt, copy, or authorize TREK implementation material.
+  - Do not treat
+    /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/RELEASE-MANIFEST.md
+    as authoritative; it is mutable historical context only and is not an input
+    to this candidate.
+  - Do not encode a future final review decision inside an implementation-owned
+    release record.
+authorityInputs:
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - RISK_CLASSIFICATION.md
+  - MIGRATING_TO_2.0.md
+  - README.md
+  - .delivery/inputs/global-sop-contract-readiness-gate-2.yaml
+  - src/state/contract-readiness.ts
+  - src/state/ledger.ts
+  - src/project/task-graph.ts
+  - src/commands/task-contract-review-v2.ts
+  - src/cli/main.ts
+  - src/model/digest.ts
+  - src/policy/load.ts
+  - scripts/build-runner-bundle.mjs
+  - tests/integration/real-project-dry-run.test.ts
+  - 8e41388ca14c30646e990fbe2e7c976e0018b9fc
+repositories:
+  - id: root
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    baseline:
+      head: d50292d6280b48053a525f8e84bf6cc3c7abb5c1
+      tree: 7735cb046950b59c66b71aa07cf1662236fe6d79
+      checkoutDigest: 43d64075cb5fa1afe0bab4d2ec470c53f8972d0ab4324fe8c5828bcbad188455
+      trackedPaths:
+        - src/cli/main.ts
+        - src/commands/task-contract-review-v2.ts
+        - src/state/contract-readiness.ts
+        - tests/unit/contract-readiness.test.ts
+      untrackedPaths:
+        - .delivery/inputs/global-sop-2-1-beta-release-1-supersede.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-1.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-2-supersede.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-2.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-3-supersede.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-3.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-4-supersede.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-4.yaml
+        - .delivery/inputs/global-sop-2-1-beta-release-5.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-1-supersede.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-1.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-2-supersede.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-2.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-3-supersede.yaml
+        - .delivery/tasks/global-sop-2-1-beta-release-1/contract.yaml
+        - .delivery/tasks/global-sop-2-1-beta-release-1/ledger.jsonl
+        - .delivery/tasks/global-sop-2-1-beta-release-2/contract.yaml
+        - .delivery/tasks/global-sop-2-1-beta-release-2/ledger.jsonl
+        - .delivery/tasks/global-sop-2-1-beta-release-3/contract.yaml
+        - .delivery/tasks/global-sop-2-1-beta-release-3/ledger.jsonl
+        - .delivery/tasks/global-sop-2-1-beta-release-4/contract.yaml
+        - .delivery/tasks/global-sop-2-1-beta-release-4/ledger.jsonl
+        - .delivery/tasks/global-sop-contract-readiness-gate-1/contract.yaml
+        - .delivery/tasks/global-sop-contract-readiness-gate-1/ledger.jsonl
+        - .delivery/tasks/global-sop-contract-readiness-gate-2/contract.yaml
+        - .delivery/tasks/global-sop-contract-readiness-gate-2/ledger.jsonl
+        - .delivery/tasks/global-sop-contract-readiness-gate-3/contract.yaml
+        - .delivery/tasks/global-sop-contract-readiness-gate-3/ledger.jsonl
+        - docs/handoffs/global-sop-hardening-1.md
+acceptance:
+  - id: SOP21-RECORD-SCHEMAS
+    observation: Prior-finding and beta release records use exact schemas, exact key
+      sets, canonical JSON/YAML semantics, and cross-field binding; empty,
+      duplicate, reordered, unknown-key, wrong-type, stale, forged, or
+      cross-candidate records are rejected.
+    positiveCases:
+      - The prior record is exactly schemaVersion 1, artifactType
+        engineering-governance-prior-review-finding-v1, recordId,
+        reviewedImplementation, reporter, decision, acceptanceStatus, finding,
+        reproduction, and recordedAt.
+      - reviewedImplementation is exactly repository, commit, and tree and binds
+        commit 75e70217f11388a37595dd1dcbbbae9a4a38861d with tree
+        98bd5a8b14020b15f35f5687de9303b0d5e5e8f2; reporter is local-claim
+        independent-implementation-reviewer; decision is REPAIR_REQUIRED;
+        acceptanceStatus is not-accepted.
+      - finding is exactly id P1, severity BLOCKER, classification
+        newly_discovered_defect, non-empty observation and requiredChange;
+        reproduction contains the exact schema-only malformed YAML input and
+        non-empty TypeError failure observed before repair.
+      - The release record is canonical JSON plus one LF with exact keys
+        schemaVersion, artifactType, taskId, contract, sourceRange, archive,
+        sourceIdentity, publicationStatus, and priorFinding. It binds this exact
+        task/contract path/raw SHA/digest; recomputed base/candidate commit and
+        tree; every ordered commit/tree entry; archive
+        filename/path/SHA/version; package.json and VERSION value;
+        local-unpublished; and prior record path/raw SHA/semantic digest.
+    negativeCases:
+      - A hash-only, prose-only, self-accepted, summary-only, caller-selected,
+        or semantically empty record passes schema or semantic validation.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/unit/release-records.test.ts
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-REPAIR-UNIT
+    observation: Malformed review shapes fail closed in direct readiness and ledger
+      helpers without unchecked access.
+    positiveCases:
+      - Unit cases cover null, array, schema-only, missing nested, wrong-type,
+        unknown-key, duplicate, stale, and forged records plus one valid
+        accepted review.
+    negativeCases:
+      - Schema errors are collected and code then dereferences missing review
+        fields.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/unit/contract-readiness.test.ts
+        - tests/unit/task-contract-review-v2.test.ts
+        - tests/unit/task-ledger-v2.test.ts
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-REPAIR-INTEGRATION
+    observation: CLI, transition, and graph paths reject malformed canonical review
+      files with structured invalid results and unchanged ledger bytes.
+    positiveCases:
+      - Real CLI-process tests assert JSON valid false, no TypeError or
+        stack-only response, no command execution, and no ledger mutation.
+      - Graph tests keep only terminal stale-policy history checkable and reject
+        stale DEFINED, IN_PROGRESS, CANDIDATE, ACCEPTED, REPAIR_REQUIRED, and
+        BLOCKED tasks.
+    negativeCases:
+      - A malformed review authorizes IN_PROGRESS, mutates the ledger, executes
+        input, crashes, or passes graph validation.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/integration/cli-v2-hardening.test.ts
+        - tests/integration/contract-review-gate.test.ts
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-ARCHIVE
+    observation: One frozen verifier builds twice from the exact candidate in
+      distinct temporary directories, requires byte-identical archives and equal
+      SHA-256, validates filename/version/package/VERSION and required
+      source/dist/schema/template/dependency inventory, then writes only those
+      verified bytes to the local release path.
+    positiveCases:
+      - The verifier emits canonical JSON containing exactly version,
+        archivePath, sha256, firstBuildSha256, secondBuildSha256,
+        candidateCommit, candidateTree, and identical true; all three archive
+        hashes are equal.
+      - The receipt is persisted at
+        releases/2.1.0-beta.0/archive-verification.json with raw SHA-256 and
+        semantic digest, and replaying the verifier from the unchanged candidate
+        yields the same archive bytes, archive SHA, candidateCommit, and
+        candidateTree.
+    negativeCases:
+      - A single build, different hashes, different bytes, missing content,
+        symlink, stale output, wrong metadata, or copy-before-compare passes.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - scripts/verify-beta-runner-reproducibility.mjs
+        - --output
+        - /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0
+        - --version
+        - 2.1.0-beta.0
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-RELEASE-RECORD
+    observation: The runner-produced canonical release record independently
+      recomputes and binds the complete source range, exact contract, verified
+      archive, source identity, local publication status, and exact
+      prior-finding record.
+    positiveCases:
+      - Base commit 8e41388ca14c30646e990fbe2e7c976e0018b9fc is recomputed as an
+        ancestor, its tree is e8c3e383c20f28a8af80fa961f8d03c7d7fb7781, and
+        every commit/tree through HEAD appears exactly once in Git order.
+      - Candidate commit/tree, contract raw SHA/digest, archive SHA/version,
+        source version, and prior finding raw/semantic identity are recomputed
+        from canonical files.
+      - The release record accepts an archive-verification receipt path plus raw
+        SHA/semantic digest and requires exact equality for archivePath, archive
+        SHA, firstBuildSha256, secondBuildSha256, version, candidateCommit,
+        candidateTree, and verified bytes; it rejects replacement, drift,
+        stale/cross-candidate, or receipt/record mismatch.
+    negativeCases:
+      - Non-ancestor, rewritten, missing/reordered/duplicate commit,
+        stale/cross-task contract, wrong archive, wrong source version, symlink,
+        or forged prior record passes.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - scripts/emit-beta-release-record.mjs
+        - --task-id
+        - global-sop-2-1-beta-release-5
+        - --base-commit
+        - 8e41388ca14c30646e990fbe2e7c976e0018b9fc
+        - --archive
+        - /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz
+        - --archive-receipt
+        - releases/2.1.0-beta.0/archive-verification.json
+        - --prior-finding
+        - releases/2.1.0-beta.0/implementation-review-75e70217.yaml
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-UNIT-ALL
+    observation: Every unit test passes under Node 22 with zero skipped unit tests.
+    positiveCases:
+      - pnpm exec vitest run tests/unit exits zero with zero skipped tests
+    negativeCases:
+      - a unit file is omitted
+      - skipped
+      - or replaced by a count
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/unit
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-INTEGRATION-ALL
+    observation: Every integration test passes under Node 22 except exactly
+      tests/integration/real-project-dry-run.test.ts case "plans real project
+      adoption through canonical sources without mutation", which is skipped
+      only because REAL_PROJECT_DRY_RUN is not 1 and consumer access is a
+      non-goal of this release task. No other skip is allowed.
+    positiveCases:
+      - Vitest exits zero and reports exactly one skipped test with that exact
+        path/title/guard reason and every other integration test passed.
+    negativeCases:
+      - The named skip runs, changes reason, disappears without replacement
+        evidence, or any other file/case skips.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/integration
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-TYPECHECK
+    observation: TypeScript static typecheck passes for the exact candidate.
+    positiveCases:
+      - pnpm typecheck exits zero
+    negativeCases:
+      - typecheck is omitted or substituted by build
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - typecheck
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-BUILD
+    observation: Source compiles to tracked dist under Node 22 without tracked drift.
+    positiveCases:
+      - pnpm build exits zero and git diff remains empty for the candidate
+    negativeCases:
+      - stale dist or another checkout supplies compile evidence
+    evidenceKind: compile
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - build
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-DOCS
+    observation: Governance semantic docs checks include exact 2.1.0-beta.0 release
+      identity and pass.
+    positiveCases:
+      - node scripts/check-governance-docs.mjs exits zero
+    negativeCases:
+      - placeholder-only or prose-only checks substitute for semantic validation
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - scripts/check-governance-docs.mjs
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-PLACEHOLDERS
+    observation: Placeholder scan passes for the exact candidate.
+    positiveCases:
+      - pnpm check:placeholders exits zero
+    negativeCases:
+      - scan is omitted or run on another checkout
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - check:placeholders
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-LICENSES
+    observation: License inventory check passes for the exact candidate.
+    positiveCases:
+      - pnpm check:licenses exits zero
+    negativeCases:
+      - license evidence is omitted or replaced by a claim
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - check:licenses
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-PINNED-CHECK
+    observation: The old pinned 2.0.0 wrapper remains valid before any separate
+      migration applies a plan.
+    positiveCases:
+      - the wrapper returns valid true and reports exact terminal histories plus
+        this task state
+    negativeCases:
+      - source-only or stale-runner output substitutes for pinned validation
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/bin/check-delivery-policy.sh
+      arguments: []
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+      executableSha256: e6cedeb03631ca96a664ce65adfa45f5a8151c348b711cb847d7b17cba302ba7
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+evidenceFreshnessMs: 86400000
+authorizationRequirements: []
+contractReadiness:
+  required: true
+  reviewPath: .delivery/tasks/global-sop-2-1-beta-release-5/contract-review.yaml
+  gateVersion: 2.1.0-beta.0
+extensions: []
+openChoices:
+  - The archive SHA-256 is derived only after both isolated builds are
+    byte-identical; the canonical archive-verification receipt is immutable for
+    this candidate and its exact raw/semantic identity and verified-build fields
+    are frozen into the runner-produced release record.
+  - A subsequent reviewed migration chain owns exact plan digest, one-time
+    apply, postcheck, and recovery; this task grants no upgrade authorization.
+contractDigest: 7389dc93c1ea8e3f5a4172ce447904454e5c55bc648ca234a8d3889fa46e6e00

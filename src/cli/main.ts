@@ -195,7 +195,6 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
     .requiredOption('--input <path>')
     .action((options: { input: string }) => {
       const input = loadCliInput<unknown>(options.input)
-      requireActiveV2(input.value)
       writeJson(output, verifyContractReview(input.unresolvedPath))
     })
   task.command('review')

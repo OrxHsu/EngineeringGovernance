@@ -213,13 +213,17 @@ export function verifyContractReadinessArtifact(
   if (reviewCanonical === undefined || reviewCanonical !== reviewPath) {
     return { valid: false, errors: [...errors, 'CONTRACT_REVIEW_ARTIFACT_UNSAFE'] }
   }
-  let review: ContractReviewArtifact
-  try { review = parse(readFileSync(reviewCanonical, 'utf8')) as ContractReviewArtifact } catch {
+  let review: unknown
+  try { review = parse(readFileSync(reviewCanonical, 'utf8')) } catch {
     return { valid: false, errors: [...errors, 'CONTRACT_REVIEW_FILE_UNREADABLE'] }
   }
   const schema = validateDocument('contract-review', review)
   if (!schema.valid) errors.push(...schema.errors.map((error) => `CONTRACT_REVIEW_SCHEMA_INVALID:${error}`))
-  if (review.taskId !== taskId) errors.push('CONTRACT_REVIEW_TASK_MISMATCH')
+  if (!schema.valid || review === null || typeof review !== 'object' || Array.isArray(review)) {
+    return { valid: false, errors: [...new Set(errors)].sort(), reviewPath: reviewCanonical }
+  }
+  const reviewArtifact = review as ContractReviewArtifact
+  if (reviewArtifact.taskId !== taskId) errors.push('CONTRACT_REVIEW_TASK_MISMATCH')
   const contractCanonical = safeRegularFile(contractPath)
   if (contractCanonical === undefined || contractCanonical !== contractPath) {
     return { valid: false, errors: [...errors, 'CONTRACT_REVIEW_CONTRACT_UNSAFE'] }
@@ -234,19 +238,21 @@ export function verifyContractReadinessArtifact(
   if (contract.contractReadiness?.required !== true) errors.push('CONTRACT_READINESS_NOT_REQUIRED')
   const contractDigest = contract.contractDigest
   const expectedReviewId = `crv-${taskId}-${contractDigest}`
-  if (review.reviewId !== expectedReviewId) errors.push('CONTRACT_REVIEW_ID_MISMATCH')
-  if (review.risk !== contract.risk || (contract.risk !== 'R2' && contract.risk !== 'R3')) errors.push('CONTRACT_REVIEW_RISK_MISMATCH')
-  if (review.contract.path !== contractCanonical || review.contract.rawSha256 !== sha256(contractRaw) || review.contract.digest !== contractDigest) {
+  if (reviewArtifact.reviewId !== expectedReviewId) errors.push('CONTRACT_REVIEW_ID_MISMATCH')
+  if (reviewArtifact.risk !== contract.risk || (contract.risk !== 'R2' && contract.risk !== 'R3')) errors.push('CONTRACT_REVIEW_RISK_MISMATCH')
+  if (reviewArtifact.contract === undefined || typeof reviewArtifact.contract !== 'object' || reviewArtifact.contract === null || Array.isArray(reviewArtifact.contract)
+    || reviewArtifact.contract.path !== contractCanonical || reviewArtifact.contract.rawSha256 !== sha256(contractRaw) || reviewArtifact.contract.digest !== contractDigest) {
     errors.push('CONTRACT_REVIEW_CONTRACT_IDENTITY_MISMATCH')
   }
   try {
-    if (normalizeActorId(review.reviewer.id) === normalizeActorId(contract.implementationOwner)) {
+    if (reviewArtifact.reviewer === undefined || typeof reviewArtifact.reviewer !== 'object' || reviewArtifact.reviewer === null || Array.isArray(reviewArtifact.reviewer)
+      || normalizeActorId(reviewArtifact.reviewer.id) === normalizeActorId(contract.implementationOwner)) {
       errors.push('CONTRACT_REVIEW_SELF_REVIEW_FORBIDDEN')
     }
   } catch { errors.push('CONTRACT_REVIEW_REVIEWER_INVALID') }
 
   for (const key of checklistKeys) {
-    const item = review.checklist?.[key]
+    const item = reviewArtifact.checklist?.[key]
     if (item === undefined) errors.push(`CONTRACT_REVIEW_CHECKLIST_MISSING:${key}`)
     else {
       errors.push(...evidenceErrors(projectRoot, item.evidenceRefs, `CHECKLIST_${key}`))
@@ -256,7 +262,7 @@ export function verifyContractReadinessArtifact(
   }
   const applicability = r3Applicability(contract)
   for (const key of r3Keys) {
-    const item = review.r3Requirements?.[key]
+    const item = reviewArtifact.r3Requirements?.[key]
     if (item === undefined) {
       errors.push(`CONTRACT_REVIEW_R3_MISSING:${key}`)
       continue
@@ -277,24 +283,24 @@ export function verifyContractReadinessArtifact(
       }
     }
   }
-  if (!findingsOrdered(review.findings)
-    || new Set(review.findings.map((finding) => finding.id)).size !== review.findings.length) {
+  if (!findingsOrdered(reviewArtifact.findings)
+    || new Set(reviewArtifact.findings.map((finding) => finding.id)).size !== reviewArtifact.findings.length) {
     errors.push('CONTRACT_REVIEW_FINDINGS_NOT_UNIQUE_SEVERITY_SORTED')
   }
-  for (const finding of review.findings) errors.push(...evidenceErrors(projectRoot, finding.evidenceRefs, `FINDING_${finding.id}`))
-  if (review.decision === 'ACCEPTED') {
-    if (review.findings.length !== 0 || review.nextStage !== 'implementation' || review.userActionRequired) {
+  for (const finding of reviewArtifact.findings) errors.push(...evidenceErrors(projectRoot, finding.evidenceRefs, `FINDING_${finding.id}`))
+  if (reviewArtifact.decision === 'ACCEPTED') {
+    if (reviewArtifact.findings.length !== 0 || reviewArtifact.nextStage !== 'implementation' || reviewArtifact.userActionRequired) {
       errors.push('CONTRACT_REVIEW_ACCEPTANCE_INVARIANT_INVALID')
     }
-  } else if (review.findings.length === 0 || review.nextStage !== 'contract-repair') {
+  } else if (reviewArtifact.findings.length === 0 || reviewArtifact.nextStage !== 'contract-repair') {
     errors.push('CONTRACT_REVIEW_REPAIR_INVARIANT_INVALID')
   }
   const uniqueErrors = [...new Set(errors)].sort()
   return {
     valid: uniqueErrors.length === 0,
     errors: uniqueErrors,
-    reviewerId: review.reviewer.id,
-    review,
+    reviewerId: reviewArtifact.reviewer.id,
+    review: reviewArtifact,
     contract,
     reviewPath: reviewCanonical,
   }

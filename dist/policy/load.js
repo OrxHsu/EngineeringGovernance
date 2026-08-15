@@ -17,6 +17,8 @@ const schemaPaths = {
     'external-source-use': new URL('../../schemas/external-source-use.schema.json', import.meta.url),
     'external-source-release': new URL('../../schemas/external-source-release.schema.json', import.meta.url),
     'contract-review': new URL('../../schemas/contract-review.schema.json', import.meta.url),
+    'prior-review-finding': new URL('../../schemas/prior-review-finding.schema.json', import.meta.url),
+    'release-record': new URL('../../schemas/release-record.schema.json', import.meta.url),
 };
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 const validators = new Map();

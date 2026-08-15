@@ -89,6 +89,20 @@ afterEach(() => {
 })
 
 describe('contract readiness gate', () => {
+  it.each([
+    ['null', 'null'],
+    ['array', '[]'],
+    ['schema-only', 'schemaVersion: 2\n'],
+    ['missing-nested', 'schemaVersion: 2\nartifactType: sop-contract-review-v2\n'],
+  ])('rejects malformed canonical review (%s) without throwing', (_name, content) => {
+    const { root, taskId, reviewPath } = fixture()
+    writeFileSync(reviewPath, content)
+    expect(() => verifyContractReadinessArtifact(root, taskId, reviewPath)).not.toThrow()
+    const result = verifyContractReadinessArtifact(root, taskId, reviewPath)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((error) => error.includes('SCHEMA_INVALID'))).toBe(true)
+  })
+
   it('accepts an exact independent review and binds it to IN_PROGRESS', () => {
     const { root, taskId, reviewPath } = fixture()
     const verification = verifyContractReadinessArtifact(root, taskId, reviewPath)

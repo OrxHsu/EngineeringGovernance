@@ -10,7 +10,10 @@ export interface ContractReviewVerification extends ContractReadinessVerificatio
 }
 
 export function verifyContractReview(reviewPathInput: string): ContractReviewVerification {
-  const reviewPath = realpathSync(resolve(reviewPathInput))
+  let reviewPath: string
+  try { reviewPath = realpathSync(resolve(reviewPathInput)) } catch {
+    return { valid: false, errors: ['CONTRACT_REVIEW_FILE_UNSAFE'] }
+  }
   const taskRoot = dirname(reviewPath)
   const projectRoot = realpathSync(resolve(taskRoot, '../../..'))
   const taskId = taskRoot.split('/').at(-1) ?? ''

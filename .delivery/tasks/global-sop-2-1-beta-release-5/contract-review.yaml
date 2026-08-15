@@ -1,0 +1,32 @@
+schemaVersion: 2
+artifactType: sop-contract-review-v2
+reviewId: crv-global-sop-2-1-beta-release-5-7389dc93c1ea8e3f5a4172ce447904454e5c55bc648ca234a8d3889fa46e6e00
+taskId: global-sop-2-1-beta-release-5
+risk: R3
+reviewer:
+  id: independent-contract-reviewer
+  trustLevel: local-claim
+decision: ACCEPTED
+contract:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml
+  rawSha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7
+  digest: 7389dc93c1ea8e3f5a4172ce447904454e5c55bc648ca234a8d3889fa46e6e00
+checklist:
+  scope_non_goals: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  authority_dependencies: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  risk_owner_reviewer: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  behavior_state_transitions: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  security_trust: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  evidence_environment: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  external_source_provenance: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  rollout_recovery_compatibility: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  unresolved_product_decisions: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+r3Requirements:
+  trust_threat_analysis: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  migration_recovery_rollback: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  specialized_gates: { status: PASS, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  scoped_authorization: { status: NA, applicabilityReason: no-scoped-authorization-action, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+  production_observation: { status: NA, applicabilityReason: no-production-action, evidenceRefs: [{ id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml, sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7, digest: 42c514b5d27e5dc22d0b49763747047088faf164f048eaf40038ac03203aeb23 }] }
+findings: []
+nextStage: implementation
+userActionRequired: false
