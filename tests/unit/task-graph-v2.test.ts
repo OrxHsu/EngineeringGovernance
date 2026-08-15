@@ -674,6 +674,37 @@ describe('v2 project task graph', () => {
     )
   })
 
+  it('keeps terminal v2 history checkable after a reviewed policy upgrade', () => {
+    const closed = candidateTaskFixture('closed-before-upgrade')
+    const verification = writeVerification(closed)
+    const review = writeAcceptedReview(closed, verification)
+    writeClosedArtifact(closed, verification, review)
+
+    const supersededRoot = definedTaskFixture('superseded-before-upgrade')
+    const supersededContractPath = join(
+      supersededRoot,
+      '.delivery/tasks/superseded-before-upgrade/contract.yaml',
+    )
+    const transition = planTaskTransition({
+      projectRoot: supersededRoot,
+      taskId: 'superseded-before-upgrade',
+      actorId: 'codex',
+      to: 'SUPERSEDED',
+      artifacts: [{ kind: 'contract', path: supersededContractPath }],
+    })
+    expect(applyTaskTransition(transition, transition.digest)).toEqual({ applied: true, errors: [] })
+
+    for (const root of [closed.root, supersededRoot]) {
+      writeFileSync(join(root, '.delivery', 'policy.yaml'), stringify({
+        sopVersion: '2.1.0',
+        sopDigest: '0'.repeat(64),
+      }))
+      expect(validateProjectTaskGraph(root).errors).not.toEqual(expect.arrayContaining([
+        expect.stringMatching(/^TASK_GRAPH_CONTRACT_POLICY_IDENTITY_MISMATCH:/u),
+      ]))
+    }
+  })
+
   it('surfaces legacy inspect-only task reports through project check', () => {
     const root = legacyTaskFixture('reported-legacy')
     const result = checkProject(root)

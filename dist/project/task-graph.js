@@ -8,6 +8,7 @@ import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { verifyHardenedCandidate, } from '../commands/task-verify-v2.js';
 import { readTaskLedger } from '../state/ledger.js';
 import { PRE_GATE_POLICY_DIGEST, verifyContractReadinessArtifact } from '../state/contract-readiness.js';
+const terminalTaskStates = new Set(['CLOSED', 'CANCELLED', 'SUPERSEDED']);
 function sha256(input) {
     return createHash('sha256').update(input).digest('hex');
 }
@@ -615,10 +616,6 @@ export function validateProjectTaskGraph(projectPath) {
         if (!semantic.valid) {
             errors.push(...semantic.errors.map((error) => (`TASK_GRAPH_CONTRACT_SEMANTIC_INVALID:${entry.name}:${error}`)));
         }
-        if (policyIdentity !== undefined
-            && (contract.sopVersion !== policyIdentity.version || contract.policyDigest !== policyIdentity.digest)) {
-            errors.push(`TASK_GRAPH_CONTRACT_POLICY_IDENTITY_MISMATCH:${entry.name}`);
-        }
         const contractDigest = contract.contractDigest;
         const ledger = readTaskLedger({
             projectRoot,
@@ -628,6 +625,11 @@ export function validateProjectTaskGraph(projectPath) {
             implementationOwner: contract.implementationOwner,
         });
         errors.push(...ledger.errors.map((error) => `TASK_GRAPH_LEDGER_INVALID:${entry.name}:${error}`));
+        if (policyIdentity !== undefined
+            && (contract.sopVersion !== policyIdentity.version || contract.policyDigest !== policyIdentity.digest)
+            && (ledger.currentState === undefined || !terminalTaskStates.has(ledger.currentState))) {
+            errors.push(`TASK_GRAPH_CONTRACT_POLICY_IDENTITY_MISMATCH:${entry.name}`);
+        }
         const candidates = candidateArtifacts(taskRoot, entry.name, errors);
         const verifications = verificationArtifacts(taskRoot, entry.name, errors);
         const reviews = reviewArtifacts(taskRoot, entry.name, errors);
