@@ -2,7 +2,7 @@
 
 Status: canonical development policy
 
-Version: 2.1.0-beta.0
+Version: 2.1.0-beta.3
 
 These rules apply to every adopted project. Project rules may add constraints
 but may not silently weaken these invariants.
@@ -18,6 +18,7 @@ special case.
 | `CORE-CONTRACT-01` | non_waivable | Implementation and review use the same visible frozen contract and acceptance IDs. |
 | `CORE-CONTRACT-02` | non_waivable | A newly created R2/R3 schema-v2 task cannot enter `IN_PROGRESS` until an independent local-claim reviewer accepts the exact canonical contract-readiness artifact; R1 remains owner-only and pre-gate v2 history is grandfathered. |
 | `CORE-CONTRACT-03` | non_waivable | Contract readiness is a completeness review, not a self-review: the contract author, implementation owner, and independent reviewer remain separate roles. |
+| `CORE-CONTRACT-04` | non_waivable | An author self-review is advisory, input-bound evidence only; it cannot accept a contract, satisfy independent review, authorize implementation, or replace explicit user confirmation. |
 | `CORE-EVIDENCE-01` | non_waivable | A completion or PASS claim requires fresh evidence from the real path being claimed; agent self-report is not evidence. |
 | `CORE-EVIDENCE-02` | non_waivable | Compile, static, unit, integration, device, cloud, and production evidence remain distinct and cannot silently substitute for one another. |
 | `CORE-EVIDENCE-03` | non_waivable | Evidence summaries are recomputed from non-empty underlying execution records bound to the frozen contract and implementation identities. |

@@ -4,7 +4,7 @@ Engineering Governance is the canonical, versioned development workflow for
 user-owned projects. It defines risk classification, task states, evidence
 integrity, independent review, exception handling, and safe project adoption.
 
-The repository is a local `2.1.0-beta.0` release candidate and remains unpublished.
+The repository is a local `2.1.0-beta.3` release candidate and remains unpublished.
 Version 2 is a breaking lifecycle and artifact-format release. Existing 1.x
 projects remain pinned until an explicit reviewed upgrade; see
 [`MIGRATING_TO_2.0.md`](MIGRATING_TO_2.0.md).
@@ -56,9 +56,15 @@ cleans, or broadly stages a worktree.
 Task commands consume explicit YAML inputs and emit deterministic JSON:
 
 ```sh
-pnpm sop -- task start --project /absolute/path/to/project --input /absolute/path/to/start.yaml
-pnpm sop -- task start --project /absolute/path/to/project --input /absolute/path/to/start.yaml --apply-plan <reviewed-plan-sha256>
+pnpm sop -- contract self-check --input /absolute/path/to/start.yaml
+pnpm sop -- contract self-check --input /absolute/path/to/start.yaml --response /absolute/path/to/self-review-response.yaml
+pnpm sop -- task preflight --project /absolute/path/to/project --input /absolute/path/to/start.yaml
+pnpm sop -- task start --project /absolute/path/to/project --input /absolute/path/to/start.yaml --preflight-plan <preflight-plan-sha256>
+pnpm sop -- task start --project /absolute/path/to/project --input /absolute/path/to/start.yaml --preflight-plan <preflight-plan-sha256> --apply-plan <reviewed-start-plan-sha256>
 pnpm sop -- task contract-review --input /absolute/path/to/.delivery/tasks/<task-id>/contract-review.yaml
+pnpm sop -- task contract-review-request --project /absolute/path/to/project --task-id <task-id>
+pnpm sop -- task review-summary --project /absolute/path/to/project --task-id <task-id>
+pnpm sop -- task review-summary --project /absolute/path/to/project --task-id <task-id> --json
 pnpm sop -- task transition --input /absolute/path/to/owner-transition.yaml
 pnpm sop -- task transition --input /absolute/path/to/owner-transition.yaml --apply-plan <reviewed-plan-sha256>
 pnpm sop -- task execute --input /absolute/path/to/command-execution.yaml
@@ -70,6 +76,10 @@ pnpm sop -- task review --input /absolute/path/to/review.yaml
 pnpm sop -- task review --input /absolute/path/to/review.yaml --apply-plan <reviewed-plan-sha256>
 pnpm sop -- task close --input /absolute/path/to/closure.yaml
 pnpm sop -- task close --input /absolute/path/to/closure.yaml --apply-plan <reviewed-plan-sha256>
+pnpm sop -- task verify-clean --project /absolute/path/to/project --task-id <task-id>
+pnpm sop -- accountability status --project /absolute/path/to/project --actor <id-or-alias>
+pnpm sop -- accountability gates --project /absolute/path/to/project --actor <id-or-alias>
+pnpm sop -- accountability recovery-plan --project /absolute/path/to/project --actor <id-or-alias>
 pnpm sop -- legacy inspect --input /absolute/path/to/v1-artifact.yaml
 ```
 
@@ -114,6 +124,41 @@ contract, candidate, evidence, runner, and implementation identities. Review
 and close are non-executing eligibility checks; their legal ledger transitions
 require an explicit exact plan digest. `sop check` validates the complete task
 graph and reports v1 task directories as legacy inspect-only history.
+
+Beta1 additionally requires a read-only contract preflight before task start.
+The preflight freezes input bytes, semantic bindings, repository baselines, risk,
+and actor eligibility. A policy-anchored local actor registry and append-only
+accountability chain enforce role permissions at every lifecycle boundary.
+Culpable findings produce permanent defect-class penalties; remediation and
+reinstatement require supervised clean calibration plus explicit user authority.
+Rewards never waive readiness, evidence, review, authorization, or provenance
+gates.
+
+Beta2 mutual-review assistance is opt-in and backward compatible. A task input
+with `selfReview` and `knownIssues` receives four additional preflight checks and
+binds the author assessment to the exact pre-attachment input digest. The CLI
+generates provider-neutral self-review and independent-review request packets;
+it does not embed model credentials or let an author assessment accept a
+contract. Assisted independent reviews are mechanically compared with the
+author assessment, and `task review-summary` provides a short scan without
+performing a lifecycle transition. The feature remains development source until
+the combined runner receives independent review and explicit apply approval.
+
+Beta3 accountability optimization adds a `WARNING` standing, graduated
+defect-class repeat penalties, actor-specific permanent preflight gates, and a
+mechanically verified clean-task recovery path. Historical bootstrap scores are
+not rewritten. `task verify-clean`, `accountability gates`, and
+`accountability recovery-plan` are read-only views; they never award credit,
+install a gate, or change standing by themselves. See
+`docs/PERMANENT_GATES.md` and `docs/ACCOUNTABILITY_RECOVERY.md`.
+
+Pinned-runner bootstrap remediation keeps the runner-native lifecycle
+authorization separate from the richer remediation sidecar. Candidate
+authorization arrays contain only `sop-authorization-v2`; the `CANDIDATE`
+ledger binds that artifact and the sidecar exactly once, while beta1
+verification recomputes their contract, predecessor-defect, reviewer, scope,
+path, raw-digest, semantic-digest, and expiry bindings. Task names and action
+strings are not authorization.
 
 The optional `external-source-provenance@1.0.0` extension defaults every task to
 independent implementation. A source-assisted R3 task may freeze an exact

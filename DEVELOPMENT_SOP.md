@@ -2,7 +2,7 @@
 
 Status: canonical development policy
 
-Version: 2.1.0-beta.0
+Version: 2.1.0-beta.3
 
 ## 1. Applicability and authority
 
@@ -64,7 +64,9 @@ one consolidated finding set. `ACCEPTED` requires every required item to pass
 and no findings; `REPAIR_REQUIRED` cannot start implementation. Findings are
 classified as `contract_violation`, `newly_discovered_defect`, or
 `new_requirement` and return to the contract author as one repair record.
-Self-review is forbidden.
+The contract author cannot act as the independent reviewer. An optional
+input-bound author self-review is advisory only and never grants acceptance,
+implementation authority, or a lifecycle transition.
 
 The gate is a global rule, not a Phase 2D rule. R1 tasks keep the simpler owner
 transition. A task may remain `DEFINED` while waiting for review. A markerless
@@ -91,6 +93,121 @@ identity or external authorization. External-source provenance remains
 default-deny and requires exact allocation, actual-use, and release records.
 The global package does not grant access to TREK implementation material or
 turn a project-specific source boundary into a global product requirement.
+
+### Beta1 contract preflight and accountability
+
+Beta1 task inputs are read-only preflighted before `task start`. The preflight
+binds the input raw SHA-256, semantic digest, policy identity, repository
+baselines, authority bytes, design bindings, risk, authorization requirements,
+and actor eligibility into one plan digest. Start consumes only that exact plan;
+missing, stale, changed-byte, cross-project, or caller-supplied plans fail
+without creating a task or consuming authorization.
+
+### Beta2 mutual-review assistance
+
+Beta2 review assistance is explicitly enabled only when a task input contains
+both `selfReview` and `knownIssues`. Existing beta1 inputs retain their prior
+ten-check preflight. An enabled input adds source/test pairing, R3
+security/compatibility/rollback coverage, bounded scope-to-acceptance warnings,
+and exact self-review validation. The self-review ID binds the task, author, and
+canonical digest of the task input before either review attachment is added.
+
+`contract self-check --input` emits a provider-neutral request packet with six
+fixed questions, medium effort, and a 300-second budget. Supplying a structured
+`--response` returns the exact `selfReview`, `knownIssues`, and augmented task
+input. The CLI does not hold model credentials or claim that an external model
+obeyed the wall-clock budget; the recorded result remains a local advisory
+claim. A second attachment, wrong author/task/digest, reordered dimensions,
+unrecorded non-timeout concern, or blocker disguised as a deferrable issue fails
+preflight.
+
+The independent reviewer may obtain an exact prompt packet through `task
+contract-review-request`. A beta2 canonical review must add the assisted
+checklist and a six-dimension comparison whose agreement rate, missed concerns,
+and overcautious concerns are recomputed by the verifier. The reviewer must be
+distinct from both contract author and implementation owner. `task
+review-summary` then renders the accepted or repair-required conclusion for a
+quick user scan, but it performs no transition. Explicit user confirmation and
+the normal review-bound owner transition remain required.
+
+An under-development runner does not use these mechanisms to accept, release,
+or apply itself. Dog-food review becomes evidence only after an independently
+reviewed release candidate exists; explicit apply remains a separate user
+decision.
+
+The accountability registry is a policy-anchored, append-only local claim.
+Actor IDs are normalized and immutable; aliases resolve to one active actor and
+cannot evade a sanction. Findings carry their origin bytes, semantic identity,
+classification, defect class, responsible role, culpability, and score effect.
+Contract violations belong to the contract author, implementation defects to the
+implementation owner, and a defect proven present in previously accepted bytes
+to the reviewer who missed it. New requirements and proven tool defects score
+zero. Under beta3 graduated scoring, a first BLOCKER/HIGH/MEDIUM/LOW finding
+scores 3/2/1/0. Repeat surcharges are defect-class specific and escalate as
+6/8/10/12, 5/6/7/8, 3/4/5/6, and 1/1/2/2 respectively. Defect classes are
+normalized before counting. Evidence-forgery, identity-evasion,
+authorization-bypass, and prohibited-mutation still force `SUSPENDED`.
+Historical strict-v1 bootstrap snapshots retain their recorded scores and are
+never retroactively rewritten; new non-bootstrap finding transitions must carry
+the graduated breakdown and repeat count that the event-chain verifier
+recomputes.
+
+### Historical scoring transition
+
+Prior to 2026-08-16T19:00:00Z, accountability events used strict-v1 scoring:
+BLOCKER = 8 points, HIGH = 5, MEDIUM = 3, LOW = 1, with a flat +4 repeat
+surcharge. From 2026-08-16T19:00:00Z onward, new findings use graduated-v2
+scoring as documented above (first BLOCKER = 3, escalating surcharges 6/8/10/12).
+Historical scores are not retroactively recalculated; they remain as recorded
+evidence of accountability under the rules in effect at the time. Actors with
+standing derived from strict-v1 events follow graduated-v2 recovery paths and
+thresholds. New violations after the transition are scored under graduated-v2
+rules. The transition preserves the append-only ledger invariant and provides a
+clear version boundary for accountability policy evolution.
+
+Standing is recomputed from the append-only event chain at every preflight,
+transition, review, repair, and close boundary. `GOOD_STANDING` has ordinary
+roles. `WARNING` may perform R0/R1 work, requires supervision for R2, and cannot
+author or review R3. `WATCH` cannot author, own, or review R3; `PROBATION` has no
+ordinary mutating role; and `SUSPENDED` is read-only except for one exact,
+user-authorized supervised remediation task. Reinstatement requires permanent
+gates for every unresolved defect class, risk-matched supervised clean
+calibrations, distinct reviewer/supervisor identities, and a non-expired
+consume-once user authorization.
+
+Permanent gates live at
+`.delivery/accountability/permanent-gates/<actor-id>.json`. Each document binds
+the normalized actor, remediation event, originating finding, selected rule,
+and a digest-chained trigger history. Preflight-check gates are evaluated for
+both the contract author and implementation owner. An unreadable, forged, or
+unknown preflight gate fails closed. Preflight remains read-only; recording a
+trigger or installing a gate is an explicit mutation after verified
+remediation.
+
+A clean task is not a success label. It must be a schema-v2 task whose validated
+ledger is exactly CLOSED without REPAIR_REQUIRED, BLOCKED, CANCELLED, or
+SUPERSEDED history; both contract and implementation reviews must be ACCEPTED
+with zero findings; the single evidence run must cover every acceptance ID with
+valid zero-exit receipts; and all candidate, verification, authorization, and
+evidence identities must recompute. R3/R2/R1 clean tasks carry provisional
+recovery credits of -3/-2/-1, while R0 carries none. `task verify-clean` only
+reports this result. Applying credit or changing standing remains an explicit,
+authorized accountability event, never a side effect of inspection.
+Recognition is revocable and never waives contract readiness, evidence,
+independent review, authorization, provenance, or runtime gates.
+
+A bootstrap remediation that must remain verifiable by an older pinned runner
+uses two mutually bound artifacts. The lifecycle authorization remains the
+runner-native `sop-authorization-v2` at the canonical requirement path and is
+the only authorization placed in candidate and verification authorization
+arrays. A separate `engineering-governance-remediation-authorization-v1`
+sidecar binds the accepted contract, lifecycle path/raw SHA-256/semantic digest,
+supervisor, contract reviewer, implementation reviewer, scope, and expiry. The
+`CANDIDATE` ledger event references both exact artifacts once. Eligibility is
+derived from the terminal predecessor ledger and its bound contract-defect,
+the replacement contract and accepted review, and both authorization
+identities; a task ID or matching action string alone never grants an exception.
+Historical authorization shapes remain valid only in their original histories.
 
 ### External implementation sources
 
