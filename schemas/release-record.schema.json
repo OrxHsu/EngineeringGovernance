@@ -10,7 +10,7 @@
     "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "contract": {
       "type": "object", "additionalProperties": false, "required": ["path", "rawSha256", "digest"],
-      "properties": { "path": { "type": "string", "pattern": "^\\.delivery/tasks/" }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" } }
+      "properties": { "path": { "type": "string", "pattern": "^(?:\\.delivery/tasks/|releases/)" }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" } }
     },
     "sourceRange": {
       "type": "object", "additionalProperties": false, "required": ["baseCommit", "baseTree", "commits", "candidateCommit", "candidateTree"],
@@ -31,7 +31,7 @@
       }
     },
     "sourceIdentity": { "type": "object", "additionalProperties": false, "required": ["packageVersion", "versionFile"], "properties": { "packageVersion": { "const": "2.1.0" }, "versionFile": { "const": "2.1.0" } } },
-    "publicationStatus": { "const": "local-unpublished" },
+    "publicationStatus": { "const": "prepared-private" },
     "priorFinding": { "type": "object", "additionalProperties": false, "required": ["path", "rawSha256", "digest"], "properties": { "path": { "type": "string", "minLength": 1 }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" } } }
   },
   "$defs": { "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "hash40": { "type": "string", "pattern": "^[a-f0-9]{40}$" } }

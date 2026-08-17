@@ -14,6 +14,11 @@ projects remain pinned until an explicit reviewed upgrade; see
 This project is available under the [MIT License](LICENSE). Security reports
 should follow [SECURITY.md](SECURITY.md), not a public issue.
 
+Release candidate metadata and the reproducible runner are in
+[`releases/sop-2.1.0-release-v1`](releases/sop-2.1.0-release-v1). The recorded
+status is `prepared-private`; changing repository visibility, publishing the
+Git tag, and publishing a package require the owner's final confirmation.
+
 ## Runtime
 
 - Node.js 22.x

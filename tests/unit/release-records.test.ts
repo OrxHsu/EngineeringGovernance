@@ -32,7 +32,7 @@ describe('release record schemas', () => {
       contract: { path: '.delivery/tasks/release-task/contract.yaml', rawSha256: 'f'.repeat(64), digest: '0'.repeat(64) },
       sourceRange: { baseCommit: '1'.repeat(40), baseTree: '2'.repeat(40), commits: [{ commit: 'd'.repeat(40), tree: 'e'.repeat(40) }], candidateCommit: 'd'.repeat(40), candidateTree: 'e'.repeat(40) },
       archive: { filename: 'engineering-governance-2.1.0.tgz', path: receipt.archivePath, sha256: receipt.sha256, version: receipt.version, verificationReceipt: receipt },
-      sourceIdentity: { packageVersion: '2.1.0', versionFile: '2.1.0' }, publicationStatus: 'local-unpublished',
+      sourceIdentity: { packageVersion: '2.1.0', versionFile: '2.1.0' }, publicationStatus: 'prepared-private',
       priorFinding: { path: 'releases/2.1.0/implementation-review.yaml', rawSha256: '1'.repeat(64), digest: '2'.repeat(64) },
     }
     expect(validateDocument('release-record', record).valid).toBe(true)
