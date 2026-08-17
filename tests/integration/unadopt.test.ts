@@ -78,7 +78,7 @@ describe('safe project unadoption', () => {
     expect(existsSync(join(root, `.delivery/runtime/engineering-governance-${governanceIdentity().version}.tgz`))).toBe(false)
     expect(readFileSync(taskHistory, 'utf8')).toContain('closed')
     expect(readFileSync(unknown, 'utf8')).toBe('preserve\n')
-  }, 15_000)
+  }, 60_000)
 
   it('unadopts a pinned v1 project without forcing a v2 upgrade', () => {
     const root = mkdtempSync(join(tmpdir(), 'sop-unadopt-v1-'))

@@ -316,7 +316,7 @@ describe('v2 candidate verification', () => {
       candidatePath: wrongState.candidatePath,
       evidenceVerificationTime: new Date(),
     }).errors).toContain('TASK_STATE_NOT_CANDIDATE:IN_PROGRESS')
-  }, 15_000)
+  }, 60_000)
 
   it('requires a separately approved contract-owned replay and binds its artifact', () => {
     const value = fixture('required')

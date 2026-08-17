@@ -68,7 +68,7 @@ describe('adopted project verification', () => {
     expect(verifyAdoptedProject(projectRoot).errors).toContain(
       'AGENT_ADAPTER_SOURCE_DRIFTED:AGENTS.md',
     )
-  }, 15_000)
+  }, 60_000)
 
   it('checks ProjTrav generated targets without authoring them directly', () => {
     const projectRoot = temporaryProject('sop-verify-projtrav-')

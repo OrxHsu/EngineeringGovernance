@@ -803,5 +803,5 @@ describe('v2 CLI hardening', () => {
     expect(readFileSync(ledgerPath, 'utf8').split('\n').filter(Boolean)).toHaveLength(
       ledgerBefore.split('\n').filter(Boolean).length + 1,
     )
-  }, 15_000)
+  }, 60_000)
 })

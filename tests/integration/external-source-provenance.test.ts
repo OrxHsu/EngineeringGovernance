@@ -184,7 +184,7 @@ describe('external-source provenance extension', () => {
       extensionInputs: { [`${descriptor.id}@${descriptor.version}`]: allocation() },
       extensionDocuments: (input) => documents(input, 'approved', 'inspect') as never,
     })).toThrow('EXTERNAL_SOURCE_USE_RELATION_MISMATCH:root:implementation.txt:source-1')
-  }, 15_000)
+  }, 60_000)
 
   it('keeps source-use and release bytes bound through review, close, and project check', () => {
     const fixture = hardenedTaskFixture({

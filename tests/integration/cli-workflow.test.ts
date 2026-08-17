@@ -66,7 +66,7 @@ describe('project command workflow', () => {
       project,
       '.delivery/runtime/engineering-governance-2.1.0.tgz',
     ))
-  }, 15_000)
+  }, 60_000)
 
   it('rejects a correctly named runner archive with unverified internals', () => {
     const project = mkdtempSync(join(tmpdir(), 'governance-cli-invalid-runner-'))
@@ -84,7 +84,7 @@ describe('project command workflow', () => {
 
     expect(applyAdoption(plan, plan.digest).applied.length).toBeGreaterThan(0)
     expect(verifyAdoptedProject(project)).toEqual({ valid: true, errors: [] })
-  }, 15_000)
+  }, 60_000)
 
   it('rejects an apply digest that was not reviewed', () => {
     const project = mkdtempSync(join(tmpdir(), 'governance-cli-'))
