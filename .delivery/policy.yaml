@@ -1,17 +1,17 @@
 schemaVersion: 1
 sopVersion: 2.1.0
-sopDigest: 1882d346b4ffcb84223a0df5bb382b5c8825cc00d5f9263350f7f1e5ca9405a7
+sopDigest: dd5d5b86ef58b7ea5d2dff5e3c34f419207d0201e5b99a5d22ccc72eb14e88c8
 projectId: engineering-governance
 adapters:
   - tool: generic-agents
     source: AGENTS.md
     targets:
       - AGENTS.md
-    digest: 337785d8793103a0c4be5cd561b2a7ee07ce4dca2f0812437694b8216eabb987
+    digest: 1e2fecacb94a05d1202140f2cf55b3592691d1c1c7cde0411f8f28173fdbad55
 artifactMapping:
   accountability.eventsPath: .delivery/accountability/events.jsonl
   accountability.genesisDigest: c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071
-  accountability.policyLineage: 1a2aae4b0fb723ac1e0280b37016e347a24786470d6cbf508d784d2bd81a611f,258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f,3f3fd31448d0f704b7d3e9de3fc4879711bcbf8f65fdadf687c5b374ba1d29ed,48c69f95db09d3d417f8dc6376875003d0cebb1eb48da35d50a3d62908393c67,5c4cb0a1b37b176a906ec991147d466286d84c92d0c186a72c88f1418ba9dc24,cd9ab35e8da0af09b7e8cfd833a2368f69100ba2276f19f961f09bd4241b82d5
+  accountability.policyLineage: 1882d346b4ffcb84223a0df5bb382b5c8825cc00d5f9263350f7f1e5ca9405a7,1a2aae4b0fb723ac1e0280b37016e347a24786470d6cbf508d784d2bd81a611f,258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f,3f3fd31448d0f704b7d3e9de3fc4879711bcbf8f65fdadf687c5b374ba1d29ed,48c69f95db09d3d417f8dc6376875003d0cebb1eb48da35d50a3d62908393c67,5c4cb0a1b37b176a906ec991147d466286d84c92d0c186a72c88f1418ba9dc24,cd9ab35e8da0af09b7e8cfd833a2368f69100ba2276f19f961f09bd4241b82d5
   accountability.registryPath: .delivery/accountability/actors.jsonl
   accountability.ruleset: strict-v1
   accountability.scoringVersion: graduated-v2
@@ -19,4 +19,4 @@ artifactMapping:
 runner:
   version: 2.1.0
   path: .delivery/runtime/engineering-governance-2.1.0.tgz
-  sha256: b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac
+  sha256: 0c569aff2b0838bd44274d5ce0ccda0d3f1fc639550e45245c60aa907e901d5d

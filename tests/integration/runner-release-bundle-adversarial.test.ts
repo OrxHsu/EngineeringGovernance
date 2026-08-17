@@ -96,6 +96,10 @@ describe('runner release-bundle adversarial integrity', () => {
     'VERSION',
     'package.json',
     'dist/cli/main.js',
+    'LICENSE',
+    'NOTICE',
+    'SECURITY.md',
+    'CHANGELOG.md',
   ])('rejects an archive missing required release file %s', (relativePath) => {
     const archive = repackedArchive((packageRoot) => {
       rmSync(join(packageRoot, relativePath))
