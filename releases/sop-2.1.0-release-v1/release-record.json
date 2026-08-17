@@ -4,8 +4,8 @@
   "taskId": "sop-2-1-0-release-v1",
   "contract": {
     "path": "releases/sop-2.1.0-release-v1/release-contract.yaml",
-    "rawSha256": "2466072e5aa0c8bf029ee3af0a280dae533b56417658df1390255ab1e2dbf897",
-    "digest": "93773ab3673f0cc79acca417d6c7a3c0756c2b7e604b1e9ede2f7bf5c815cf4f"
+    "rawSha256": "77a31bd0f579436565307997b13b3fe2793cb574863a454e9660d798be05ec8e",
+    "digest": "61b8f41a3223414a49b170bdd0819e39d4adc58d9232919fd13ef21dc033859d"
   },
   "sourceRange": {
     "baseCommit": "9cd03bb2bb528741de0748884c10deeefa5a4b4c",
@@ -20,24 +20,24 @@
         "tree": "782a149bb0967171adeb05667186fadbe5a80bbd"
       }
     ],
-    "candidateCommit": "37017527edb1934caba4a06531b20bf6db0e6689",
-    "candidateTree": "26099b5e73fb0cffc9d8e8c0c4e26f5e0a50283c"
+    "candidateCommit": "a45f7e96103e13f51311461a074f8dbdbdcd68f2",
+    "candidateTree": "d43a767c79164bfe701984dd06a05313a8773dcb"
   },
   "archive": {
     "filename": "engineering-governance-2.1.0.tgz",
     "path": "releases/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz",
-    "sha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+    "sha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
     "version": "2.1.0",
     "verificationReceipt": {
       "path": "releases/sop-2.1.0-release-v1/archive-verification.json",
-      "rawSha256": "13f60745ec3a3a3b78291c4af8ddd72fdb068d541fd86e439505b56cd238f142",
-      "digest": "9236172a2927de871d0fb2c03dbaf502224118f80ee3db016bc9bd5f2a4f05f9",
+      "rawSha256": "03d1e2ab53b8a61116d412b5fddf3a9004eabd698205a423baf33b27ec65e3cd",
+      "digest": "f15380488f35ec07737fbceae076b43d63554dc8446700044c5fc7ea12fb1b7b",
       "archivePath": "releases/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz",
-      "sha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
-      "firstBuildSha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
-      "secondBuildSha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
-      "candidateCommit": "37017527edb1934caba4a06531b20bf6db0e6689",
-      "candidateTree": "26099b5e73fb0cffc9d8e8c0c4e26f5e0a50283c",
+      "sha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
+      "firstBuildSha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
+      "secondBuildSha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
+      "candidateCommit": "a45f7e96103e13f51311461a074f8dbdbdcd68f2",
+      "candidateTree": "d43a767c79164bfe701984dd06a05313a8773dcb",
       "version": "2.1.0",
       "identical": true
     }
