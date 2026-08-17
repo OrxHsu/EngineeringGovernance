@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSy
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { parse, stringify } from 'yaml'
 
 import { startTask } from '../../src/commands/task-start.js'
@@ -19,8 +19,6 @@ import { captureCheckoutSnapshot } from '../../src/evidence/checkout-snapshot.js
 import { canonicalDigest } from '../../src/model/digest.js'
 import { applyTaskTransition, planTaskTransition } from '../../src/state/ledger.js'
 import { writeAcceptedContractReadinessReview } from '../helpers/hardened-task.js'
-
-const temporaryDirectories: string[] = []
 
 function sha256(input: string | Buffer): string {
   return createHash('sha256').update(input).digest('hex')
@@ -42,9 +40,10 @@ interface ReplayedFixture {
   plan: CandidateReplayPlan
 }
 
-function replayedFixture(): ReplayedFixture {
+let baselineFixture: ReplayedFixture & { root: string }
+
+function createReplayedFixture(): ReplayedFixture & { root: string } {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'sop-replay-adversarial-')))
-  temporaryDirectories.push(root)
   git(root, 'init', '-b', 'main')
   git(root, 'config', 'user.email', 'test@example.com')
   git(root, 'config', 'user.name', 'Test')
@@ -174,7 +173,16 @@ function replayedFixture(): ReplayedFixture {
   const plan = planCandidateReplay(candidatePath)
   const replay = applyCandidateReplay(plan, plan.digest)
   expect(verifyCandidateReplay(candidatePath, new Date(), 60_000).errors).toEqual([])
-  return { artifact: replay.artifact, artifactPath: replay.path, candidatePath, plan }
+  return { artifact: replay.artifact, artifactPath: replay.path, candidatePath, plan, root }
+}
+
+function replayedFixture(): ReplayedFixture {
+  return {
+    artifact: structuredClone(baselineFixture.artifact),
+    artifactPath: baselineFixture.artifactPath,
+    candidatePath: baselineFixture.candidatePath,
+    plan: structuredClone(baselineFixture.plan),
+  }
 }
 
 function persist(fixture: ReplayedFixture): void {
@@ -194,8 +202,12 @@ function replaceApprovedSnapshots(
   fixture.artifact.planDigest = canonicalDigest({ ...unsigned, checkoutSnapshots: snapshots })
 }
 
-afterEach(() => {
-  for (const path of temporaryDirectories.splice(0)) rmSync(path, { recursive: true, force: true })
+beforeAll(() => {
+  baselineFixture = createReplayedFixture()
+})
+
+afterAll(() => {
+  rmSync(baselineFixture.root, { recursive: true, force: true })
 })
 
 describe('replay artifact adversarial integrity', () => {
