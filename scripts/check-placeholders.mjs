@@ -42,7 +42,7 @@ async function existingFiles(path) {
 
   const entries = await readdir(path, { withFileTypes: true })
   const nested = await Promise.all(entries
-    .filter((entry) => !entry.name.startsWith('.'))
+    .filter((entry) => !entry.name.startsWith('.') && entry.name !== 'fixtures')
     .map((entry) => existingFiles(join(path, entry.name))))
   return nested.flat()
 }

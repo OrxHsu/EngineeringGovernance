@@ -130,12 +130,39 @@ describe('adopted project verification', () => {
     expect(verifyAdoptedProject(projectRoot)).toEqual({ valid: true, errors: [] })
     const archivePath = join(
       projectRoot,
-      '.delivery/runtime/engineering-governance-2.1.0-re.tgz',
+      '.delivery/runtime/engineering-governance-2.1.0.tgz',
     )
     write(archivePath, 'forged archive\n')
     expect(verifyAdoptedProject(projectRoot).errors).toContain(
       'PROJECT_RUNNER_DIGEST_MISMATCH',
     )
+  })
+
+  it('preserves project artifact mappings during an upgrade', () => {
+    const projectRoot = temporaryProject('sop-verify-upgrade-mapping-')
+    adopt(projectRoot)
+    const policyPath = join(projectRoot, '.delivery', 'policy.yaml')
+    const policy = parse(readFileSync(policyPath, 'utf8')) as Record<string, unknown>
+    const artifactMapping = {
+      'accountability.eventsPath': '.delivery/accountability/events.jsonl',
+      'accountability.registryPath': '.delivery/accountability/actors.jsonl',
+      'accountability.ruleset': 'strict-v1',
+    }
+    policy.artifactMapping = artifactMapping
+    policy.sopDigest = 'a'.repeat(64)
+    write(policyPath, stringify(policy))
+
+    const upgrade = planAdoption(projectRoot, { runnerBundlePath: testRunnerBundle() })
+    applyAdoption(upgrade, upgrade.digest)
+
+    const upgraded = parse(readFileSync(policyPath, 'utf8')) as {
+      artifactMapping: Record<string, string>
+    }
+    expect(upgraded.artifactMapping).toEqual({
+      ...artifactMapping,
+      'accountability.policyLineage': 'a'.repeat(64),
+    })
+    expect(verifyAdoptedProject(projectRoot)).toEqual({ valid: true, errors: [] })
   })
 
   it('validates task contract schemas and canonical digests', () => {

@@ -23,14 +23,14 @@
     "archive": {
       "type": "object", "additionalProperties": false, "required": ["filename", "path", "sha256", "version", "verificationReceipt"],
       "properties": {
-        "filename": { "type": "string", "minLength": 1 }, "path": { "type": "string", "minLength": 1 }, "sha256": { "$ref": "#/$defs/hash" }, "version": { "const": "2.1.0-beta.0" },
+        "filename": { "type": "string", "minLength": 1 }, "path": { "type": "string", "minLength": 1 }, "sha256": { "$ref": "#/$defs/hash" }, "version": { "const": "2.1.0" },
         "verificationReceipt": {
           "type": "object", "additionalProperties": false, "required": ["path", "rawSha256", "digest", "archivePath", "sha256", "firstBuildSha256", "secondBuildSha256", "candidateCommit", "candidateTree", "version", "identical"],
-          "properties": { "path": { "type": "string", "minLength": 1 }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" }, "archivePath": { "type": "string", "minLength": 1 }, "sha256": { "$ref": "#/$defs/hash" }, "firstBuildSha256": { "$ref": "#/$defs/hash" }, "secondBuildSha256": { "$ref": "#/$defs/hash" }, "candidateCommit": { "$ref": "#/$defs/hash40" }, "candidateTree": { "$ref": "#/$defs/hash40" }, "version": { "const": "2.1.0-beta.0" }, "identical": { "const": true } }
+          "properties": { "path": { "type": "string", "minLength": 1 }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" }, "archivePath": { "type": "string", "minLength": 1 }, "sha256": { "$ref": "#/$defs/hash" }, "firstBuildSha256": { "$ref": "#/$defs/hash" }, "secondBuildSha256": { "$ref": "#/$defs/hash" }, "candidateCommit": { "$ref": "#/$defs/hash40" }, "candidateTree": { "$ref": "#/$defs/hash40" }, "version": { "const": "2.1.0" }, "identical": { "const": true } }
         }
       }
     },
-    "sourceIdentity": { "type": "object", "additionalProperties": false, "required": ["packageVersion", "versionFile"], "properties": { "packageVersion": { "const": "2.1.0-beta.0" }, "versionFile": { "const": "2.1.0-beta.0" } } },
+    "sourceIdentity": { "type": "object", "additionalProperties": false, "required": ["packageVersion", "versionFile"], "properties": { "packageVersion": { "const": "2.1.0" }, "versionFile": { "const": "2.1.0" } } },
     "publicationStatus": { "const": "local-unpublished" },
     "priorFinding": { "type": "object", "additionalProperties": false, "required": ["path", "rawSha256", "digest"], "properties": { "path": { "type": "string", "minLength": 1 }, "rawSha256": { "$ref": "#/$defs/hash" }, "digest": { "$ref": "#/$defs/hash" } } }
   },

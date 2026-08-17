@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "engineering-governance-remediation-authorization-v1",
+  "authorizationId": "AUTH-EG21-BETA1-FIX1-REPAIR4-REMEDIATION",
+  "requirementId": "AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE",
+  "taskId": "global-sop-2-1-beta-1-fix-1-repair-4",
+  "contract": {
+    "path": "/__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/contract.yaml",
+    "rawSha256": "742d11b11a4605ff2a440ca57cdbda3d812f21e82a52c914458374e1b24a49ed",
+    "semanticDigest": "2ff6e70da0842c175492f9d2c087ef9c230d60b3eb7426bb9ec8a9aa13bc9336"
+  },
+  "lifecycleAuthorization": {
+    "path": "/__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/authorizations/AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE.json",
+    "rawSha256": "76b14d4d6e283124e6f4e98820dc1b7b44fc6b6f50b499c1902c8b1e4312cd23",
+    "semanticDigest": "89447ad674a18054df8c710ce60c2a57ed813131ad367e3670a0b0b6bd8da181",
+    "requirementId": "AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE"
+  },
+  "grantor": {
+    "id": "user-authority",
+    "role": "user",
+    "trustLevel": "local-claim"
+  },
+  "action": "implement-and-verify-beta1-accountability-remediation-repair4",
+  "target": "/__RELEASE_PROJECT_ROOT__",
+  "scope": [
+    "Permit codex, despite bootstrap SUSPENDED standing, to author and implement only global-sop-2-1-beta-1-fix-1-repair-4 after an accepted contract review by independent-contract-reviewer-fix1 under supervision by user-authority.",
+    "Permit only the frozen beta1 source, schemas, docs, templates, tests, task-owned bootstrap, exact lifecycle authorization, exact remediation sidecar, and local temporary verification outputs.",
+    "Record codex score 20 SUSPENDED and independent-contract-reviewer score 8 PROBATION without editing any prior lifecycle or release artifact.",
+    "Require GOOD_STANDING supervisor user-authority for every mutating implementation action and separate GOOD_STANDING implementation reviewer independent-implementation-reviewer-fix1 for the exact candidate; no alias-equivalent substitution is allowed.",
+    "Persist the standard consume-once lifecycle authorization only at .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/authorizations/AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE.json with artifactType sop-authorization-v2 and bind it to this contract digest.",
+    "Persist the separate consume-once remediation sidecar only at .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/remediation-authorization.json with artifactType engineering-governance-remediation-authorization-v1 and bind it to the accepted contract raw SHA-256/semantic digest plus the lifecycle authorization path/raw SHA-256/semantic digest/requirement ID.",
+    "Candidate and verification authorizationArtifacts contain only the standard lifecycle authorization; the CANDIDATE ledger consumes both artifacts exactly once and beta1 verification validates the sidecar independently.",
+    "Use issuedAt 2026-08-16T05:40:00.000Z and expiresAt 2026-08-30T05:40:00.000Z; every apply or candidate verification must fail after expiry.",
+    "Forbid release packaging, runner installation, policy self-upgrade, consumer migration, publishing, push, deployment, production action, remote mutation, and external communication."
+  ],
+  "supervisorId": "user-authority",
+  "contractReviewerId": "independent-contract-reviewer-fix1",
+  "implementationReviewerId": "independent-implementation-reviewer-fix1",
+  "issuedAt": "2026-08-16T05:40:00.000Z",
+  "expiresAt": "2026-08-30T05:40:00.000Z",
+  "consumeOnce": true,
+  "status": "approved"
+}

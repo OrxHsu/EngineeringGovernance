@@ -1,0 +1,76 @@
+schemaVersion: 2
+artifactType: sop-contract-review-v2
+reviewId: crv-global-sop-2-1-beta-1-fix-1-repair-3-6a3617ad72facc1258aefafc706a7a3396bc2812fe477886f11ca5905fabbb36
+taskId: global-sop-2-1-beta-1-fix-1-repair-3
+risk: R3
+reviewer:
+  id: independent-contract-reviewer-fix1
+  trustLevel: local-claim
+decision: ACCEPTED
+contract:
+  path: /__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract.yaml
+  rawSha256: 3362187bbbbf2f65e05967311ede552e6ecb807097dbf67eb2035dad8d82bc14
+  digest: 6a3617ad72facc1258aefafc706a7a3396bc2812fe477886f11ca5905fabbb36
+checklist:
+  scope_non_goals:
+    status: PASS
+    evidenceRefs: &contractEvidence
+      - id: E-001
+        kind: contract
+        path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract.yaml
+        sha256: 3362187bbbbf2f65e05967311ede552e6ecb807097dbf67eb2035dad8d82bc14
+        digest: e7a3401c50b8806f428556212fe66b35865d006ef7268f77902fee98350873d4
+  authority_dependencies:
+    status: PASS
+    evidenceRefs:
+      - id: E-001
+        kind: contract
+        path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract.yaml
+        sha256: 3362187bbbbf2f65e05967311ede552e6ecb807097dbf67eb2035dad8d82bc14
+        digest: e7a3401c50b8806f428556212fe66b35865d006ef7268f77902fee98350873d4
+      - id: E-002
+        kind: authority
+        path: schemas/task-event.schema.json
+        sha256: a24a7555817600d329829ed8e708b5c92ee6981e317ee9a0932889d055d7b80b
+        digest: 3f36370aa7d45e9b2656a5d1209b0c269bef55dc2eee50a8eaddfd490fc2ff38
+  risk_owner_reviewer:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  behavior_state_transitions:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  security_trust:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  evidence_environment:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  external_source_provenance:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  rollout_recovery_compatibility:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  unresolved_product_decisions:
+    status: PASS
+    evidenceRefs: *contractEvidence
+r3Requirements:
+  trust_threat_analysis:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  migration_recovery_rollback:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  specialized_gates:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  scoped_authorization:
+    status: PASS
+    evidenceRefs: *contractEvidence
+  production_observation:
+    status: NA
+    applicabilityReason: no-production-action
+    evidenceRefs: *contractEvidence
+findings: []
+nextStage: implementation
+userActionRequired: false

@@ -1,0 +1,58 @@
+schemaVersion: 2
+artifactType: sop-contract-review-v2
+reviewId: crv-global-sop-2-1-beta-1-fix-1-689fcb1ee3a4c81eaf80cfccf951963cd44414c786c6832940539eac1ae9cc4e
+taskId: global-sop-2-1-beta-1-fix-1
+risk: R3
+reviewer:
+  id: independent-contract-reviewer-fix1
+  trustLevel: local-claim
+decision: REPAIR_REQUIRED
+contract:
+  path: /__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1/contract.yaml
+  rawSha256: 7b4a2dc7882a4a0a26a86472afe0b9e249e2cc18770a950f79549f19f04bd78b
+  digest: 689fcb1ee3a4c81eaf80cfccf951963cd44414c786c6832940539eac1ae9cc4e
+checklist:
+  scope_non_goals:
+    status: PASS
+    evidenceRefs: &contractEvidence
+      - { id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract.yaml, sha256: 7b4a2dc7882a4a0a26a86472afe0b9e249e2cc18770a950f79549f19f04bd78b, digest: 3e5fb228d94ca7745079a0785a4e837f03e8281db95f8fe4bc8dafd39375234a }
+  authority_dependencies:
+    status: PASS
+    evidenceRefs: &authorityEvidence
+      - { id: E-001, kind: contract, path: .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract.yaml, sha256: 7b4a2dc7882a4a0a26a86472afe0b9e249e2cc18770a950f79549f19f04bd78b, digest: 3e5fb228d94ca7745079a0785a4e837f03e8281db95f8fe4bc8dafd39375234a }
+      - { id: E-002, kind: authority, path: schemas/task-event.schema.json, sha256: a24a7555817600d329829ed8e708b5c92ee6981e317ee9a0932889d055d7b80b, digest: 3f36370aa7d45e9b2656a5d1209b0c269bef55dc2eee50a8eaddfd490fc2ff38 }
+  risk_owner_reviewer: { status: PASS, evidenceRefs: *contractEvidence }
+  behavior_state_transitions: { status: PASS, evidenceRefs: *authorityEvidence }
+  security_trust: { status: PASS, evidenceRefs: *contractEvidence }
+  evidence_environment: { status: PASS, evidenceRefs: *contractEvidence }
+  external_source_provenance: { status: PASS, evidenceRefs: *contractEvidence }
+  rollout_recovery_compatibility: { status: PASS, evidenceRefs: *contractEvidence }
+  unresolved_product_decisions: { status: PASS, evidenceRefs: *contractEvidence }
+r3Requirements:
+  trust_threat_analysis: { status: PASS, evidenceRefs: *contractEvidence }
+  migration_recovery_rollback: { status: PASS, evidenceRefs: *contractEvidence }
+  specialized_gates: { status: PASS, evidenceRefs: *contractEvidence }
+  scoped_authorization: { status: PASS, evidenceRefs: *contractEvidence }
+  production_observation:
+    status: NA
+    applicabilityReason: no-production-action
+    evidenceRefs: *contractEvidence
+findings:
+  - id: CR-001
+    severity: BLOCKER
+    classification: contract_violation
+    observation: >-
+      The contract declares schemas/task-ledger.schema.json as an authority
+      input, but that path does not exist. The repository contains
+      schemas/task-event.schema.json instead. This makes the declared authority
+      set unresolvable and contradicts the contract's missing-file rejection
+      rule. The external report names this finding FIX1-F001.
+    requiredChange: >-
+      Replace schemas/task-ledger.schema.json in authorityInputs with the
+      existing schemas/task-event.schema.json, then recompute the contract
+      semantic digest and raw-byte identity and submit a fresh independent
+      contract review. Do not create a placeholder schema merely to satisfy the
+      old reference.
+    evidenceRefs: *authorityEvidence
+nextStage: contract-repair
+userActionRequired: true

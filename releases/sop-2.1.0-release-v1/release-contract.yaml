@@ -1,0 +1,26 @@
+releaseId: sop-2.1.0-release-v1
+packageVersion: 2.1.0
+status: prepared-private
+license: MIT
+remote: origin
+defaultBranch: main
+scope:
+  - source
+  - schemas
+  - tests
+  - Codex Skill adapter
+  - reproducible Node 22 runner
+  - security policy
+nonGoals:
+  - public repository visibility
+  - Git tag publication
+  - npm publication
+  - deployment or external consumer migration
+acceptance:
+  - package and VERSION are exactly 2.1.0
+  - two isolated runner builds are byte-identical
+  - clean Node 22 pnpm check passes
+  - project and pinned runner checks return valid true
+  - global Codex adapter check returns valid true
+  - repository is pushed to private origin/main
+nextAction: Owner final confirmation before public visibility and publication.

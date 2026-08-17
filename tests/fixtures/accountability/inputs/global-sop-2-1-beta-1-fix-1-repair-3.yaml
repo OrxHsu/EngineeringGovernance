@@ -1,0 +1,445 @@
+schemaVersion: 2
+taskId: global-sop-2-1-beta-1-fix-1-repair-3
+implementationOwner: codex
+objective: >-
+  Produce the Engineering Governance 2.1.0-beta.1 fix1 source candidate that
+  prevents incomplete contracts from entering implementation and introduces a
+  strict, mechanically enforced accountability system. The system binds stable
+  actor identity, culpable review findings, penalty standing, role eligibility,
+  remediation, and reinstatement to append-only evidence. This is a bootstrap
+  remediation task under the still-pinned 2.0.0 policy; release packaging,
+  self-upgrade, and consumer migration remain separately reviewed tasks.
+scope:
+  - Treat codex as the contract author and implementation owner of this exact bootstrap task, user-authority as the GOOD_STANDING remediation supervisor, independent-contract-reviewer-fix1 as the contract reviewer, and independent-implementation-reviewer-fix1 as the later implementation reviewer; all four normalized IDs are distinct except the explicitly bootstrap-authorized codex author/owner combination, and none is an alias of independent-contract-reviewer.
+  - Bump source VERSION and package.json from 2.1.0-beta.0 to exactly 2.1.0-beta.1 while preserving all 2.0.0 and 2.1.0-beta.0 terminal histories and release records as checkable historical artifacts.
+  - Add a read-only `sop task preflight --project <absolute-project-path> --input <absolute-input-path>` command that validates and freezes contract completeness before `task start` may create a task.
+  - Require `sop task start --project <absolute-project-path> --input <absolute-input-path> --preflight-plan <preflightDigest>` to produce a dry start plan and the same command plus `--apply-plan <startPlanDigest>` to create artifacts; both digests are recomputed and a missing, stale, forged, cross-project, cross-input, or changed-byte digest fails without task, ledger, authorization, or command mutation.
+  - Require every new beta1 mutating input and generated contract to contain normalized contractAuthor, an exact contractPreflight binding, and structured designBindings covering deliverables, authorities, constants, equalities, transitions, actor roles, and artifact kinds.
+  - Make preflight require exact unique IDs, resolvable references, complete acceptance coverage, empty openChoices, contained regular non-symlink authority paths, raw-SHA binding for absolute external files, and explicit positive, negative, evidence, state, trust, recovery, and compatibility observations applicable to the task risk.
+  - Add a policy-anchored local-claim actor registry and append-only accountability event chain; actor IDs are immutable, aliases are unique, and actor add, alias change, revocation, sanction override, or reinstatement requires exact user authorization.
+  - >-
+    Attribute culpable findings mechanically by frozen role and origin bindings: contract violations to contractAuthor, implementation defects to implementationOwner, and a defect provably present in previously accepted bytes to the reviewer who missed it; new requirements and tool defects score zero.
+  - Enforce strict standing and role permissions at preflight and every start, transition, contract-review, implementation-review, repair, and close boundary so aliases, mid-task sanctions, stale plans, caller labels, direct ledger edits, and cross-task artifacts cannot bypass restrictions.
+  - Bootstrap the current incident as codex active score 20 and SUSPENDED, and independent-contract-reviewer active score 8 and PROBATION; permit codex to complete only this exact user-authorized fix1 remediation task under the frozen exception.
+  - >-
+    Preserve the predecessor repair chain as authority: the original fix1 contract, canonical contract-review.yaml and superseding ledger, plus the repair-1 and repair-2 contracts and superseding ledgers remain immutable evidence for this repair-3 task.
+  - >-
+    Add exactly these new schema deliverables: schemas/task-start-input.schema.json, schemas/contract-preflight.schema.json, schemas/actor-registry-event.schema.json, schemas/accountability-event.schema.json, schemas/accountability-status.schema.json, and schemas/accountability-bootstrap.schema.json. Their artifactType constants are respectively not-applicable input document, engineering-governance-contract-preflight-v1, engineering-governance-actor-registry-event-v1, engineering-governance-accountability-event-v1, engineering-governance-accountability-status-v1, and engineering-governance-accountability-bootstrap-v1; extend existing project-policy, task-contract, contract-review, review, authorization, and task-event schemas without replacing historical variants.
+  - >-
+    Add exactly these new source and command deliverables: src/accountability/registry.ts, src/accountability/policy.ts, src/accountability/derive.ts, src/accountability/enforce.ts, src/accountability/preflight.ts, src/commands/task-preflight.ts, src/commands/accountability-status.ts, and scripts/verify-accountability-bootstrap.mjs; update the existing CLI, lifecycle, graph, policy loader, model types, docs, templates, generated dist, and delivery-sop skill only where required by the frozen behavior.
+  - >-
+    Freeze project policy accountability keys as ruleset, registryPath, eventsPath, and genesisDigest with exact values strict-v1, .delivery/accountability/actors.jsonl, .delivery/accountability/events.jsonl, and c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071; that genesis is SHA-256 of the exact UTF-8 bytes `engineering-governance-accountability-genesis-v1\nstrict-v1\n`.
+  - >-
+    Freeze designBindings item keys and enums: deliverables use id, repositoryId, path, kind, schemaRef, artifactType with kind source, schema, document, template, test, script, or generated; authorities use id, location, repositoryId, path, rawSha256, semanticDigest with location repository or external; constants use id, valueType, value, sourceRef with valueType string, integer, boolean, digest, path, or state; equalities use id, leftRef, rightRef, comparison with comparison exact_string, canonical_semantic_digest, raw_sha256, ordered_set, or normalized_actor; transitions use id, from, to, actorRoleRef, artifactKindRefs, authorizationRefs; actorRoles use id, actorId, requiredStanding, distinctFrom with requiredStanding GOOD_STANDING, WATCH, PROBATION, or SUSPENDED; artifactKinds use id, pathPattern, schemaRef, minimumCount, maximumCount with non-negative integer counts. Explicit string `none` is used where a schema, artifactType, repositoryId, digest, actorId, or maximumCount is inapplicable.
+  - >-
+    Freeze preflight checks in exact order as input_schema, authority_resolvability, design_binding_schema, design_binding_references, acceptance_coverage, risk_classification, actor_eligibility, authorization, repository_baselines, and open_choices; every check is PASS with non-empty evidence or preflight is invalid.
+  - >-
+    Freeze beta1 finding enums and history mapping: responsibleRole is contract_author, implementation_owner, contract_reviewer, implementation_reviewer, tool, or none; culpability is culpable, non_culpable_new_requirement, non_culpable_tool_defect, or missed_existing_blocker; new beta1 findings use BLOCKER, HIGH, MEDIUM, LOW, while inspect-only pre-beta1 P0, P1, P2, P3 map exactly to BLOCKER, HIGH, MEDIUM, LOW and cannot be authored by beta1 commands.
+  - >-
+    Freeze actor-registry event common keys as schemaVersion, artifactType, eventType, sequence, priorEventDigest, eventDigest, policyDigest, actorId, aliases, authorization, actor, and occurredAt. Freeze accountability event common keys as schemaVersion, artifactType, eventType, sequence, priorEventDigest, eventDigest, policyDigest, subjectActorId, source, score, lifetimePenaltyScore, activePenaltyScore, standing, permissions, authorization, and occurredAt; source is exactly taskId, artifactPath, rawSha256, semanticDigest, reviewId, and findingId, using explicit string none only where frozen as inapplicable, and score is exactly base, repeatSurcharge, immediateSuspension, and delta. Event-specific schemas may require narrower payload values but may not add undeclared top-level keys.
+  - >-
+    Freeze accountability status output keys as schemaVersion, artifactType, policyVersion, actorId, aliases, lifetimePenaltyScore, activePenaltyScore, standing, permissions, unresolvedDefectClasses, calibration, recognition, and sourceEvents. calibration is exactly currentStage, consecutiveCleanCount, requiredCleanCount, qualifyingRefs, and lastResetRef; recognition is exactly status, grantedByEvent, and revokedByEvent; each sourceEvents item is exactly sequence, eventDigest, eventType, and sourceRef.
+  - >-
+    Freeze accountability bootstrap keys as schemaVersion, artifactType, policyVersion, taskId, sources, findings, actors, and remediationException. Each source is exactly id, kind, path, rawSha256, and semanticDigest with kind contract, review, ledger, or report; each finding uses the exact beta1 finding and origin structure; each actor is exactly actorId, aliases, lifetimePenaltyScore, activePenaltyScore, standing, permissions, and unresolvedDefectClasses; remediationException is exactly authorizationPath, authorizationRawSha256, authorizationSemanticDigest, taskId, action, supervisorId, contractReviewerId, implementationReviewerId, issuedAt, expiresAt, and consumeOnce.
+  - >-
+    Freeze contract repair semantics: a failed preflight creates no task; a DEFINED contract review with REPAIR_REQUIRED is persisted and the task transitions DEFINED to SUPERSEDED with that contract-review artifact; a repaired contract requires a new taskId and exact predecessor binding. Ledger REPAIR_REQUIRED remains reserved for a CANDIDATE implementation review and no contract or ledger history is rewritten.
+  - >-
+    Add the authorization schema variant engineering-governance-remediation-authorization-v1 without changing legacy or sop-authorization-v2 validation. Its exact required top-level keys are schemaVersion, artifactType, authorizationId, requirementId, taskId, contract, grantor, action, target, scope, supervisorId, contractReviewerId, implementationReviewerId, issuedAt, expiresAt, consumeOnce, and status; contract is exactly path, rawSha256, and semanticDigest, and grantor is exactly id, role, and trustLevel. Bind the bootstrap authorization to .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/authorizations/AUTH-EG21-BETA1-FIX1-REMEDIATION.json, supervisorId user-authority, contractReviewerId independent-contract-reviewer-fix1, and implementationReviewerId independent-implementation-reviewer-fix1; the exception cannot resolve any other task, role, path, actor, or action.
+  - Require permanent defect-class gates, supervised clean calibrations at equal-or-higher risk, and exact user-authorized evidence-bound reinstatement events before a restricted actor can regain permissions; rewards never waive or substitute for any core gate.
+  - Add exact schemas, source validators, CLI behavior, documentation, templates, scripts, and adversarial unit/integration tests for preflight, identity, attribution, sanctions, recovery, compatibility, and bootstrap results.
+nonGoals:
+  - Do not build or install a 2.1.0-beta.1 runner archive, publish or push a package, apply a policy self-upgrade, migrate any consumer, or change ProjTrav or NoMe.
+  - Do not deploy, restart services, mutate production or persistent product data, communicate externally, or use registry credentials.
+  - Do not inspect, adapt, copy, allocate, or authorize TREK implementation material; external-source mode remains independent.
+  - Do not rewrite, delete, relabel, or replace beta0 contracts, reviews, ledgers, evidence, candidates, release receipts, release records, or archive bytes.
+  - Do not claim cryptographic human authentication; registry identity and user authorization remain explicit local claims.
+  - Do not use reward points, reliability labels, supervisor claims, or remediation activity to waive contract readiness, fresh evidence, independent review, authorization, provenance, runtime, cloud, production, or risk gates.
+authorityInputs:
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - RISK_CLASSIFICATION.md
+  - MIGRATING_TO_2.0.md
+  - README.md
+  - VERSION
+  - package.json
+  - .delivery/policy.yaml
+  - schemas/project-policy.schema.json
+  - schemas/task-contract.schema.json
+  - schemas/contract-review.schema.json
+  - schemas/review.schema.json
+  - schemas/task-event.schema.json
+  - schemas/authorization.schema.json
+  - src/policy/load.ts
+  - src/policy/task-contract.ts
+  - src/commands/task-start.ts
+  - src/commands/task-contract-review-v2.ts
+  - src/commands/task-review-v2.ts
+  - src/commands/task-close-v2.ts
+  - src/state/contract-readiness.ts
+  - src/state/ledger.ts
+  - src/project/task-graph.ts
+  - src/model/digest.ts
+  - src/model/actor.ts
+  - src/metrics/derive.ts
+  - src/cli/main.ts
+  - tests/integration/cli-v2-hardening.test.ts
+  - tests/integration/contract-review-gate.test.ts
+  - tests/unit/contract-readiness.test.ts
+  - tests/unit/task-ledger-v2.test.ts
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-1/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-1/ledger.jsonl
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-2/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-2/ledger.jsonl
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-3/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-3/ledger.jsonl
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-4/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-4/ledger.jsonl
+  - .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract-review.yaml
+  - .delivery/tasks/global-sop-2-1-beta-1-fix-1/ledger.jsonl
+  - .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-1/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-1/ledger.jsonl
+  - .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-2/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-2/ledger.jsonl
+  - /__CODEX_ATTACHMENT__/db91f0af-995a-4f6f-b98f-a4a2d6902c53/pasted-text.txt
+  - /__CODEX_ATTACHMENT__/72cc1902-3017-436e-af2c-3aa869a8ae8b/pasted-text.txt
+  - /__CODEX_ATTACHMENT__/426e77ce-7e60-4f9c-97f0-47fdf37d5414/pasted-text.txt
+  - /__CODEX_ATTACHMENT__/da75f518-263d-4ab1-9594-d1c5ee331786/pasted-text.txt
+repositories:
+  - id: root
+    path: /__RELEASE_PROJECT_ROOT__
+acceptance:
+  - id: FIX1-PREFLIGHT-SCHEMA
+    observation: >-
+      Beta1 task input, task contract, and preflight output use exact schemas
+      and exact-key semantic validation. A successful preflight deterministically
+      binds project policy, project root, input raw SHA-256 and semantic digest,
+      repository baselines, contractAuthor, designBindings, derived risk,
+      required gates, authorization requirements, and the resulting start plan.
+    positiveCases:
+      - New beta1 mutating inputs require schemaVersion 2, taskId, contractAuthor, implementationOwner, objective, scope, nonGoals, authorityInputs, repositories, acceptance, authorizationRequirements, evidenceFreshnessMs, designBindings, predecessors, openChoices, and signals; generated contracts additionally require sopVersion, policyDigest, contractDigest, risk, riskSignals, contractPreflight, and extensions. predecessors is empty for a new task and contains exact predecessor task/contract/review identities and finding IDs for a repaired task.
+      - contractPreflight is exactly schemaVersion, artifactType engineering-governance-contract-preflight-v1, taskId, projectRoot, policyVersion, policyDigest, inputRawSha256, inputSemanticDigest, contractSemanticDigest, repositoryBaselines, checks, and planDigest; every digest is recomputed and planDigest is canonical structured-document SHA-256 excluding itself.
+      - Each contractPreflight check has exactly id, status PASS, and non-empty evidenceRefs; check IDs and order are the ten scope-frozen tokens. Each predecessor has exactly taskId, contractPath, contractRawSha256, contractDigest, reviewPath, reviewRawSha256, decision REPAIR_REQUIRED, and non-empty ordered findingIds; every identity is recomputed from a terminal SUPERSEDED predecessor.
+      - designBindings is exactly deliverables, authorities, constants, equalities, transitions, actorRoles, and artifactKinds with the exact item key sets frozen in scope; each collection has unique IDs, exact allowed types, deterministic ID order, and no unknown, duplicate, dangling, or unused reference. A collection may be empty only when the preflight risk checklist marks its category inapplicable with the exact allowed reason.
+      - Every deliverable binds repositoryId, relative contained path, kind, schema or explicit none, and artifactType or explicit none; every authority binds a contained regular non-symlink path or an absolute external regular file plus raw SHA-256; every typed constant has one canonical value and source.
+      - Every equality binds two declared field references and comparison mode exact-string, canonical-semantic-digest, raw-sha256, ordered-set, or normalized-actor; transitions bind from, to, actorRole, required artifact kinds, and authorization IDs.
+      - Every acceptance item declares non-empty bindingRefs and collectively references every design binding at least once; all positive and negative cases are non-empty, required gates equal acceptance IDs, and openChoices is exactly empty.
+      - Preflight checks appear exactly once in frozen order input_schema, authority_resolvability, design_binding_schema, design_binding_references, acceptance_coverage, risk_classification, actor_eligibility, authorization, repository_baselines, and open_choices; all are PASS with non-empty evidence identities.
+    negativeCases:
+      - Null, array, schema-only, missing nested object, wrong type, unknown key, duplicate ID, dangling reference, unused binding, invalid inapplicable reason, missing or forged predecessor, path traversal, symlink, directory, missing file, unhashed absolute input, unbound constant, unresolved choice, risk downgrade, or summary-only acceptance passes or throws TypeError.
+      - Formatting-only input changes preserve semantic digest but change raw SHA and therefore invalidate the start plan; no caller-supplied digest or state label is trusted.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/unit/contract-preflight.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-PREFLIGHT-CLI
+    observation: >-
+      The real beta1 CLI preflight is read-only and task start consumes only an
+      exact freshly recomputed successful preflight plan. Failure leaves task,
+      ledger, authorization-consumption, and command-execution bytes unchanged.
+    positiveCases:
+      - >-
+        `sop task preflight --project <absolute> --input <absolute>` emits one canonical JSON result, exits zero only when valid true, and performs zero checkout writes.
+      - >-
+        `sop task start --project <absolute> --input <absolute> --preflight-plan <preflightDigest>` recomputes the same preflight and emits a dry start plan; adding `--apply-plan <startPlanDigest>` recomputes both digests and only then creates contract.yaml and sequence-1 ledger state.
+      - Actor eligibility, risk, repository baselines, authority identities, authorization requirements, and input raw bytes are checked both when preflight is produced and when start is applied.
+    negativeCases:
+      - Missing preflight-plan, failed preflight, stale or forged digest, formatting-byte drift, cross-project, cross-input, cross-task, changed policy, changed authority, changed repository baseline, suspended author or owner, or expired authorization creates a directory, appends a ledger, executes acceptance commands, or crashes.
+      - Legacy active-command flags, direct internal helper calls, aliases, symlinks, traversal, and precreated task directories bypass preflight.
+      - A rejected DEFINED contract is edited in place, reuses its taskId, gains REPAIR_REQUIRED without a CANDIDATE review, or starts a replacement without exact predecessor contract/review/finding binding.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/integration/contract-preflight-cli.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-ACTOR-REGISTRY
+    observation: >-
+      Actor identity is derived from a policy-anchored append-only local-claim
+      registry, not caller strings. Canonical actor ID, aliases, status, event
+      order, authorization, and chain digests are recomputed on every use.
+    positiveCases:
+      - >-
+        `.delivery/accountability/actors.jsonl` contains exact schema-valid actor-created, alias-added, actor-revoked, and actor-restored events with sequence, priorEventDigest, eventDigest, canonical actorId, aliases, authorization binding, actor, and occurredAt.
+      - >-
+        `.delivery/policy.yaml` contains exactly accountability.ruleset strict-v1, registryPath .delivery/accountability/actors.jsonl, eventsPath .delivery/accountability/events.jsonl, and genesisDigest c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071; sequence 1 uses that genesis and every later event binds the previous event digest and adopted policy digest.
+      - Normalization is trim plus Unicode NFKC plus lowercase; canonical actor IDs are immutable, normalized aliases are globally unique, and every event actor and authorization subject resolves to one active canonical ID.
+      - Add, alias, revoke, restore, or identity correction requires a valid non-expired task/action/target/scope-bound user authorization; consume-once authorization cannot be replayed.
+      - Actor registry eventType is exactly actor_created, alias_added, actor_revoked, or actor_restored. Accountability eventType is exactly finding_assessed, standing_changed, calibration_recorded, calibration_reset, recognition_granted, or recognition_revoked; event-specific exact-key schemas reject all other tokens and cross-event partial fields.
+      - Actor-registry and accountability events contain exactly their scope-frozen common top-level keys. Registry authorization is either the exact authorization identity object or explicit string none; accountability source and score contain exactly their scope-frozen keys; eventDigest is recomputed over the canonical event excluding eventDigest.
+    negativeCases:
+      - Unknown actor, duplicate or confusable alias, rename to evade sanctions, reordered/omitted/duplicated event, forged prior digest, caller-selected canonical ID, stale authorization, symlink registry, malformed JSONL, unknown key, or partial event passes validation.
+      - The local registry is represented as cryptographic proof of a human or permits one actor to claim another actor's privileges.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/unit/actor-registry.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-ACCOUNTABILITY-POLICY
+    observation: >-
+      Accountability is deterministically derived from canonical findings and
+      immutable role/origin evidence. Scoring, immediate sanctions, standing,
+      attribution, repeat detection, and permissions have one exact strict-v1
+      interpretation and cannot be weakened by project configuration.
+    positiveCases:
+      - Each finding records exact findingId, severity, classification, defectClass, responsibleRole, responsibleActorId or none, culpability, origin containing taskId, artifactPath, rawSha256, semanticDigest, reviewId or none, evidenceRefs, and policyVersion; responsibleRole and culpability use only the frozen enums and duplicate accounting for one origin/review/finding identity is rejected.
+      - BLOCKER scores 8, HIGH 5, MEDIUM 3, LOW 1; a repeated unresolved normalized defectClass adds 4; evidence-forgery, identity-evasion, authorization-bypass, and prohibited-mutation cause immediate SUSPENDED regardless of numeric score.
+      - activePenaltyScore maps 0-4 GOOD_STANDING, 5-7 WATCH, 8-11 PROBATION, and 12 or more SUSPENDED unless a later valid reinstatement event explicitly changes both score and standing; lifetimePenaltyScore never decreases.
+      - A culpable contract_violation binds responsibleRole contractAuthor; a culpable newly_discovered_defect binds implementationOwner unless evidence proves the same defect existed in bytes accepted by a prior review, in which case missed_existing_blocker binds that prior reviewer; new_requirement and proven tool_defect score zero.
+      - GOOD_STANDING has normal role eligibility but no gate waiver. WATCH cannot author, own, or review R3 and may perform R1/R2 only with a distinct GOOD_STANDING supervisor and exact authorization. PROBATION has no normal mutating author, owner, or reviewer role and may act only as an authorized supervised remediation worker. SUSPENDED is R0/read-only except one exact authorized supervised remediation task.
+      - For future beta1 R2/R3 tasks, contractAuthor, implementationOwner, contract reviewer, and implementation reviewer are four normalized distinct registered actors in GOOD_STANDING; no self-review or alias-equivalent role reuse is allowed.
+      - New beta1 contract and implementation reviews author only BLOCKER, HIGH, MEDIUM, LOW. Historical P0, P1, P2, P3 findings are inspect-only and map exactly to BLOCKER, HIGH, MEDIUM, LOW for recomputation without changing historical bytes.
+    negativeCases:
+      - A prose finding, aggregate count, reviewer summary, severity downgrade, unclassified or unknown classification, missing origin bytes, caller-selected responsible actor, unproven blame transfer, duplicate event, tiny clean task, time passage, alias change, project extension, or reward reduces a sanction or authorizes a role.
+      - ACCEPTED review with a culpable finding, REPAIR_REQUIRED without a consolidated finding set, unscored blocking finding, or orphan accountability event passes policy or graph validation.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/unit/accountability-policy.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-SANCTIONS-ENFORCEMENT
+    observation: >-
+      Real CLI, ledger, and task-graph paths recompute status and fail closed at
+      every role-bearing boundary. A sanction applied after task start takes
+      effect before the next transition and cannot be bypassed through stale
+      plans, direct artifacts, aliases, or caller-controlled role labels.
+    positiveCases:
+      - Preflight, start apply, DEFINED to IN_PROGRESS, contract review, candidate declaration, implementation review, repair, ACCEPTED to CLOSED, and graph check resolve all actors through the registry and enforce current standing plus exact task authorization.
+      - Contract-review REPAIR_REQUIRED persists the canonical review and permits only DEFINED to SUPERSEDED by the implementation owner with that artifact; a replacement task requires a different taskId and exact predecessors entry. CANDIDATE implementation-review REPAIR_REQUIRED remains the only path into ledger state REPAIR_REQUIRED.
+      - Canonical contract and implementation review schemas require accountability attribution for every finding; semantic validation recomputes role binding, origin, culpability, score delta, standing effect, and matching append-only accountability event.
+      - >-
+        `.delivery/accountability/events.jsonl` is path-contained, regular, non-symlink, exact-schema JSONL with sequence, priorEventDigest, eventDigest, source artifact raw SHA and semantic digest, affected actor, score delta, resulting status, and authorization or explicit none.
+      - >-
+        `sop accountability status --project <absolute> --actor <id-or-alias>` emits recomputed canonical JSON including lifetime score, active score, standing, permissions, unresolved defect classes, calibration progress, and source event identities.
+      - Status output contains exactly the scope-frozen top-level, calibration, recognition, and sourceEvents key sets; every value is recomputed from the policy-anchored registry and accountability chains rather than read from caller input or a mutable status cache.
+    negativeCases:
+      - Mid-task suspension, stale dry-run plan, stale contract review, direct ledger append, forged accepted review, missing accountability event, orphan event, cross-task source, reviewer/event actor mismatch, alias-equivalent role, symlink, traversal, partial JSONL, wrong order, or caller-supplied standing permits a mutation or returns valid true.
+      - Invalid inputs throw TypeError, execute acceptance commands, consume authorization, or partially mutate registry, accountability, task, or ledger files.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/integration/accountability-enforcement.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-BOOTSTRAP
+    observation: >-
+      One task-owned exact-schema bootstrap artifact records the current
+      accountability incident without rewriting prior lifecycle artifacts. A
+      verifier recomputes its authority bytes, attribution, scores, standings,
+      and the one narrow remediation exception.
+    positiveCases:
+      - >-
+        `.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/accountability-bootstrap.yaml` binds the four superseded readiness task contracts and final ledgers, the four pasted independent review reports, the original fix1 contract/canonical review/final ledger, the repair-1 and repair-2 contracts/final ledgers, their exact raw SHA-256 values, normalized defect classes, role attribution, and strict-v1 policy.
+      - Contract raw SHA-256 values are r1 73ebd1e6d0730dca32ff7976cc8b96dd6a40653ab866cbd285f4cfa36390bcd4, r2 9b1c7255bf13cc5e81a1769de6b91ed2a8b2ef5374815dca7ea50c70fd25a6a4, r3 48fb268affba7c560898a831877818f78a1cef498eb73680cbb723f6d669828d, and r4 cbe12ad326d057abe91e77bc9773beec7e95fb37d4331d973561478e44f8100d.
+      - Final ledger raw SHA-256 values are r1 39122e537a0b311079b09e36e0b94dc3b74c80970fa79e873f272c96d936a04d, r2 401231d651be69d856c65d1323b69140c29dd713798afa58eff4a24f9d0c2c03, r3 2c558874126115f79dc5382a49ef36a8f18ff588ecb27a93a3bf2c49e5104102, and r4 0bee222d45b0cca6d0116f756593cf06ed8d8c865249a782e622e7a5614a3e04.
+      - Pasted report raw SHA-256 values are ea4a4bba6d28457135ca062c031c009738538271759485a544787c18b706a248, e7cce4a1613bd9ba0db92f01435e808d6c5e413e77aa586c89604e7c18d58998, 073bc7537dc234446a89aa77c3ef16b01d4fdb054730d9b5a1266e54cb1b7818, and 3ebbaf46dd5aa573118a394d479fc8d029c772e8023eb633a12bd46d6b96b2b2.
+      - Original fix1 raw SHA-256 values are contract 7b4a2dc7882a4a0a26a86472afe0b9e249e2cc18770a950f79549f19f04bd78b, canonical contract review eb000aebfd08ff7c2fe58663e5e492bc9863c402792afdd3a9cc3636916ca2d6, and final ledger 1a4f259f1749684f0779fffabb3f03e97148d60ca3980e072881b149a043d010.
+      - Repair-1 raw SHA-256 values are contract 620deef099d665deda63bffc9c8ec9392a58d531e42da49f653f4c7146201f9b and final ledger 01be47929190d6eb3a29a0523c715c5f6dc92a42503daebc41a271c30b84f7e6; repair-1 is superseded and contributes no additional penalty because no independent finding was recorded against it.
+      - Repair-2 raw SHA-256 values are contract 0790340ae3795a5c1c4ca1f9782e713bd9e2e8b0a151a99a00e606435629d6f3 and final ledger 62ce6c13352235bc53a94eccb47306e3c7d237377a9370bb6e64a16c75a8da64; repair-2 is superseded and contributes no additional penalty because no independent finding was recorded against it.
+      - Canonical predecessor finding CR-001 is BLOCKER, contract_violation, defectClass contract-authority-resolution, responsibleRole contract_author, responsibleActorId codex, culpability culpable, score delta 8, and no repeat surcharge; it raises codex from the prior 12 to lifetime and active score 20.
+      - Recomputed bootstrap result is codex lifetime and active score 20 with SUSPENDED standing, independent-contract-reviewer lifetime and active score 8 with PROBATION standing, and one exception limited to this exact task, accepted contract, paths, action, owner role, expiry, and GOOD_STANDING supervisor.
+      - The bootstrap contains exactly the scope-frozen top-level keys and exact source, actor, and remediationException item keys; source order is deterministic by frozen source ID and every raw and semantic digest is recomputed.
+      - The exact authorization artifact is `.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/authorizations/AUTH-EG21-BETA1-FIX1-REMEDIATION.json`; it uses artifactType engineering-governance-remediation-authorization-v1 and exactly the scope-frozen required keys, binds contract path/raw SHA/semantic digest, grantor id user-authority/role user/trustLevel local-claim, supervisorId user-authority, contractReviewerId independent-contract-reviewer-fix1, implementationReviewerId independent-implementation-reviewer-fix1, the frozen action and target, exact scope, issuedAt, expiresAt, consumeOnce true, and status approved.
+      - The verifier prints exactly `{"valid":true,"policyVersion":"strict-v1","codex":{"score":20,"standing":"SUSPENDED"},"independent-contract-reviewer":{"score":8,"standing":"PROBATION"},"remediationTask":"global-sop-2-1-beta-1-fix-1-repair-3"}` plus one LF and no stderr.
+    negativeCases:
+      - Changed, missing, reordered, duplicated, stale, symlinked, unhashed, summary-only, or cross-task source passes; the exception grants any other task, role, reviewer, publisher, upgrader, consumer migration, or post-expiry mutation.
+      - The bootstrap modifies prior contracts, reviews, evidence, ledgers, release records, archive receipt, or release bytes.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments: [scripts/verify-accountability-bootstrap.mjs, --task-id, global-sop-2-1-beta-1-fix-1-repair-3]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy:
+      expectedExitCode: 0
+      output: exact
+      expectedStdoutSha256: ac1b98ef89706da22c2ef44532078752cdc74821c9ae29c9e03a708e2270c5b6
+      expectedStderrSha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      checkoutMutation: forbidden
+      replay: required
+  - id: FIX1-REINSTATEMENT
+    observation: >-
+      Restriction recovery is slow, supervised, risk-matched, defect-specific,
+      evidence-bound, and user-authorized. Recognition is allowed only after
+      reliability is proven and never changes mandatory gates.
+    positiveCases:
+      - SUSPENDED to PROBATION requires one user-approved remediation that installs a permanent executable gate for every unresolved repeated defectClass plus three consecutive supervised first-pass clean tasks or reviews at equal-or-higher risk; the reinstatement event sets active score 8 while retaining lifetime score.
+      - PROBATION to WATCH requires two additional consecutive supervised first-pass clean equal-or-higher-risk tasks or reviews and sets active score 5; WATCH to GOOD_STANDING requires two additional consecutive first-pass clean independently reviewed R2/R3 tasks and sets active score 0.
+      - Any blocker, repair-required decision, evidence mismatch, authorization failure, missed existing blocker, supervision failure, or sequence gap resets the current calibration stage; R0/R1 volume cannot satisfy R2/R3 or R3 calibration.
+      - RELIABLE recognition requires five further consecutive first-pass clean R2/R3 tasks after GOOD_STANDING, is revocable on the next culpable finding, and grants no evidence, review, authorization, provenance, or transition waiver.
+      - Every promotion or recognition is one append-only event binding exact qualifying task/review/evidence identities, risk, defect gates, distinct supervisor/reviewer identity, and one non-expired consume-once user authorization.
+    negativeCases:
+      - Time decay, manually editing score, a reward counter, repeated low-risk chores, self-supervision, self-review, cross-actor evidence, duplicate calibration, stale authorization, missing permanent gate, or a prose promise restores permission.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/integration/accountability-reinstatement.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-COMPATIBILITY
+    observation: >-
+      Beta1 introduces preflight and accountability only for new beta1 tasks
+      without rewriting valid terminal history. Legacy v1 remains inspect-only,
+      old pinned 2.0.0 behavior remains usable until a separate upgrade, and
+      beta0 release identity remains valid historical data.
+    positiveCases:
+      - Existing CLOSED, CANCELLED, and SUPERSEDED schema-v2 histories created under 2.0.0 or beta0 remain graph-checkable by exact grandfather identity; no accountability event is retroactively required except the explicit fix1 bootstrap record.
+      - Existing non-terminal old-policy tasks remain rejected by the existing stale-policy rule; v1 tasks remain inspect-only and cannot gain beta1 readiness or role eligibility.
+      - R0 read-only operations remain available to suspended actors; beta1 R1 mutating tasks require preflight and eligible actors but preserve their existing evidence/review risk rules.
+      - >-
+        `release-record.schema.json` validates the frozen beta0 record and a beta1 record through version/source/archive cross-field equality rather than replacing beta0 constants.
+      - Source remains only a candidate; `.delivery/policy.yaml`, pinned 2.0.0 archive, wrapper digest, and adopted runner are unchanged by this task.
+    negativeCases:
+      - Historical artifact rewriting, global auto-upgrade, retroactive punishment without bootstrap authority, v1 activation, stale non-terminal grandfathering, source-only policy check, or beta0 release invalidation passes.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/integration/accountability-compatibility.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-UNIT-ALL
+    observation: Every unit test passes under Node 22 with zero skipped unit tests.
+    positiveCases: [pnpm exec vitest run tests/unit exits zero with zero skipped tests]
+    negativeCases: [A unit file is omitted, skipped, or replaced by an aggregate claim]
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/unit]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-INTEGRATION-ALL
+    observation: >-
+      Every integration test passes under Node 22 except exactly the existing
+      REAL_PROJECT_DRY_RUN guarded consumer-adoption case, because consumer
+      access and migration are non-goals. No other skip is allowed.
+    positiveCases:
+      - >-
+        Vitest exits zero and reports exactly one skipped test: tests/integration/real-project-dry-run.test.ts case `plans real project adoption through canonical sources without mutation`, guarded only because REAL_PROJECT_DRY_RUN is not 1.
+    negativeCases:
+      - Any other test skips, the named skip changes identity or reason, or an integration file is omitted.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/integration]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-TYPECHECK
+    observation: TypeScript static typecheck passes for the exact candidate.
+    positiveCases: [pnpm typecheck exits zero]
+    negativeCases: [Build, old evidence, or another checkout substitutes for typecheck]
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [typecheck]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-BUILD
+    observation: Source compiles to tracked dist under Node 22 with no unexplained tracked drift.
+    positiveCases: [pnpm build exits zero and generated dist matches source]
+    negativeCases: [Stale dist, old build output, or another checkout supplies compile evidence]
+    evidenceKind: compile
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [build]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-DOCS
+    observation: Governance semantic documentation and templates encode the exact beta1 preflight, strict-v1 accountability, sanction, recovery, and compatibility rules.
+    positiveCases: [pnpm check:governance-docs exits zero and checks semantic rule IDs and cross-document equality]
+    negativeCases: [Placeholder scan, prose presence, version text, or self-report substitutes for semantic checks]
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [check:governance-docs]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-PLACEHOLDERS
+    observation: Placeholder scan passes for the exact candidate.
+    positiveCases: [pnpm check:placeholders exits zero]
+    negativeCases: [The scan is omitted or run on another checkout]
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [check:placeholders]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-LICENSES
+    observation: License inventory check passes for the exact candidate.
+    positiveCases: [pnpm check:licenses exits zero]
+    negativeCases: [License evidence is omitted or replaced by a claim]
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [check:licenses]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: FIX1-PINNED-CHECK
+    observation: The adopted project-pinned 2.0.0 policy remains valid and unchanged throughout this source-candidate task.
+    positiveCases: [The exact pinned wrapper exits zero with valid true and errors empty]
+    negativeCases: [Source CLI, a newly built archive, stale output, or a different wrapper substitutes for the pinned check]
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /__RELEASE_PROJECT_ROOT__/.delivery/bin/check-delivery-policy.sh
+      arguments: []
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+authorizationRequirements:
+  - id: AUTH-EG21-BETA1-FIX1-REMEDIATION
+    action: implement-and-verify-beta1-accountability-remediation
+    target: /__RELEASE_PROJECT_ROOT__
+    scope:
+      - Permit codex, despite bootstrap SUSPENDED standing, to author and implement only global-sop-2-1-beta-1-fix-1-repair-3 after an accepted contract review by independent-contract-reviewer-fix1 under supervision by user-authority.
+      - Permit only the frozen beta1 source, schemas, docs, templates, tests, task-owned bootstrap, exact authorization artifact, and local temporary verification outputs.
+      - Record codex score 20 SUSPENDED and independent-contract-reviewer score 8 PROBATION without editing any prior lifecycle or release artifact.
+      - Require GOOD_STANDING supervisor user-authority for every mutating implementation action and separate GOOD_STANDING implementation reviewer independent-implementation-reviewer-fix1 for the exact candidate; no alias-equivalent substitution is allowed.
+      - Persist the consume-once authorization only at .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/authorizations/AUTH-EG21-BETA1-FIX1-REMEDIATION.json and bind it to the accepted contract raw SHA-256 and contract digest.
+      - Use authorization artifactType engineering-governance-remediation-authorization-v1 with the exact required key sets frozen in scope; legacy authorization and sop-authorization-v2 variants remain byte-compatible and valid only in their original historical contexts.
+      - Use issuedAt 2026-08-15T17:17:18.000Z and expiresAt 2026-08-29T17:17:18.000Z; every apply or candidate verification must fail after expiry.
+      - Forbid release packaging, runner installation, policy self-upgrade, consumer migration, publishing, push, deployment, production action, remote mutation, and external communication.
+    trustLevel: recorded-claim
+    consumeOnce: true
+evidenceFreshnessMs: 86400000
+openChoices: []
+signals:
+  mutation: true
+  classificationComplete: true
+  crossModule: true
+  authorization: true
+  security: true
+  migration: true
+  projectMinimum: R3

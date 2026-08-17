@@ -29,7 +29,7 @@ const archiveBytes = readFileSync(archivePath)
 const receiptPath = resolve(root, receiptInput)
 const receiptRaw = readFileSync(receiptPath)
 const receipt = JSON.parse(receiptRaw.toString('utf8'))
-if (receipt.archivePath !== archivePath || receipt.sha256 !== sha(archiveBytes) || receipt.firstBuildSha256 !== receipt.sha256 || receipt.secondBuildSha256 !== receipt.sha256 || receipt.candidateCommit !== candidateCommit || receipt.candidateTree !== candidateTree || receipt.version !== '2.1.0-beta.0' || receipt.identical !== true) throw new Error('RELEASE_ARCHIVE_RECEIPT_MISMATCH')
+if (receipt.archivePath !== archivePath || receipt.sha256 !== sha(archiveBytes) || receipt.firstBuildSha256 !== receipt.sha256 || receipt.secondBuildSha256 !== receipt.sha256 || receipt.candidateCommit !== candidateCommit || receipt.candidateTree !== candidateTree || receipt.version !== '2.1.0' || receipt.identical !== true) throw new Error('RELEASE_ARCHIVE_RECEIPT_MISMATCH')
 const priorPath = resolve(root, priorInput)
 const priorRaw = readFileSync(priorPath)
 const record = {

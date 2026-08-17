@@ -4,10 +4,15 @@ Engineering Governance is the canonical, versioned development workflow for
 user-owned projects. It defines risk classification, task states, evidence
 integrity, independent review, exception handling, and safe project adoption.
 
-The repository is a local `2.1.0-re` release candidate and remains unpublished.
+The repository is prepared for `sop-2.1.0-release-v1`, the first formal `2.1.0`
+release line. The private remote is updated for final owner review; public
+visibility and publication remain separate explicit actions.
 Version 2 is a breaking lifecycle and artifact-format release. Existing 1.x
 projects remain pinned until an explicit reviewed upgrade; see
 [`MIGRATING_TO_2.0.md`](MIGRATING_TO_2.0.md).
+
+This project is available under the [MIT License](LICENSE). Security reports
+should follow [SECURITY.md](SECURITY.md), not a public issue.
 
 ## Runtime
 
@@ -154,7 +159,7 @@ not rewritten. `task verify-clean`, `accountability gates`, and
 install a gate, or change standing by themselves. See
 `docs/PERMANENT_GATES.md` and `docs/ACCOUNTABILITY_RECOVERY.md`.
 
-The `2.1.0-re` hardening release supports a canonical set of implementation
+The `2.1.0` release supports a canonical set of implementation
 owners while preserving one acting actor per ledger event. It also rejects new
 R3 starts that cannot enter the downstream review path, and provides the
 dry-run-first `accountability incident-record` command for user-authorized

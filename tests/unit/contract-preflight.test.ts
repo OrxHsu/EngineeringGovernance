@@ -32,7 +32,7 @@ function validInput() {
     nonGoals: ['publish'],
     authorityInputs: [
       'CORE_INVARIANTS.md',
-      '.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract-defect.yaml',
+      'tests/fixtures/accountability/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract-defect.yaml',
     ],
     repositories: [{ id: 'root', path: root }],
     acceptance: [{ id: 'AC-01', observation: 'check', positiveCases: ['pass'], negativeCases: ['reject'], bindingRefs: ids }],

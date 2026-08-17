@@ -6,7 +6,7 @@ describe('beta1 preflight CLI', () => {
     let output = ''
     await buildProgram({ write: (text) => { output += text } }).parseAsync([
       'node', 'sop', 'task', 'preflight', '--project', process.cwd(),
-      '--input', `${process.cwd()}/.delivery/inputs/global-sop-2-1-beta-1-fix-1-repair-3.yaml`,
+      '--input', `${process.cwd()}/tests/fixtures/accountability/inputs/global-sop-2-1-beta-1-fix-1-repair-3.yaml`,
     ])
     const result = JSON.parse(output) as { valid: boolean; errors: string[] }
     expect(result.valid).toBe(false)

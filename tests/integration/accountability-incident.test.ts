@@ -13,9 +13,10 @@ import {
 } from '../../src/commands/accountability-incident.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { validateProjectTaskGraph } from '../../src/project/task-graph.js'
-import { rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
+import { ACCOUNTABILITY_FIXTURE_ROOT, rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
 
 const sourceRoot = process.cwd()
+const fixtureRoot = ACCOUNTABILITY_FIXTURE_ROOT
 const temporary: string[] = []
 
 function sha256(value: string | Uint8Array): string {
@@ -30,10 +31,10 @@ function fixture(): string {
   cpSync(join(sourceRoot, '.delivery', 'policy.yaml'), join(root, '.delivery', 'policy.yaml'))
   cpSync(join(sourceRoot, '.delivery', 'bin'), join(root, '.delivery', 'bin'), { recursive: true })
   for (const taskId of ['global-sop-2-1-beta-1-fix-1', 'global-sop-2-1-beta-1-fix-1-repair-3']) {
-    cpSync(join(sourceRoot, '.delivery', 'tasks', taskId), join(root, '.delivery', 'tasks', taskId), { recursive: true })
+    cpSync(join(fixtureRoot, 'tasks', taskId), join(root, '.delivery', 'tasks', taskId), { recursive: true })
   }
-  cpSync(join(sourceRoot, '.delivery', 'accountability', 'actors.jsonl'), join(root, '.delivery', 'accountability', 'actors.jsonl'))
-  cpSync(join(sourceRoot, '.delivery', 'accountability', 'events.jsonl'), join(root, '.delivery', 'accountability', 'events.jsonl'))
+  cpSync(join(fixtureRoot, 'actors.jsonl'), join(root, '.delivery', 'accountability', 'actors.jsonl'))
+  cpSync(join(fixtureRoot, 'events.jsonl'), join(root, '.delivery', 'accountability', 'events.jsonl'))
   rebindAccountabilityFixture(root, sourceRoot)
   return root
 }
@@ -48,6 +49,11 @@ function incidentInput(
   const evidencePath = join(root, 'blocked-review.txt')
   const evidence = 'CONTRACT_REVIEW_REQUEST_SELF_REVIEW_REQUIRED\n'
   writeFileSync(evidencePath, evidence)
+  const priorEvents = readAccountabilityEvents(root)
+  const priorOccurredAt = priorEvents.at(-1)?.occurredAt ?? '2026-08-17T08:00:00.000Z'
+  const issuedAt = new Date(Date.parse(priorOccurredAt) + 60_000)
+  const observedAt = new Date(issuedAt.getTime() - 30_000)
+  const expiresAt = new Date(issuedAt.getTime() + 86_400_000)
   const blockedComponent = options.blockedComponent ?? 'contract-review'
   const incident = {
     schemaVersion: 1,
@@ -60,7 +66,7 @@ function incidentInput(
       blockedComponent,
       failureCode: blockedComponent === 'governance-tool' ? 'GOVERNANCE_TOOL_BLOCKED' : 'CONTRACT_REVIEW_BLOCKED',
       conversationId: '01a00b68-4cc7-79c1-b422-832192be91e2',
-      observedAt: '2026-08-17T08:00:00.000Z',
+      observedAt: observedAt.toISOString(),
     },
     finding: {
       findingId: 'INC-001',
@@ -77,8 +83,8 @@ function incidentInput(
       semanticDigest: canonicalDigest(evidence),
     }],
     grantor: { id: 'user-authority', role: 'user', trustLevel: 'local-claim' },
-    issuedAt: '2026-08-17T08:01:00.000Z',
-    expiresAt: '2026-08-18T08:01:00.000Z',
+    issuedAt: issuedAt.toISOString(),
+    expiresAt: expiresAt.toISOString(),
     status: 'approved',
   }
   const path = join(root, 'incident.yaml')

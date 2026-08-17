@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "artifactType": "engineering-governance-release-record-v1",
-  "taskId": "global-sop-2-1-beta-release-5",
+  "taskId": "global-sop-2-1-beta-release-6",
   "contract": {
-    "path": ".delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml",
-    "rawSha256": "4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7",
-    "digest": "7389dc93c1ea8e3f5a4172ce447904454e5c55bc648ca234a8d3889fa46e6e00"
+    "path": ".delivery/tasks/global-sop-2-1-beta-release-6/contract.yaml",
+    "rawSha256": "ff93cc04d27428a4c6b3ba70c650b97bfa841250554227fd1100a9cc3a40a12c",
+    "digest": "291d2e3912ba2c2af1f3e579d29cc06aa446203fee2368bc0245b095b980f6f4"
   },
   "sourceRange": {
     "baseCommit": "8e41388ca14c30646e990fbe2e7c976e0018b9fc",
@@ -26,27 +26,51 @@
       {
         "commit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
         "tree": "2f02144670f27e3abcd6ba69186aadac47ba53f3"
+      },
+      {
+        "commit": "060df83da1621f42aca15354e956426c35e02d37",
+        "tree": "ceeea99ce6ee7b80de79c7dd8b8721ed47728a57"
+      },
+      {
+        "commit": "1bd178045765270518f95a5e764efc6afec41f0f",
+        "tree": "6adb4398905c7cf87ce43ac8c7129e5df166db68"
+      },
+      {
+        "commit": "10d0dabf53b2a837c79558d761ed08b8b21b6201",
+        "tree": "40f4f379981672aa389a02fc87dee7a00678a60b"
+      },
+      {
+        "commit": "99e4026bf9907f8f9956c916969f087811a04128",
+        "tree": "0e9c22edfc79eacdb957606d241b63e953cefd21"
+      },
+      {
+        "commit": "8fda7d9469de72608d2c1aef4e04e882bcb545ec",
+        "tree": "1e5b0aece88f8a3b17772edd99e4d531ceb46e6a"
+      },
+      {
+        "commit": "9b5e9d7aeaff87bb431b55e9ecf5944e591bd490",
+        "tree": "cfce858488fbed818dd57aba7c7cd7f4edac7629"
       }
     ],
-    "candidateCommit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
-    "candidateTree": "2f02144670f27e3abcd6ba69186aadac47ba53f3"
+    "candidateCommit": "9b5e9d7aeaff87bb431b55e9ecf5944e591bd490",
+    "candidateTree": "cfce858488fbed818dd57aba7c7cd7f4edac7629"
   },
   "archive": {
     "filename": "engineering-governance-2.1.0-beta.0.tgz",
     "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz",
-    "sha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
+    "sha256": "9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447",
     "version": "2.1.0-beta.0",
     "verificationReceipt": {
       "path": "releases/2.1.0-beta.0/archive-verification.json",
-      "rawSha256": "642a257dcc8ae5c5b43b868ed43670d2cb6c40a1e4b4dde2e0debc4bf70a1f56",
-      "digest": "117820fd498f2e6b2dc07df74c0cee8a1f6d9693ff569e29bcadea0c38706bf9",
+      "rawSha256": "fd0cce2cda3003b142c006738eee7339046eeb7c1edddcadbd6daf2f86c92ae7",
+      "digest": "644dd70c622c20b136d8a5fd026a961369a20fefb3ec1720f359a7505a7f17d0",
       "version": "2.1.0-beta.0",
       "archivePath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz",
-      "sha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
-      "firstBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
-      "secondBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
-      "candidateCommit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
-      "candidateTree": "2f02144670f27e3abcd6ba69186aadac47ba53f3",
+      "sha256": "9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447",
+      "firstBuildSha256": "9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447",
+      "secondBuildSha256": "9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447",
+      "candidateCommit": "9b5e9d7aeaff87bb431b55e9ecf5944e591bd490",
+      "candidateTree": "cfce858488fbed818dd57aba7c7cd7f4edac7629",
       "identical": true
     }
   },

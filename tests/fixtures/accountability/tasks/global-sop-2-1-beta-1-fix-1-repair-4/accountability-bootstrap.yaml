@@ -1,0 +1,207 @@
+schemaVersion: 1
+artifactType: engineering-governance-accountability-bootstrap-v1
+policyVersion: strict-v1
+taskId: global-sop-2-1-beta-1-fix-1-repair-4
+sources:
+  - id: S-001
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-1/contract.yaml
+    rawSha256: 73ebd1e6d0730dca32ff7976cc8b96dd6a40653ab866cbd285f4cfa36390bcd4
+    semanticDigest: bc333fb120ea2d51b34186eb1eb3b4d32c649b12e675dca7120239b2d2958000
+  - id: S-002
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-1/ledger.jsonl
+    rawSha256: 39122e537a0b311079b09e36e0b94dc3b74c80970fa79e873f272c96d936a04d
+    semanticDigest: 73d9095d84b8bac8a082d332b96051fb075ac69e2dddc73529758d334bb83c5e
+  - id: S-003
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-2/contract.yaml
+    rawSha256: 9b1c7255bf13cc5e81a1769de6b91ed2a8b2ef5374815dca7ea50c70fd25a6a4
+    semanticDigest: f0e730062f2b9ccdc535128bc158ec3e39513c3828b19c24f1e670aaacbfff2b
+  - id: S-004
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-2/ledger.jsonl
+    rawSha256: 401231d651be69d856c65d1323b69140c29dd713798afa58eff4a24f9d0c2c03
+    semanticDigest: 844aa0e84cee65180d162b2eb261ba06faec0995dc3eaf1d6421d570670dd314
+  - id: S-005
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-3/contract.yaml
+    rawSha256: 48fb268affba7c560898a831877818f78a1cef498eb73680cbb723f6d669828d
+    semanticDigest: 41949bee468bf4c4c01f1a518ba7d84bb27d2c81a77ae029c85bc4d901120b68
+  - id: S-006
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-3/ledger.jsonl
+    rawSha256: 2c558874126115f79dc5382a49ef36a8f18ff588ecb27a93a3bf2c49e5104102
+    semanticDigest: b3e372493b4bfe96a0423388646aee1d513f1d6007b1fdd40fc6245f7d9959fd
+  - id: S-007
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-4/contract.yaml
+    rawSha256: cbe12ad326d057abe91e77bc9773beec7e95fb37d4331d973561478e44f8100d
+    semanticDigest: 13f94417f84d3fd5a87b9bea0e1c62451ecb784792552916497b9421437ad8a2
+  - id: S-008
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-4/ledger.jsonl
+    rawSha256: 0bee222d45b0cca6d0116f756593cf06ed8d8c865249a782e622e7a5614a3e04
+    semanticDigest: 8f0aaa12438cad032888aff6bd291d8926e1a9a248332e879c80361298a8acdf
+  - id: S-009
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract.yaml
+    rawSha256: 7b4a2dc7882a4a0a26a86472afe0b9e249e2cc18770a950f79549f19f04bd78b
+    semanticDigest: 3e5fb228d94ca7745079a0785a4e837f03e8281db95f8fe4bc8dafd39375234a
+  - id: S-010
+    kind: review
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract-review.yaml
+    rawSha256: eb000aebfd08ff7c2fe58663e5e492bc9863c402792afdd3a9cc3636916ca2d6
+    semanticDigest: 85975a8bccb1349fc6f63b3a26ed1255047b98b4ee6fb7e5d812828e12141252
+  - id: S-011
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1/ledger.jsonl
+    rawSha256: 1a4f259f1749684f0779fffabb3f03e97148d60ca3980e072881b149a043d010
+    semanticDigest: 9c41987c4217a6ec2834e3a929c8d20de1d880ad9997cce0540c6c80f63e989f
+  - id: S-012
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-1/contract.yaml
+    rawSha256: 620deef099d665deda63bffc9c8ec9392a58d531e42da49f653f4c7146201f9b
+    semanticDigest: ae73aaf463a4d7dd00c46aff403d82b1730ac6652a00b1bb5da80f8440b311d4
+  - id: S-013
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-1/ledger.jsonl
+    rawSha256: 01be47929190d6eb3a29a0523c715c5f6dc92a42503daebc41a271c30b84f7e6
+    semanticDigest: c8b986edcab4edc1d3eb83b036cbc183e3ef5afc7809b2d935e86139c00fb738
+  - id: S-014
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-2/contract.yaml
+    rawSha256: 0790340ae3795a5c1c4ca1f9782e713bd9e2e8b0a151a99a00e606435629d6f3
+    semanticDigest: 593d1391b6e7a621807c0b885d323d47dab074bb06eb11c2023657410d9bcba7
+  - id: S-015
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-2/ledger.jsonl
+    rawSha256: 62ce6c13352235bc53a94eccb47306e3c7d237377a9370bb6e64a16c75a8da64
+    semanticDigest: 9b2daf93a3b22d05053feb8be9214cd5cd72642b959d8b760492242547d146d7
+  - id: S-016
+    kind: report
+    path: /__CODEX_ATTACHMENT__/db91f0af-995a-4f6f-b98f-a4a2d6902c53/pasted-text.txt
+    rawSha256: ea4a4bba6d28457135ca062c031c009738538271759485a544787c18b706a248
+    semanticDigest: 752b36e42865a9b592d751e2ea52b9563bd4f008d7268b0fa6b0d128e6b09f69
+  - id: S-017
+    kind: report
+    path: /__CODEX_ATTACHMENT__/72cc1902-3017-436e-af2c-3aa869a8ae8b/pasted-text.txt
+    rawSha256: e7cce4a1613bd9ba0db92f01435e808d6c5e413e77aa586c89604e7c18d58998
+    semanticDigest: cdf40e21e8c3f7c00a61166134d3cd33824abfe29f3feeb7951ec5c47ce6ce94
+  - id: S-018
+    kind: report
+    path: /__CODEX_ATTACHMENT__/426e77ce-7e60-4f9c-97f0-47fdf37d5414/pasted-text.txt
+    rawSha256: 073bc7537dc234446a89aa77c3ef16b01d4fdb054730d9b5a1266e54cb1b7818
+    semanticDigest: 0fb4fe5a8168958ef720b83f2a5bc990a8ddd7c89d474963783c00177a7f8460
+  - id: S-019
+    kind: report
+    path: /__CODEX_ATTACHMENT__/da75f518-263d-4ab1-9594-d1c5ee331786/pasted-text.txt
+    rawSha256: 3ebbaf46dd5aa573118a394d479fc8d029c772e8023eb633a12bd46d6b96b2b2
+    semanticDigest: a84a6ad5f18634d7fb455319d18352f9f93991ddc50d76725b09ba22a3562675
+  - id: S-020
+    kind: contract
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract.yaml
+    rawSha256: 3362187bbbbf2f65e05967311ede552e6ecb807097dbf67eb2035dad8d82bc14
+    semanticDigest: e7a3401c50b8806f428556212fe66b35865d006ef7268f77902fee98350873d4
+  - id: S-021
+    kind: review
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract-review.yaml
+    rawSha256: 505c63258f35fd9465dcfefc5389a0afce4d9ea508cb3cfa5d0ba8da61afb47b
+    semanticDigest: 888a9cf4f751d3067803705e9e473cb0cea471865788e646b410f1d7a86ae920
+  - id: S-022
+    kind: defect
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract-defect.yaml
+    rawSha256: 5bd392d289d4a3239b482f6b28e4a787ae1f9da96be773ecd346a69fde11882c
+    semanticDigest: c1eb990b3c6ab36cbd0791094197f4008cc366124260c6abf006eb8dbeac726d
+  - id: S-023
+    kind: ledger
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/ledger.jsonl
+    rawSha256: d9d35580bade8a476f7d737372212a877599403a6ee56c167cacf12a5a841256
+    semanticDigest: e4b492b26c3d3eab71c4fdcfad511902b0fa89b7d032321dc92a174b70c65d38
+findings:
+  - findingId: CR-001
+    severity: BLOCKER
+    classification: contract_violation
+    defectClass: contract-authority-resolution
+    responsibleRole: contract_author
+    responsibleActorId: codex
+    culpability: culpable
+    origin:
+      taskId: global-sop-2-1-beta-1-fix-1
+      artifactPath: .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract.yaml
+      rawSha256: 7b4a2dc7882a4a0a26a86472afe0b9e249e2cc18770a950f79549f19f04bd78b
+      semanticDigest: 3e5fb228d94ca7745079a0785a4e837f03e8281db95f8fe4bc8dafd39375234a
+      reviewId: crv-global-sop-2-1-beta-1-fix-1-689fcb1ee3a4c81eaf80cfccf951963cd44414c786c6832940539eac1ae9cc4e
+      evidenceRefs:
+        - .delivery/tasks/global-sop-2-1-beta-1-fix-1/contract-review.yaml
+    scoreDelta: 8
+actors:
+  - actorId: codex
+    aliases: []
+    lifetimePenaltyScore: 20
+    activePenaltyScore: 20
+    standing: SUSPENDED
+    permissions:
+      - r0
+    unresolvedDefectClasses:
+      - contract-authority-resolution
+  - actorId: independent-contract-reviewer
+    aliases: []
+    lifetimePenaltyScore: 8
+    activePenaltyScore: 8
+    standing: PROBATION
+    permissions:
+      - r0
+      - remediation-supervised
+    unresolvedDefectClasses: []
+  - actorId: independent-contract-reviewer-fix1
+    aliases: []
+    lifetimePenaltyScore: 0
+    activePenaltyScore: 0
+    standing: GOOD_STANDING
+    permissions:
+      - author
+      - owner
+      - contract-reviewer
+      - implementation-reviewer
+      - supervise
+    unresolvedDefectClasses: []
+  - actorId: independent-implementation-reviewer-fix1
+    aliases: []
+    lifetimePenaltyScore: 0
+    activePenaltyScore: 0
+    standing: GOOD_STANDING
+    permissions:
+      - author
+      - owner
+      - contract-reviewer
+      - implementation-reviewer
+      - supervise
+    unresolvedDefectClasses: []
+  - actorId: user-authority
+    aliases: []
+    lifetimePenaltyScore: 0
+    activePenaltyScore: 0
+    standing: GOOD_STANDING
+    permissions:
+      - author
+      - owner
+      - contract-reviewer
+      - implementation-reviewer
+      - supervise
+    unresolvedDefectClasses: []
+remediationException:
+  lifecycleAuthorizationPath: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/authorizations/AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE.json
+  lifecycleAuthorizationRawSha256: 76b14d4d6e283124e6f4e98820dc1b7b44fc6b6f50b499c1902c8b1e4312cd23
+  lifecycleAuthorizationSemanticDigest: 89447ad674a18054df8c710ce60c2a57ed813131ad367e3670a0b0b6bd8da181
+  sidecarPath: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/remediation-authorization.json
+  sidecarRawSha256: 322d9f514d9b656d4bbccffebe84848df36e88522cf64c0649e34a8bc283f047
+  sidecarSemanticDigest: 4688842f5785864285e4ca3f9903024029384d4148a40f916bc9a67f7fa5eca9
+  taskId: global-sop-2-1-beta-1-fix-1-repair-4
+  action: implement-and-verify-beta1-accountability-remediation-repair4
+  supervisorId: user-authority
+  contractReviewerId: independent-contract-reviewer-fix1
+  implementationReviewerId: independent-implementation-reviewer-fix1
+  issuedAt: 2026-08-16T05:40:00.000Z
+  expiresAt: 2026-08-30T05:40:00.000Z
+  consumeOnce: true

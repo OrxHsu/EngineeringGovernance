@@ -1,21 +1,22 @@
 schemaVersion: 1
-sopVersion: 2.1.0-beta.3
-sopDigest: 258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f
+sopVersion: 2.1.0
+sopDigest: cd9ab35e8da0af09b7e8cfd833a2368f69100ba2276f19f961f09bd4241b82d5
 projectId: engineering-governance
 adapters:
   - tool: generic-agents
     source: AGENTS.md
     targets:
       - AGENTS.md
-    digest: a9c455a32f1b8ad1d120acdfcaec9e558c5a78708603bd8ca8f00e0d96950d60
+    digest: 12f8ca669e0b98a015a3039fe488abea05ac52da8d419b7619268924f303df75
 artifactMapping:
+  accountability.eventsPath: .delivery/accountability/events.jsonl
+  accountability.genesisDigest: c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071
+  accountability.policyLineage: 258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f,3f3fd31448d0f704b7d3e9de3fc4879711bcbf8f65fdadf687c5b374ba1d29ed,48c69f95db09d3d417f8dc6376875003d0cebb1eb48da35d50a3d62908393c67,5c4cb0a1b37b176a906ec991147d466286d84c92d0c186a72c88f1418ba9dc24
+  accountability.registryPath: .delivery/accountability/actors.jsonl
   accountability.ruleset: strict-v1
   accountability.scoringVersion: graduated-v2
   accountability.transitionDate: 2026-08-16T19:00:00Z
-  accountability.registryPath: .delivery/accountability/actors.jsonl
-  accountability.eventsPath: .delivery/accountability/events.jsonl
-  accountability.genesisDigest: c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071
 runner:
-  version: 2.0.0
-  path: .delivery/runtime/engineering-governance-2.0.0.tgz
-  sha256: 481dc68efb8b8d05ad1fd55d80d3e72ba49ae071f6400953b644520b007499c3
+  version: 2.1.0
+  path: .delivery/runtime/engineering-governance-2.1.0.tgz
+  sha256: 2463cd02f6b8eb2b579742121f478c31f7a5d429861c02fddb6aa7418c912e2f

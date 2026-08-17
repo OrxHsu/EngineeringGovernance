@@ -264,5 +264,3 @@ signals:
   crossModule: true
   security: true
   projectMinimum: R3
-
-

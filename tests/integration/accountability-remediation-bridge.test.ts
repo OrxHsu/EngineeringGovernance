@@ -12,9 +12,10 @@ import {
 } from '../../src/accountability/enforce.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { validateDocument } from '../../src/policy/load.js'
-import { rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
+import { ACCOUNTABILITY_FIXTURE_ROOT, rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
 
 const projectRoot = process.cwd()
+const fixtureRoot = ACCOUNTABILITY_FIXTURE_ROOT
 const taskId = 'global-sop-2-1-beta-1-fix-1-repair-4'
 const predecessorTaskId = 'global-sop-2-1-beta-1-fix-1-repair-3'
 const temporary: string[] = []
@@ -24,7 +25,7 @@ function sha256(value: string | Uint8Array): string {
 }
 
 function rewriteRoot(value: unknown, from: string, to: string): unknown {
-  if (typeof value === 'string') return value.replaceAll(from, to)
+  if (typeof value === 'string') return value.replaceAll(from, to).replaceAll('/__RELEASE_PROJECT_ROOT__', to)
   if (Array.isArray(value)) return value.map((item) => rewriteRoot(item, from, to))
   if (value === null || typeof value !== 'object') return value
   return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, rewriteRoot(entry, from, to)]))
@@ -67,22 +68,22 @@ function fixture(): { root: string; taskRoot: string } {
   cpSync(join(projectRoot, '.delivery', 'policy.yaml'), join(root, '.delivery', 'policy.yaml'))
   cpSync(join(projectRoot, '.delivery', 'bin'), join(root, '.delivery', 'bin'), { recursive: true })
   mkdirSync(join(root, '.delivery', 'accountability'), { recursive: true })
-  cpSync(join(projectRoot, '.delivery', 'accountability', 'actors.jsonl'), join(root, '.delivery', 'accountability', 'actors.jsonl'))
-  cpSync(join(projectRoot, '.delivery', 'accountability', 'events.jsonl'), join(root, '.delivery', 'accountability', 'events.jsonl'))
+  cpSync(join(fixtureRoot, 'actors.jsonl'), join(root, '.delivery', 'accountability', 'actors.jsonl'))
+  cpSync(join(fixtureRoot, 'events.jsonl'), join(root, '.delivery', 'accountability', 'events.jsonl'))
   cpSync(
-    join(projectRoot, '.delivery', 'tasks', predecessorTaskId),
+    join(fixtureRoot, 'tasks', predecessorTaskId),
     join(root, '.delivery', 'tasks', predecessorTaskId),
     { recursive: true },
   )
   cpSync(
-    join(projectRoot, '.delivery', 'tasks', 'global-sop-2-1-beta-1-fix-1'),
+    join(fixtureRoot, 'tasks', 'global-sop-2-1-beta-1-fix-1'),
     join(root, '.delivery', 'tasks', 'global-sop-2-1-beta-1-fix-1'),
     { recursive: true },
   )
 
   const taskRoot = join(root, '.delivery', 'tasks', taskId)
   mkdirSync(join(taskRoot, 'authorizations'), { recursive: true })
-  const contractSource = parse(readFileSync(join(projectRoot, '.delivery', 'tasks', taskId, 'contract.yaml'), 'utf8')) as Record<string, any>
+  const contractSource = parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'contract.yaml'), 'utf8')) as Record<string, any>
   const rewritten = rewriteRoot(contractSource, projectRoot, root) as Record<string, any>
   const { contractDigest: _discarded, ...unsignedContract } = rewritten
   const contract = { ...unsignedContract, contractDigest: canonicalDigest(unsignedContract) }
@@ -90,7 +91,7 @@ function fixture(): { root: string; taskRoot: string } {
   writeFileSync(join(taskRoot, 'contract.yaml'), contractText)
 
   const review = rewriteRoot(
-    parse(readFileSync(join(projectRoot, '.delivery', 'tasks', taskId, 'contract-review.yaml'), 'utf8')),
+    parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'contract-review.yaml'), 'utf8')),
     projectRoot,
     root,
   ) as Record<string, any>
@@ -117,7 +118,7 @@ function fixture(): { root: string; taskRoot: string } {
 
   const requirement = contract.authorizationRequirements[0]
   const lifecycle = rewriteRoot(
-    JSON.parse(readFileSync(join(projectRoot, '.delivery', 'tasks', taskId, 'authorizations', `${requirement.id}.json`), 'utf8')),
+    JSON.parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'authorizations', `${requirement.id}.json`), 'utf8')),
     projectRoot,
     root,
   ) as Record<string, any>
@@ -129,7 +130,7 @@ function fixture(): { root: string; taskRoot: string } {
   const lifecycleRaw = readFileSync(lifecyclePath)
 
   const sidecar = rewriteRoot(
-    JSON.parse(readFileSync(join(projectRoot, '.delivery', 'tasks', taskId, 'remediation-authorization.json'), 'utf8')),
+    JSON.parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'remediation-authorization.json'), 'utf8')),
     projectRoot,
     root,
   ) as Record<string, any>
@@ -141,7 +142,7 @@ function fixture(): { root: string; taskRoot: string } {
   sidecar.scope = requirement.scope
   writeJson(join(taskRoot, 'remediation-authorization.json'), sidecar)
   const bootstrap = rewriteRoot(
-    parse(readFileSync(join(projectRoot, '.delivery', 'tasks', taskId, 'accountability-bootstrap.yaml'), 'utf8')),
+    parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'accountability-bootstrap.yaml'), 'utf8')),
     projectRoot,
     root,
   )
@@ -297,7 +298,7 @@ describe('repair remediation authorization bridge', () => {
   })
 
   it('does not grant an exception from an action string without defect authority', () => {
-    const contract = parse(readFileSync(join(projectRoot, '.delivery', 'tasks', taskId, 'contract.yaml'), 'utf8')) as Record<string, any>
+    const contract = parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'contract.yaml'), 'utf8')) as Record<string, any>
     contract.authorityInputs = contract.authorityInputs.filter((path: string) => !path.endsWith('/contract-defect.yaml'))
     expect(isRemediationBridgeContract(contract)).toBe(false)
   })
@@ -311,8 +312,8 @@ describe('repair remediation authorization bridge', () => {
   })
 
   it('keeps historical and bridge authorization shapes exact and non-overlapping', () => {
-    const historical = JSON.parse(readFileSync(join(projectRoot, '.delivery', 'tasks', predecessorTaskId, 'authorizations', 'AUTH-EG21-BETA1-FIX1-REMEDIATION.json'), 'utf8'))
-    const bridge = JSON.parse(readFileSync(join(projectRoot, '.delivery', 'tasks', taskId, 'remediation-authorization.json'), 'utf8'))
+    const historical = JSON.parse(readFileSync(join(fixtureRoot, 'tasks', predecessorTaskId, 'authorizations', 'AUTH-EG21-BETA1-FIX1-REMEDIATION.json'), 'utf8'))
+    const bridge = JSON.parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'remediation-authorization.json'), 'utf8'))
     expect(validateDocument('authorization', historical)).toEqual({ valid: true, errors: [] })
     expect(validateDocument('authorization', bridge)).toEqual({ valid: true, errors: [] })
     expect(validateDocument('authorization', { ...bridge, unexpected: true }).valid).toBe(false)

@@ -221,6 +221,33 @@ function dirtyRepositoryPaths(repositoryRoot: string): string[] {
     .map((entry) => entry.slice(3))
 }
 
+function expectedManagedDirtyPaths(
+  projectRoot: string,
+  policy: ProjectPolicy | undefined,
+  errors: string[],
+): string[] {
+  if (policy === undefined) return errors
+  return errors.filter((error) => {
+    const relativePath = error.slice('DIRTY_MANAGED_PATH:'.length)
+    const path = join(projectRoot, relativePath)
+    if (relativePath === 'AGENTS.md') {
+      const text = readFileSync(path, 'utf8')
+      return !text.includes(`Governance version: \`${policy.sopVersion}\``)
+        || !text.includes(`Governance digest: \`${policy.sopDigest}\``)
+    }
+    if (relativePath === '.delivery/policy.yaml') {
+      return false
+    }
+    if (relativePath === '.delivery/bin/check-delivery-policy.sh') {
+      return readFileSync(path, 'utf8') !== governanceFile('templates/ci/check-delivery-policy.sh')
+    }
+    if (policy.runner?.path === relativePath) {
+      return sha256(readFileSync(path)) !== policy.runner.sha256
+    }
+    return true
+  })
+}
+
 function generatedTargetOverlapErrors(projectRoot: string, targets: PlannedGuard[]): string[] {
   return targets.flatMap((target) => {
     const repositoryRoot = repositoryRootForTarget(target.path)
@@ -285,6 +312,57 @@ function plannedExtensionsContent(projectRoot: string): string {
   }
   loadProjectExtensions(projectRoot)
   return raw
+}
+
+function plannedArtifactMapping(projectRoot: string, currentPolicyDigest: string): Record<string, string> {
+  const path = join(projectRoot, '.delivery', 'policy.yaml')
+  if (!existsSync(path)) return {}
+  if (lstatSync(path).isSymbolicLink() || !lstatSync(path).isFile()) {
+    throw new Error('PROJECT_POLICY_MISSING_OR_UNSAFE')
+  }
+  const document = parse(readFileSync(path, 'utf8')) as { artifactMapping?: unknown; sopDigest?: unknown }
+  const mapping = document.artifactMapping
+  const mappingRecord = mapping as Record<string, unknown>
+  if (
+    typeof mapping !== 'object'
+    || mapping === null
+    || Array.isArray(mapping)
+    || Object.values(mappingRecord).some((value) => typeof value !== 'string' || value.length === 0)
+  ) throw new Error('PROJECT_ARTIFACT_MAPPING_INVALID')
+  const historicalPolicyDigests: string[] = [
+    ...(typeof document.sopDigest === 'string' ? [document.sopDigest] : []),
+    ...['.delivery/accountability/actors.jsonl', '.delivery/accountability/events.jsonl']
+      .flatMap((relativePath) => {
+        const evidencePath = join(projectRoot, relativePath)
+        if (!existsSync(evidencePath) || lstatSync(evidencePath).isSymbolicLink()) return []
+        return readFileSync(evidencePath, 'utf8')
+          .split('\n')
+          .filter(Boolean)
+          .flatMap((line) => {
+            try {
+              const value = JSON.parse(line) as { policyDigest?: unknown }
+              return typeof value.policyDigest === 'string' ? [value.policyDigest] : []
+            } catch {
+              return []
+            }
+          })
+      }),
+  ].filter((value): value is string => /^[a-f0-9]{64}$/u.test(value) && value !== currentPolicyDigest)
+  const existingLineageValue = mappingRecord['accountability.policyLineage']
+  const existingLineage = typeof existingLineageValue === 'string'
+    ? existingLineageValue.split(',').map((value) => value.trim())
+    : []
+  const policyLineage = [...new Set([...existingLineage, ...historicalPolicyDigests])]
+    .filter((value) => /^[a-f0-9]{64}$/u.test(value) && value !== currentPolicyDigest)
+    .sort()
+  const nextMapping = Object.fromEntries(
+    Object.entries(mappingRecord).map(([key, value]) => [key, value as string]),
+  )
+  if (policyLineage.length > 0) nextMapping['accountability.policyLineage'] = policyLineage.join(',')
+  return Object.fromEntries(
+    Object.entries(nextMapping)
+      .sort(([left], [right]) => left.localeCompare(right)),
+  )
 }
 
 function adapterInventoryErrors(
@@ -466,6 +544,7 @@ function taskArtifactErrors(projectRoot: string): string[] {
 
 export function planAdoption(projectPath: string, options: {
   runnerBundlePath?: string
+  allowExpectedManagedDirty?: boolean
 } = {}): AdoptionPlan {
   const projectRoot = resolve(projectPath)
   const identity = governanceIdentity()
@@ -514,7 +593,7 @@ export function planAdoption(projectPath: string, options: {
     sopDigest: identity.digest,
     projectId: profile.projectId,
     adapters: profile.adapters.map((adapter) => ({ ...adapter, digest: blockDigest })),
-    artifactMapping: {},
+    artifactMapping: plannedArtifactMapping(projectRoot, identity.digest),
     ...(runner === undefined ? {} : { runner }),
   }
   const managedPaths = [
@@ -533,9 +612,19 @@ export function planAdoption(projectPath: string, options: {
   ))
   try {
     const overlap = validateManagedPathOverlap(discoverProject(projectRoot), managedPaths)
-    if (!overlap.valid) throw new Error(overlap.errors.join('\n'))
+    if (!overlap.valid) {
+      const currentPolicyPath = join(projectRoot, '.delivery', 'policy.yaml')
+      let currentPolicy: ProjectPolicy | undefined
+      if (existsSync(currentPolicyPath)) {
+        try { currentPolicy = parse(readFileSync(currentPolicyPath, 'utf8')) as ProjectPolicy } catch { currentPolicy = undefined }
+      }
+      const errors = options.allowExpectedManagedDirty
+        ? expectedManagedDirtyPaths(projectRoot, currentPolicy, overlap.errors)
+        : overlap.errors
+      if (errors.length > 0) throw new Error(errors.join('\n'))
+    }
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('DIRTY_MANAGED_PATH:')) throw error
+    if (!(error instanceof Error) || error.message.startsWith('DIRTY_MANAGED_PATH:')) throw error
   }
   const generatedTargetErrors = generatedTargetOverlapErrors(projectRoot, generatedTargets)
   if (generatedTargetErrors.length > 0) throw new Error(generatedTargetErrors.join('\n'))

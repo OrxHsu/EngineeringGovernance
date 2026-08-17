@@ -1,6 +1,6 @@
 schemaVersion: 2
 taskId: example-task
-sopVersion: 2.1.0-re
+sopVersion: 2.1.0
 policyDigest: '0000000000000000000000000000000000000000000000000000000000000000'
 contractDigest: '0000000000000000000000000000000000000000000000000000000000000000'
 risk: R2
@@ -51,7 +51,7 @@ authorizationRequirements: []
 contractReadiness:
   required: true
   reviewPath: .delivery/tasks/example-task/contract-review.yaml
-  gateVersion: 2.1.0-re
+  gateVersion: 2.1.0
 extensions: []
 openChoices:
   - internal implementation names

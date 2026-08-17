@@ -105,9 +105,9 @@ each role-bearing boundary. Restricted actors regain permissions only through
 the documented evidence-bound, user-authorized reinstatement sequence; reward
 or recognition labels do not waive any lifecycle gate.
 
-## 2.1.0-re hardening candidate
+## 2.1.0 release line
 
-`2.1.0-re` adds three forward-only behaviors without rewriting historical
+`2.1.0` adds three forward-only behaviors without rewriting historical
 contracts or ledgers:
 
 - New contracts write `implementationOwners` as a non-empty canonical actor

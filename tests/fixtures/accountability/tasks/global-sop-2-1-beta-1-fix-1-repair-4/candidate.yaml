@@ -1,0 +1,27 @@
+schemaVersion: 2
+taskId: global-sop-2-1-beta-1-fix-1-repair-4
+contract:
+  path: /__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/contract.yaml
+  sha256: 742d11b11a4605ff2a440ca57cdbda3d812f21e82a52c914458374e1b24a49ed
+evidence:
+  path: /__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/evidence.json
+  sha256: ff53a812f5f74d9beb12ea876d20b58cb8952ae0e0124e052768690230eab892
+implementationIdentities:
+  - repositoryId: root
+    repository: /__RELEASE_PROJECT_ROOT__
+    commit: 9b5e9d7aeaff87bb431b55e9ecf5944e591bd490
+    tree: cfce858488fbed818dd57aba7c7cd7f4edac7629
+    checkoutDigest: 35a4e8eb85b4adcec684fa239a255f2efcf94152a08a3ce0ee6ac0215beb4c5b
+gitIdentities:
+  - repositoryId: root
+    repository: /__RELEASE_PROJECT_ROOT__
+    implementationCommit: 9b5e9d7aeaff87bb431b55e9ecf5944e591bd490
+    implementationTree: cfce858488fbed818dd57aba7c7cd7f4edac7629
+    closureCommit: 9b5e9d7aeaff87bb431b55e9ecf5944e591bd490
+    allowedClosurePaths:
+      - .delivery/tasks/**
+authorizationArtifacts:
+  - requirementId: AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE
+    path: /__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/authorizations/AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE.json
+    sha256: 76b14d4d6e283124e6f4e98820dc1b7b44fc6b6f50b499c1902c8b1e4312cd23
+extensionArtifacts: []

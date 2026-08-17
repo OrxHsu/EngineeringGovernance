@@ -131,7 +131,7 @@ function mutualReviewFixture(): ReturnType<typeof fixture> {
     overallStatus: 'PASSED',
   }
   contract.knownIssues = []
-  contract.contractReadiness.gateVersion = '2.1.0-re'
+  contract.contractReadiness.gateVersion = '2.1.0'
   delete contract.contractDigest
   contract.contractDigest = canonicalDigest(contract)
   writeFileSync(contractPath, stringify(contract))

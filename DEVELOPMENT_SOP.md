@@ -2,7 +2,7 @@
 
 Status: canonical development policy
 
-Version: 2.1.0-re
+Version: 2.1.0
 
 ## 1. Applicability and authority
 

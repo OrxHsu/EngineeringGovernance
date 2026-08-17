@@ -1,19 +1,23 @@
 import { createHash } from 'node:crypto'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 
 import { parse, stringify } from 'yaml'
 
 import { canonicalDigest } from '../../src/model/digest.js'
 
 const predecessorTaskId = 'global-sop-2-1-beta-1-fix-1-repair-3'
+export const ACCOUNTABILITY_FIXTURE_ROOT = join(process.cwd(), 'tests/fixtures/accountability')
 
 function sha256(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex')
 }
 
 function rewriteRoot(value: unknown, from: string, to: string): unknown {
-  if (typeof value === 'string') return value.replaceAll(from, to)
+  if (typeof value === 'string') return value
+    .replaceAll(from, to)
+    .replaceAll('/__RELEASE_PROJECT_ROOT__', to)
+    .replaceAll('/__CODEX_ATTACHMENT__', join(to, '.delivery', 'attachments'))
   if (Array.isArray(value)) return value.map((item) => rewriteRoot(item, from, to))
   if (value === null || typeof value !== 'object') return value
   return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, rewriteRoot(entry, from, to)]))
@@ -21,7 +25,10 @@ function rewriteRoot(value: unknown, from: string, to: string): unknown {
 
 function semantic(path: string, raw: Buffer): string {
   if (path.endsWith('.jsonl')) return canonicalDigest(raw.toString('utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line)))
-  return canonicalDigest(parse(raw.toString('utf8')))
+  if (['.yaml', '.yml', '.json'].some((extension) => path.endsWith(extension))) {
+    return canonicalDigest(parse(raw.toString('utf8')))
+  }
+  return canonicalDigest(raw.toString('utf8'))
 }
 
 function rewriteChain(path: string, update: (event: Record<string, any>) => void, genesis: string | null): void {
@@ -39,6 +46,7 @@ function rewriteChain(path: string, update: (event: Record<string, any>) => void
 }
 
 export function rebindAccountabilityFixture(root: string, originalRoot: string): void {
+  cpSync(join(ACCOUNTABILITY_FIXTURE_ROOT, 'attachments'), join(root, '.delivery', 'attachments'), { recursive: true })
   const taskRoot = join(root, '.delivery', 'tasks', predecessorTaskId)
   const contractPath = join(taskRoot, 'contract.yaml')
   const contract = rewriteRoot(parse(readFileSync(contractPath, 'utf8')), originalRoot, root) as Record<string, any>
@@ -111,7 +119,25 @@ export function rebindAccountabilityFixture(root: string, originalRoot: string):
   const genesis = 'c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071'
   for (const name of ['actors.jsonl', 'events.jsonl']) {
     const path = join(root, '.delivery', 'accountability', name)
-    if (existsSync(path)) rewriteChain(path, (event) => { event.authorization = authorizationReference }, genesis)
+    if (existsSync(path)) rewriteChain(path, (event) => {
+      event.source = rewriteRoot(event.source, originalRoot, root)
+      if (event.source && typeof event.source.artifactPath === 'string') {
+        const sourcePath = resolve(root, event.source.artifactPath)
+        if (existsSync(sourcePath)) {
+          const raw = readFileSync(sourcePath)
+          event.source.rawSha256 = sha256(raw)
+          event.source.semanticDigest = semantic(sourcePath, raw)
+        }
+      }
+      if (event.incident === undefined) {
+        event.authorization = authorizationReference
+        return
+      }
+      event.incident = rewriteRoot(event.incident, originalRoot, root)
+      event.authorization = 'none'
+      event.source.rawSha256 = sha256(`${JSON.stringify(event.incident, null, 2)}\n`)
+      event.source.semanticDigest = canonicalDigest(event.incident)
+    }, genesis)
   }
 
   const taskIds = [predecessorTaskId, 'global-sop-2-1-beta-1-fix-1-repair-4']
@@ -120,8 +146,9 @@ export function rebindAccountabilityFixture(root: string, originalRoot: string):
     if (!existsSync(bootstrapPath)) continue
     const bootstrap = parse(readFileSync(bootstrapPath, 'utf8')) as Record<string, any>
     for (const source of bootstrap.sources ?? []) {
-      if (!String(source.path).startsWith(`.delivery/tasks/${predecessorTaskId}/`)) continue
-      const path = join(root, source.path)
+      source.path = rewriteRoot(source.path, originalRoot, root)
+      const path = resolve(root, source.path)
+      if (!existsSync(path)) continue
       const raw = readFileSync(path)
       source.rawSha256 = sha256(raw)
       source.semanticDigest = semantic(path, raw)

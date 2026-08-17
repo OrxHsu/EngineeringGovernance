@@ -6,9 +6,10 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { accountabilityGenesisValid, policyDigestsForProject, readActorRegistry, resolveRegisteredActor } from '../../src/accountability/registry.js'
 import { canonicalDigest } from '../../src/model/digest.js'
-import { rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
+import { ACCOUNTABILITY_FIXTURE_ROOT, rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
 
 const projectRoot = process.cwd()
+const fixtureRoot = ACCOUNTABILITY_FIXTURE_ROOT
 const temporary: string[] = []
 
 function fixture(): string {
@@ -19,12 +20,12 @@ function fixture(): string {
   cpSync(join(projectRoot, '.delivery', 'policy.yaml'), join(root, '.delivery', 'policy.yaml'))
   cpSync(join(projectRoot, '.delivery', 'bin'), join(root, '.delivery', 'bin'), { recursive: true })
   cpSync(
-    join(projectRoot, '.delivery', 'tasks', 'global-sop-2-1-beta-1-fix-1-repair-3'),
+    join(fixtureRoot, 'tasks', 'global-sop-2-1-beta-1-fix-1-repair-3'),
     join(root, '.delivery', 'tasks', 'global-sop-2-1-beta-1-fix-1-repair-3'),
     { recursive: true },
   )
   cpSync(
-    join(projectRoot, '.delivery', 'accountability', 'actors.jsonl'),
+    join(fixtureRoot, 'actors.jsonl'),
     join(root, '.delivery', 'accountability', 'actors.jsonl'),
   )
   rebindAccountabilityFixture(root, projectRoot)
@@ -57,15 +58,17 @@ afterEach(() => {
 
 describe('strict-v1 actor registry', () => {
   it('derives canonical actors from the policy-anchored append-only registry', () => {
-    const registry = readActorRegistry(process.cwd())
+    const root = fixture()
+    const registry = readActorRegistry(root)
     expect(accountabilityGenesisValid()).toBe(true)
     expect(registry.events.length).toBeGreaterThanOrEqual(5)
-    expect(resolveRegisteredActor(process.cwd(), ' CODEX ').actorId).toBe('codex')
-    expect(resolveRegisteredActor(process.cwd(), 'independent-implementation-reviewer-fix1').active).toBe(true)
+    expect(resolveRegisteredActor(root, ' CODEX ').actorId).toBe('codex')
+    expect(resolveRegisteredActor(root, 'independent-implementation-reviewer-fix1').active).toBe(true)
   })
 
   it('rejects an unknown actor instead of trusting the caller string', () => {
-    expect(() => resolveRegisteredActor(process.cwd(), 'caller-selected-admin')).toThrow('ACCOUNTABILITY_ACTOR_UNAVAILABLE')
+    const root = fixture()
+    expect(() => resolveRegisteredActor(root, 'caller-selected-admin')).toThrow('ACCOUNTABILITY_ACTOR_UNAVAILABLE')
   })
 
   it('rejects a forged actor event with an unbound policy digest and no user authorization', () => {
@@ -80,9 +83,16 @@ describe('strict-v1 actor registry', () => {
     const policy = readFileSync(policyPath, 'utf8')
     const current = policy.match(/^sopDigest: (.+)$/m)?.[1]
     if (current === undefined) throw new Error('test policy digest missing')
-    const updated = policy
-      .replace(/^sopDigest: .+$/m, `sopDigest: ${'a'.repeat(64)}`)
-      .replace(/^(  accountability\.genesisDigest: .+)$/m, `$1\n  accountability.policyLineage: ${current}`)
+    const withNewDigest = policy.replace(/^sopDigest: .+$/m, `sopDigest: ${'a'.repeat(64)}`)
+    const updated = /^  accountability\.policyLineage:.*$/m.test(withNewDigest)
+      ? withNewDigest.replace(
+        /^  accountability\.policyLineage:.*$/m,
+        `  accountability.policyLineage: ${current}`,
+      )
+      : withNewDigest.replace(
+        /^(  accountability\.genesisDigest: .+)$/m,
+        '$1\n  accountability.policyLineage: ' + current,
+      )
     writeFileSync(policyPath, updated)
     expect(policyDigestsForProject(root)).toEqual(new Set(['a'.repeat(64), current]))
   })

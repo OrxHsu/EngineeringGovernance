@@ -10,9 +10,10 @@ import { actorEligibilityErrors } from '../../src/accountability/enforce.js'
 import { generateRecoveryPlan } from '../../src/accountability/recovery.js'
 import { accountabilityStatus } from '../../src/commands/accountability-status.js'
 import { canonicalDigest } from '../../src/model/digest.js'
-import { rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
+import { ACCOUNTABILITY_FIXTURE_ROOT, rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
 
 const projectRoot = process.cwd()
+const fixtureRoot = ACCOUNTABILITY_FIXTURE_ROOT
 const temporary: string[] = []
 
 function fixture(): string {
@@ -23,10 +24,10 @@ function fixture(): string {
   cpSync(join(projectRoot, '.delivery', 'policy.yaml'), join(root, '.delivery', 'policy.yaml'))
   cpSync(join(projectRoot, '.delivery', 'bin'), join(root, '.delivery', 'bin'), { recursive: true })
   for (const taskId of ['global-sop-2-1-beta-1-fix-1', 'global-sop-2-1-beta-1-fix-1-repair-3']) {
-    cpSync(join(projectRoot, '.delivery', 'tasks', taskId), join(root, '.delivery', 'tasks', taskId), { recursive: true })
+    cpSync(join(fixtureRoot, 'tasks', taskId), join(root, '.delivery', 'tasks', taskId), { recursive: true })
   }
-  cpSync(join(projectRoot, '.delivery', 'accountability', 'actors.jsonl'), join(root, '.delivery', 'accountability', 'actors.jsonl'))
-  cpSync(join(projectRoot, '.delivery', 'accountability', 'events.jsonl'), join(root, '.delivery', 'accountability', 'events.jsonl'))
+  cpSync(join(fixtureRoot, 'actors.jsonl'), join(root, '.delivery', 'accountability', 'actors.jsonl'))
+  cpSync(join(fixtureRoot, 'events.jsonl'), join(root, '.delivery', 'accountability', 'events.jsonl'))
   rebindAccountabilityFixture(root, projectRoot)
   return root
 }
@@ -34,6 +35,10 @@ function fixture(): string {
 function forgedStandingInput(root: string) {
   const sourcePath = join(root, '.delivery', 'tasks', 'global-sop-2-1-beta-1-fix-1', 'contract-review.yaml')
   const sourceRaw = readFileSync(sourcePath)
+  const eventsPath = join(root, '.delivery', 'accountability', 'events.jsonl')
+  const previous = JSON.parse(readFileSync(eventsPath, 'utf8').trim().split('\n').at(-1)!) as {
+    occurredAt: string
+  }
   return {
     schemaVersion: 1 as const,
     artifactType: 'engineering-governance-accountability-event-v1' as const,
@@ -53,7 +58,7 @@ function forgedStandingInput(root: string) {
     standing: 'GOOD_STANDING' as const,
     permissions: ['author', 'owner', 'contract-reviewer', 'implementation-reviewer', 'supervise'],
     authorization: 'none',
-    occurredAt: '2026-08-16T02:48:00.000Z',
+    occurredAt: new Date(Date.parse(previous.occurredAt) + 60_000).toISOString(),
   }
 }
 
@@ -63,18 +68,20 @@ afterEach(() => {
 
 describe('beta1 accountability enforcement', () => {
   it('recomputes the bootstrap sanction and rejects a non-remediation owner role', () => {
-    expect(accountabilityStatus(process.cwd(), 'codex')).toMatchObject({ activePenaltyScore: 20, standing: 'SUSPENDED' })
-    expect(actorEligibilityErrors({ projectRoot: process.cwd(), taskId: 'unrelated-task', actorId: 'codex', role: 'implementation-owner', risk: 'R3' })).toContain('ACCOUNTABILITY_SUSPENDED_ROLE_FORBIDDEN')
+    const root = fixture()
+    expect(accountabilityStatus(root, 'codex')).toMatchObject({ activePenaltyScore: 20, standing: 'SUSPENDED' })
+    expect(actorEligibilityErrors({ projectRoot: root, taskId: 'unrelated-task', actorId: 'codex', role: 'implementation-owner', risk: 'R3' })).toContain('ACCOUNTABILITY_SUSPENDED_ROLE_FORBIDDEN')
   })
 
   it('builds the five-task beta3 recovery path without mutating status', () => {
-    const before = accountabilityStatus(process.cwd(), 'codex')
-    expect(generateRecoveryPlan(process.cwd(), 'codex')).toMatchObject({
+    const root = fixture()
+    const before = accountabilityStatus(root, 'codex')
+    expect(generateRecoveryPlan(root, 'codex')).toMatchObject({
       currentStanding: 'SUSPENDED',
       estimatedTasks: 5,
       permanentGatesSatisfied: false,
     })
-    expect(accountabilityStatus(process.cwd(), 'codex')).toEqual(before)
+    expect(accountabilityStatus(root, 'codex')).toEqual(before)
   })
 
   it('rejects a directly forged standing change even when its hash chain and cached status fields are self-consistent', () => {
@@ -83,7 +90,7 @@ describe('beta1 accountability enforcement', () => {
     const previous = JSON.parse(readFileSync(path, 'utf8').trim().split('\n').at(-1)!) as Record<string, unknown>
     const unsigned = {
       ...forgedStandingInput(root),
-      sequence: 3,
+      sequence: Number(previous.sequence) + 1,
       priorEventDigest: previous.eventDigest,
       policyDigest: '258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f',
     }

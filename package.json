@@ -1,7 +1,7 @@
 {
   "name": "@xgh/engineering-governance",
-  "version": "2.1.0-re",
-  "private": true,
+  "version": "2.1.0",
+  "private": false,
   "type": "module",
   "engines": {
     "node": ">=22 <23"
@@ -21,6 +21,9 @@
     "DEVELOPMENT_SOP.md",
     "MIGRATING_TO_2.0.md",
     "RISK_CLASSIFICATION.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CHANGELOG.md",
     "VERSION"
   ],
   "bundleDependencies": [

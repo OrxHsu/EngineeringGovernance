@@ -1,10 +1,10 @@
 {
   "version": "2.1.0-beta.0",
   "archivePath": "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz",
-  "sha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
-  "firstBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
-  "secondBuildSha256": "762a0cac4c1f1d052634c1d38682674b1bcdd8b4e3d425e45ea531dfb03354f2",
-  "candidateCommit": "270eee691a2e983ad694e3107eac95118ec4aeaa",
-  "candidateTree": "2f02144670f27e3abcd6ba69186aadac47ba53f3",
+  "sha256": "9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447",
+  "firstBuildSha256": "9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447",
+  "secondBuildSha256": "9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447",
+  "candidateCommit": "9b5e9d7aeaff87bb431b55e9ecf5944e591bd490",
+  "candidateTree": "cfce858488fbed818dd57aba7c7cd7f4edac7629",
   "identical": true
 }

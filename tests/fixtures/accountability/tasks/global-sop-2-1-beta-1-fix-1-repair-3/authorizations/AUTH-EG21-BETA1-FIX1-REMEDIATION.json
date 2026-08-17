@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "engineering-governance-remediation-authorization-v1",
+  "authorizationId": "AUTH-EG21-BETA1-FIX1-REMEDIATION",
+  "requirementId": "AUTH-EG21-BETA1-FIX1-REMEDIATION",
+  "taskId": "global-sop-2-1-beta-1-fix-1-repair-3",
+  "contract": {
+    "path": "/__RELEASE_PROJECT_ROOT__/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract.yaml",
+    "rawSha256": "3362187bbbbf2f65e05967311ede552e6ecb807097dbf67eb2035dad8d82bc14",
+    "semanticDigest": "6a3617ad72facc1258aefafc706a7a3396bc2812fe477886f11ca5905fabbb36"
+  },
+  "grantor": {
+    "id": "user-authority",
+    "role": "user",
+    "trustLevel": "local-claim"
+  },
+  "action": "implement-and-verify-beta1-accountability-remediation",
+  "target": "/__RELEASE_PROJECT_ROOT__",
+  "scope": [
+    "Permit codex, despite bootstrap SUSPENDED standing, to author and implement only global-sop-2-1-beta-1-fix-1-repair-3 after an accepted contract review by independent-contract-reviewer-fix1 under supervision by user-authority.",
+    "Permit only the frozen beta1 source, schemas, docs, templates, tests, task-owned bootstrap, exact authorization artifact, and local temporary verification outputs.",
+    "Record codex score 20 SUSPENDED and independent-contract-reviewer score 8 PROBATION without editing any prior lifecycle or release artifact.",
+    "Require GOOD_STANDING supervisor user-authority for every mutating implementation action and separate GOOD_STANDING implementation reviewer independent-implementation-reviewer-fix1 for the exact candidate; no alias-equivalent substitution is allowed.",
+    "Persist the consume-once authorization only at .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/authorizations/AUTH-EG21-BETA1-FIX1-REMEDIATION.json and bind it to the accepted contract raw SHA-256 and contract digest.",
+    "Use authorization artifactType engineering-governance-remediation-authorization-v1 with the exact required key sets frozen in scope; legacy authorization and sop-authorization-v2 variants remain byte-compatible and valid only in their original historical contexts.",
+    "Use issuedAt 2026-08-15T17:17:18.000Z and expiresAt 2026-08-29T17:17:18.000Z; every apply or candidate verification must fail after expiry.",
+    "Forbid release packaging, runner installation, policy self-upgrade, consumer migration, publishing, push, deployment, production action, remote mutation, and external communication."
+  ],
+  "supervisorId": "user-authority",
+  "contractReviewerId": "independent-contract-reviewer-fix1",
+  "implementationReviewerId": "independent-implementation-reviewer-fix1",
+  "issuedAt": "2026-08-15T17:17:18.000Z",
+  "expiresAt": "2026-08-29T17:17:18.000Z",
+  "consumeOnce": true,
+  "status": "approved"
+}
