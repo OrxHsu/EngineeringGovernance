@@ -1,0 +1,8 @@
+schemaVersion: 2
+taskId: global-sop-contract-readiness-gate-3
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+actorId: codex
+to: SUPERSEDED
+artifacts:
+  - kind: contract
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-contract-readiness-gate-3/contract.yaml

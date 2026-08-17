@@ -1,0 +1,8 @@
+schemaVersion: 2
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+taskId: global-sop-2-1-beta-1-fix-1-repair-3
+actorId: codex
+to: IN_PROGRESS
+artifacts:
+  - kind: contract-review
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract-review.yaml

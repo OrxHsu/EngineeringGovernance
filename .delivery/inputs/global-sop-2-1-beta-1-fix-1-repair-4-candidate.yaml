@@ -1,0 +1,14 @@
+schemaVersion: 2
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+taskId: global-sop-2-1-beta-1-fix-1-repair-4
+actorId: codex
+to: CANDIDATE
+artifacts:
+  - kind: candidate
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/candidate.yaml
+  - kind: evidence
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/evidence.json
+  - kind: authorization:AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/authorizations/AUTH-EG21-BETA1-FIX1-REPAIR4-LIFECYCLE.json
+  - kind: remediation-authorization
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/remediation-authorization.json

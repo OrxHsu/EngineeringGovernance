@@ -1,0 +1,161 @@
+schemaVersion: 2
+taskId: global-sop-2-1-beta-release-1
+implementationOwner: codex
+objective: >-
+  Formally authorize the local Engineering Governance 2.1.0-beta.0 release and
+  the repository's own reviewed upgrade from its repaired 2.0.0 pin. Bind the
+  exact cumulative implementation since independently accepted commit
+  75e70217f11388a37595dd1dcbbbae9a4a38861d, including the newly discovered
+  terminal-v2-history migration repair, a reproducible beta runner archive,
+  its release manifest and SHA-256, and one dry-run-first self-upgrade plan.
+scope:
+  - Bump VERSION and package.json from 2.0.0 to exactly 2.1.0-beta.0 only after this task enters IN_PROGRESS.
+  - Update README.md release identity without changing the accepted contract-readiness behavior.
+  - Rebuild the local unpublished beta archive in /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0 and record its exact SHA-256 and independent-review decisions in RELEASE-MANIFEST.md.
+  - Verify the cumulative range 75e70217f11388a37595dd1dcbbbae9a4a38861d..candidate, including terminal CLOSED, CANCELLED, and SUPERSEDED v2 history remaining checkable after policy upgrade while non-terminal stale-policy tasks remain rejected.
+  - Produce and independently review the exact EngineeringGovernance self-upgrade plan before applying it after this authorization task is CLOSED.
+nonGoals:
+  - Do not publish to a registry, push, deploy, restart services, migrate persistent data, or communicate externally.
+  - Do not adopt or modify ProjTrav, NoMe, or any other consumer project in this task.
+  - Do not rewrite historical v1 or v2 task contracts, ledgers, candidates, reviews, closures, or evidence.
+  - Do not inspect, adapt, copy, or authorize TREK implementation material.
+  - Do not change product behavior or weaken active-task policy identity checks, evidence integrity, reviewer independence, or contract-readiness requirements.
+authorityInputs:
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - RISK_CLASSIFICATION.md
+  - MIGRATING_TO_2.0.md
+  - README.md
+  - .delivery/inputs/global-sop-contract-readiness-gate-2.yaml
+  - src/project/task-graph.ts
+  - tests/unit/task-graph-v2.test.ts
+  - scripts/build-runner-bundle.mjs
+  - /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/RELEASE-MANIFEST.md
+  - Independent implementation decision ACCEPTED for exact commit 75e70217f11388a37595dd1dcbbbae9a4a38861d by independent-implementation-reviewer.
+repositories:
+  - id: root
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+acceptance:
+  - id: SOP21-RELEASE-01
+    observation: >-
+      The exact cumulative source candidate passes the complete Node 22 package
+      check with no skipped required gate and preserves every accepted
+      contract-readiness, trust, migration, and evidence invariant.
+    positiveCases:
+      - pnpm check passes typecheck, the complete unit/integration/adversarial suite, build, placeholder validation, and license validation from the exact candidate checkout.
+      - The terminal-v2-history upgrade regression is present and passes while a DEFINED task with a stale policy identity is still rejected.
+    negativeCases:
+      - A required suite is skipped, the dist output differs from source, or active stale-policy tasks are grandfathered.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments:
+        - check
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-RELEASE-02
+    observation: >-
+      The source checkout builds exactly one local unpublished
+      engineering-governance-2.1.0-beta.0.tgz archive in the declared release
+      directory and reports its non-empty SHA-256.
+    positiveCases:
+      - VERSION and package.json both identify exactly 2.1.0-beta.0 and the archive package metadata, VERSION, source, dist, schemas, templates, and dependencies match that source build.
+      - Rebuilding from the unchanged candidate produces the same archive SHA-256.
+    negativeCases:
+      - A 2.0.0, differently named, source-mismatched, symlinked, incomplete, or nondeterministic archive is accepted.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/opt/node@22/bin/node
+      arguments:
+        - scripts/build-runner-bundle.mjs
+        - --output
+        - /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0
+        - --version
+        - 2.1.0-beta.0
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-RELEASE-03
+    observation: >-
+      The beta source validates the exact frozen archive and emits one complete
+      dry-run EngineeringGovernance self-upgrade plan without applying it.
+    positiveCases:
+      - The plan binds the beta governance identity, archive SHA-256, policy, adapter, extension manifest, runner path, wrapper mode, and unchanged generated-target guards.
+      - Replanning without managed-file drift produces the same plan digest.
+    negativeCases:
+      - Archive identity drift, a changed managed file, missing runner content, or any write during dry run is accepted.
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments:
+        - sop
+        - --
+        - upgrade
+        - /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+        - --runner-bundle
+        - /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz
+        - --json
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: SOP21-RELEASE-04
+    observation: >-
+      Immediately before the reviewed upgrade is applied, the project-pinned
+      2.0.0 runner still validates the current policy and complete task graph,
+      proving the beta release authorization did not rely on a broken old pin.
+    positiveCases:
+      - The pinned wrapper returns valid true with no errors and reports this release task through its real ledger state.
+    negativeCases:
+      - Source-only check success substitutes for the pinned runner, or policy, adapter, archive, task graph, or wrapper drift is ignored.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: ./.delivery/bin/check-delivery-policy.sh
+      arguments: []
+      environment:
+        PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+authorizationRequirements:
+  - id: AUTH-SOP21-SELF-UPGRADE
+    action: apply-reviewed-local-governance-upgrade
+    target: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    scope:
+      - Apply exactly one unchanged dry-run plan digest after this task is independently accepted and closed.
+      - Mutate only the EngineeringGovernance policy, adapter managed block, empty extension manifest, pinned local runner archive, and runner wrapper named by that plan.
+      - Keep the release local and unpublished; exclude every consumer project, remote system, deployment, service, database, and external communication.
+    trustLevel: recorded-claim
+    consumeOnce: true
+openChoices:
+  - The final archive SHA-256 is derived by the reproducible build and frozen in the release manifest and candidate evidence; it is not a caller-selected value.
+  - The independent implementation reviewer may choose additional read-only adversarial checks but must review the exact cumulative range from 75e70217f11388a37595dd1dcbbbae9a4a38861d through the final candidate commit.
+signals:
+  mutation: true
+  classificationComplete: true
+  crossModule: true
+  security: true
+  migration: true
+  projectMinimum: R3

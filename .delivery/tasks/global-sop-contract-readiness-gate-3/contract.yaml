@@ -1,0 +1,504 @@
+schemaVersion: 2
+taskId: global-sop-contract-readiness-gate-3
+sopVersion: 2.0.0
+policyDigest: eba8165bd069c0e85e5b08217ea260e7b027e85158404a50644c03b57a909aca
+risk: R3
+riskSignals:
+  mutation: true
+  classificationComplete: true
+  crossModule: true
+  userVisible: false
+  security: true
+  projectMinimum: R3
+implementationOwner: codex
+objective: Add a global SOP 2.1-beta contract-readiness gate. Every newly
+  created R2 or R3 schema-v2 task must receive an independent, exact-contract
+  completeness review before its implementation owner may enter IN_PROGRESS. The
+  gate must be mechanically validated, preserve R1 and pre-gate schema-v2
+  history, and ship a local reproducible runner candidate whose staged package
+  identity is exactly 2.1.0-beta.0 after independent acceptance; the source
+  checkout stays on 2.0.0 until a separate reviewed adoption/release task. No
+  project is auto-upgraded and no remote registry publication is part of this
+  task.
+scope:
+  - src/commands/task-contract-review-v2.ts
+  - src/commands/task-start.ts
+  - src/policy/task-contract.ts
+  - src/state/contract-readiness.ts
+  - src/state/ledger.ts
+  - src/commands/task-transition-v2.ts
+  - src/cli/main.ts
+  - src/cli/input.ts
+  - src/policy/load.ts
+  - src/model/types.ts
+  - src/project/task-graph.ts
+  - schemas/contract-review.schema.json
+  - schemas/task-contract.schema.json
+  - schemas/task-event.schema.json
+  - templates/task-contract-review.yaml
+  - templates/task-contract.yaml
+  - scripts/check-governance-docs.mjs
+  - scripts/build-runner-bundle.mjs
+  - package.json
+  - VERSION
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - MIGRATING_TO_2.0.md
+  - README.md
+  - tests/unit/contract-readiness.test.ts
+  - tests/unit/task-contract-review-v2.test.ts
+  - tests/unit/task-ledger-v2.test.ts
+  - tests/unit/task-graph-v2.test.ts
+  - tests/integration/contract-review-gate.test.ts
+  - tests/integration/cli-v2-hardening.test.ts
+  - tests/unit/external-source.test.ts
+nonGoals:
+  - Do not change ProjTrav or NoMe project adoption state.
+  - Do not rewrite, upgrade, or reinterpret v1 task directories.
+  - Do not add Phase 2D-specific product requirements to the global package.
+  - Do not inspect, adapt, or grant access to TREK implementation material.
+  - Do not implement remote registry publication, deployment, push, or external
+    communication.
+  - Do not change the product behavior of a consuming project.
+  - Do not permit a reviewer to invent unresolved product decisions; a material
+    unresolved decision is REPAIR_REQUIRED and must return to the contract
+    author.
+authorityInputs:
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - RISK_CLASSIFICATION.md
+  - MIGRATING_TO_2.0.md
+  - README.md
+  - schemas/task-contract.schema.json
+  - schemas/task-event.schema.json
+  - src/model/digest.ts
+  - src/model/actor.ts
+  - src/state/transitions.ts
+  - src/state/ledger.ts
+  - src/project/task-graph.ts
+  - src/extensions/external-source.ts
+  - tests/unit/task-ledger-v2.test.ts
+  - tests/unit/task-graph-v2.test.ts
+repositories:
+  - id: root
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    baseline:
+      head: 20ddb5ce95cbbf7110e9fadf677500d04e64daf8
+      tree: a40f52c629735de6e9016c961adf9f3ce477c48b
+      checkoutDigest: 3d2163258e30945c975172d85bcf67e6ec16432f427c69635545a694c971fb1c
+      trackedPaths: []
+      untrackedPaths:
+        - .delivery/inputs/global-sop-contract-readiness-gate-1-supersede.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-1.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-2-supersede.yaml
+        - .delivery/inputs/global-sop-contract-readiness-gate-2.yaml
+        - .delivery/tasks/global-sop-contract-readiness-gate-1/contract.yaml
+        - .delivery/tasks/global-sop-contract-readiness-gate-1/ledger.jsonl
+        - .delivery/tasks/global-sop-contract-readiness-gate-2/contract.yaml
+        - .delivery/tasks/global-sop-contract-readiness-gate-2/ledger.jsonl
+        - docs/handoffs/global-sop-hardening-1.md
+acceptance:
+  - id: CONTRACT-GATE-SCHEMA
+    observation: A contract-review artifact is accepted only when it is the
+      canonical .delivery/tasks/<taskId>/contract-review.yaml file,
+      schemaVersion 2, artifactType sop-contract-review-v2, exact-task bound,
+      exact-contract bound, and free of unknown keys. The contract binding
+      contains rawSha256 for the reviewed contract bytes and digest for its
+      semantic contractDigest; both are recomputed from the canonical files. The
+      semantic digest is the contract identity used by SOP candidate/review
+      artifacts; rawSha256 is an additional exact-byte integrity binding for
+      this pre-implementation gate. A formatting-only edit keeps the semantic
+      digest but changes rawSha256 and therefore requires a new readiness
+      review. A semantic edit changes both and also requires a new review.
+    positiveCases:
+      - The exact artifact path is .delivery/tasks/<taskId>/contract-review.yaml
+        and is a regular file, not a symlink or path-traversal alias.
+      - Required checklist category IDs are exactly scope_non_goals,
+        authority_dependencies, risk_owner_reviewer, behavior_state_transitions,
+        security_trust, evidence_environment, external_source_provenance,
+        rollout_recovery_compatibility, and unresolved_product_decisions; each
+        has status PASS and non-empty evidenceRefs, or a documented NA only
+        where the schema permits it.
+      - R3 reviews additionally contain trust_threat_analysis,
+        migration_recovery_rollback, specialized_gates, scoped_authorization,
+        and production_observation entries. trust_threat_analysis and
+        migration_recovery_rollback are always applicable and must be PASS with
+        non-empty evidenceRefs. specialized_gates is PASS when any of
+        authentication, authorization, privacy, security, restrictedRuntime,
+        migration, destructive, payments, or externalCommunication is true;
+        otherwise it may be NA only with the exact no-specialized-signal reason.
+        scoped_authorization is PASS when authorizationRequirements is non-empty
+        or production/deployment/remoteMutation/restrictedRuntime/destructive/
+        payments/externalCommunication is true; otherwise it may be NA only with
+        the exact no-scoped-authorization-action reason. production_observation
+        is PASS when production/deployment/remoteMutation is true; otherwise it
+        may be NA only with the exact no-production-action reason. Any other NA,
+        omission, or empty reference is invalid.
+      - Finding IDs match CR-<three digits>, are unique and sorted; severity is
+        BLOCKER, HIGH, MEDIUM, or LOW; classification is exactly
+        contract_violation, newly_discovered_defect, or new_requirement; every
+        finding has a non-empty observation, requiredChange, and evidenceRefs.
+      - ACCEPTED requires every required category PASS, all applicable R3
+        entries PASS, zero findings, nextStage implementation, and
+        userActionRequired false. REPAIR_REQUIRED requires a non-empty
+        consolidated finding set, nextStage contract-repair, and cannot permit
+        implementation start.
+      - The reviewer is a local-claim identity only; reviewer.id is normalized
+        before comparison and must differ from the implementation owner. The
+        IN_PROGRESS ledger actor remains the implementation owner, while the
+        referenced review artifact records the independent reviewer; any caller
+        attempt to use the reviewer as the owner actor is rejected.
+      - The exact top-level keys are schemaVersion, artifactType, reviewId,
+        taskId, risk, reviewer, decision, contract, checklist, r3Requirements,
+        findings, nextStage, and userActionRequired. The contract object has
+        exactly path, rawSha256, and digest; reviewId is the deterministic
+        crv-<taskId>-<contractDigest> identity.
+      - Each evidenceRefs item has exactly id, kind, path, sha256, and digest;
+        IDs are unique and sorted, paths are project-relative regular files
+        without traversal or symlinks, sha256 is recomputed from bytes, and
+        digest is recomputed for structured YAML/JSON records. A review cannot
+        be copied from another run because reviewId, contract identity, evidence
+        bytes, and the ledger reference are recomputed together.
+      - New task-start contracts contain contractReadiness with exactly
+        required, reviewPath, and gateVersion. R2/R3 set required true,
+        reviewPath to .delivery/tasks/<taskId>/contract-review.yaml, and
+        gateVersion to 2.1.0-beta.0; R1 sets required false. A schema-v2
+        contract missing this marker is grandfathered only when its ledger
+        initial event predates this gate and its task directory already exists.
+    negativeCases:
+      - Missing or unknown checklist keys, unknown top-level keys, missing
+        evidenceRefs, duplicate or unsorted findings, invalid severity or
+        classification, ACCEPTED with any finding, or REPAIR_REQUIRED with no
+        finding is rejected.
+      - A stale rawSha256, stale semantic digest, wrong taskId, wrong contract
+        path, cross-task artifact, symlink, path traversal, or copied review
+        from another run is rejected.
+      - Self-review, reviewer aliases that normalize to the owner, forged
+        reviewer/event-actor combinations, and summary-only records without
+        underlying checklist/findings are rejected.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - exec
+        - vitest
+        - run
+        - tests/unit/contract-readiness.test.ts
+        - tests/unit/task-contract-review-v2.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-TRANSITION
+    observation: A newly created R2/R3 task may enter IN_PROGRESS only through an
+      implementation-owner transition that references exactly one accepted
+      canonical contract-review artifact whose current bytes and semantic digest
+      match the task contract. The required ledger artifact reference set is
+      exactly one kind=contract-review reference to
+      .delivery/tasks/<taskId>/contract-review.yaml; no extra refs are legal. R1
+      tasks retain the existing owner path.
+    positiveCases:
+      - R2/R3 DEFINED -> IN_PROGRESS succeeds only with the exact accepted
+        review reference and records that reference in the append-only event.
+      - R1 DEFINED -> IN_PROGRESS succeeds without a review artifact and with
+        the existing owner-only authority rule.
+      - REPAIR_REQUIRED -> IN_PROGRESS may reuse the already accepted readiness
+        artifact only when the contract identity and artifact bytes are
+        unchanged; any contract drift requires a new accepted review and a newly
+        planned transition.
+      - Plan and apply both recompute the gate, ledger continuity, actor
+        normalization, artifact path safety, raw SHA, and semantic digest.
+    negativeCases:
+      - DEFINED -> IN_PROGRESS without review, with REPAIR_REQUIRED review, with
+        wrong owner actor, with a review actor alias, or with duplicate review
+        refs is rejected.
+      - Changed contract bytes, stale review, non-canonical path, symlink,
+        caller-supplied state label, forged event actor, or replayed plan digest
+        cannot bypass the gate.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - exec
+        - vitest
+        - run
+        - tests/unit/task-ledger-v2.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-GRAPH
+    observation: Project graph validation independently rechecks contract-review
+      identity, checklist semantics, ledger binding, and state applicability; it
+      never infers readiness from filenames, summaries, or caller-authored
+      state.
+    positiveCases:
+      - A new R2/R3 task with accepted canonical review and exact IN_PROGRESS
+        ledger binding passes graph validation.
+      - R1 tasks without a readiness artifact remain valid.
+      - Existing pre-gate schema-v2 task histories, including closed R2/R3 tasks
+        whose contracts have no contractReadiness field, remain valid and are
+        explicitly grandfathered; they are not rewritten or upgraded.
+      - Legacy v1 task directories remain inspect-only and are never promoted to
+        schema-v2 readiness.
+    negativeCases:
+      - New R2/R3 tasks with missing, duplicate, stale, cross-task, orphaned,
+        non-canonical, or ledger-unbound reviews fail graph validation only when
+        their state is IN_PROGRESS or later; a DEFINED task may wait for review.
+      - A legacy review, a filename-only artifact, a copied summary, or a review
+        from a different contract/run cannot satisfy readiness.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - exec
+        - vitest
+        - run
+        - tests/integration/contract-review-gate.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-PROVENANCE
+    observation: The gate preserves the external-source default-deny boundary. For
+      an independent task, source-assisted provenance is absent and no external
+      source is read. For a source-assisted R3 contract, the review requires an
+      exact immutable allocation ID, source and destination units, maximum
+      access mode, per-destination classification, actual-use records, and
+      release disposition; omitted, duplicated, reordered, stale, forged, or
+      copy-exact-outside-allocation records fail.
+    positiveCases:
+      - Independent-mode contracts pass with no source allocation and an
+        explicit provenance NA rationale.
+      - Source-assisted fixtures pass only when all allocation/use/release
+        identities are exact and recomputed from underlying records.
+    negativeCases:
+      - Missing, duplicated, reordered, stale, forged, or out-of-allocation
+        source-use and release records are rejected and never inferred from
+        aggregate counts.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - exec
+        - vitest
+        - run
+        - tests/integration/contract-review-gate.test.ts
+        - tests/unit/external-source.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-GRAPH-UNIT
+    observation: The task-graph unit suite covers grandfathered pre-gate v2, R1,
+      DEFINED waiting, IN_PROGRESS readiness, duplicate/orphan, and v1
+      inspect-only cases without manufacturing postconditions.
+    positiveCases:
+      - tests/unit/task-graph-v2.test.ts exits zero under Node 22.x.
+    negativeCases:
+      - A graph summary without underlying task artifacts or a stale test-only
+        fixture is not accepted.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - exec
+        - vitest
+        - run
+        - tests/unit/task-graph-v2.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-DOCS
+    observation: Canonical SOP documentation, templates, and generated package
+      metadata describe the pre-implementation gate, role separation, digest
+      semantics, finding classification, R1/v1/v2 grandfathering, R3
+      obligations, and the global-versus-extension boundary without adding
+      product-specific or TREK behavior.
+    positiveCases:
+      - The docs state that new R2/R3 implementation cannot begin before
+        accepted contract readiness and that self-review is prohibited.
+      - Templates expose every required checklist, finding, digest, reviewer,
+        and transition field.
+      - A semantic docs checker verifies the required role, provenance,
+        compatibility, and TREK-boundary statements.
+    negativeCases:
+      - Placeholder-only checks, a self-review instruction, silent post-freeze
+        contract edits, or a project extension that weakens the core gate fail.
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - check:governance-docs
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: not-required
+  - id: CONTRACT-GATE-TYPECHECK
+    observation: The source package typechecks under the pinned Node 22 toolchain
+      with no contract-review or runner type errors.
+    positiveCases:
+      - pnpm typecheck exits zero under Node 22.x.
+    negativeCases:
+      - A green Node 25-only check is not accepted as Node 22 evidence.
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - typecheck
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-TESTS
+    observation: The complete integration suite passes with fresh output; unit
+      coverage is provided by the schema, transition, and graph unit gates
+      above, with no test fixture manufacturing of a postcondition under review.
+    positiveCases:
+      - pnpm exec vitest run exits zero under Node 22.x.
+    negativeCases:
+      - A static-only, placeholder, aggregate-count, or self-authored summary
+        cannot substitute for observed test records.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - exec
+        - vitest
+        - run
+        - tests/integration
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-BUILD
+    observation: The source build emits the candidate dist from the same reviewed
+      checkout under Node 22.x.
+    positiveCases:
+      - pnpm build exits zero and dist is non-empty.
+    negativeCases:
+      - A stale pre-change dist or compile-only report without fresh output is
+        not accepted.
+    evidenceKind: compile
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+        - build
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-RUNNER
+    observation: A reproducible local runner candidate contains the contract-review
+      schema, command, docs, templates, generated dist, package.json version
+      2.1.0-beta.0, and VERSION 2.1.0-beta.0. It is named
+      engineering-governance-2.1.0-beta.0.tgz, hash-recorded, and remains a
+      local unpublished artifact until a separate reviewed adoption task. The
+      source checkout remains 2.0.0 until that later task.
+    positiveCases:
+      - node scripts/build-runner-bundle.mjs --output <candidate-dir> --version
+        2.1.0-beta.0 exits zero under Node 22.x and the archive contains all new
+        gate files with matching package/VERSION identity.
+      - The candidate archive SHA-256 is recorded in the evidence packet and
+        rerunning the bundle from the same checkout reproduces the bytes.
+    negativeCases:
+      - No remote npm publish, deployment, project auto-upgrade, or registry
+        credential use is performed by this task.
+    evidenceKind: compile
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - scripts/build-runner-bundle.mjs
+        - --output
+        - /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0
+        - --version
+        - 2.1.0-beta.0
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+        NODE_VERSION: 22.x
+      executableSha256: 9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+evidenceFreshnessMs: 86400000
+authorizationRequirements: []
+extensions: []
+openChoices: []
+contractDigest: 792e2aab7e7aa785c3df2774706f359e1164317ab83e278418f672e29a0b8206

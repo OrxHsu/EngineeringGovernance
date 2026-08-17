@@ -1,0 +1,26 @@
+schemaVersion: 2
+artifactType: sop-closure-v2
+taskId: global-sop-2-1-beta-release-6
+closer:
+  id: codex
+  trustLevel: local-claim
+contract:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-6/contract.yaml
+  sha256: ff93cc04d27428a4c6b3ba70c650b97bfa841250554227fd1100a9cc3a40a12c
+  digest: 291d2e3912ba2c2af1f3e579d29cc06aa446203fee2368bc0245b095b980f6f4
+candidate:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-6/candidate.yaml
+  sha256: 0e8f9d6a470f000ed0c956c91c865200d7635151989241d5f582fc42369ae7ef
+  digest: 1463818ce43a339c7582f363674b3740d8af75c5b7da59e030e15d97c4fa7820
+verification:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-6/verification.json
+  sha256: 280dfde41ff2b8e536e85e205d02c84d227c0e2ebd908507ec4f19220508e0b1
+review:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-6/review.yaml
+  sha256: d394f70f0e50c17f6f0cdab8a88eb59ee81fa82804db55abfb9d9a1decc5a97e
+acceptedEventDigest: 525cc8560e8e7ef32fad3d2a34e2ff5df1bc13b5600ae7c9007320b94ba51cfc
+statusArtifacts:
+  - path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-6/status.json
+    sha256: 9cb096e58c24e4e9ec0650ec1fee83b0531b1dcdfe61ef4e086c7c8be24faed9
+nextAction: No further action in this release task; self-upgrade and consumer migration require separate schema-v2 tasks.
+userActionRequired: false

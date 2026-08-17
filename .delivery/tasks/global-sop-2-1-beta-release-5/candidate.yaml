@@ -1,0 +1,24 @@
+schemaVersion: 2
+taskId: global-sop-2-1-beta-release-5
+contract:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml
+  sha256: 4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7
+evidence:
+  path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/evidence.json
+  sha256: af2cad568a405675195f970a517718fb84d02f6f6dad05fb92dbe36b1a17fff0
+implementationIdentities:
+  - repositoryId: root
+    repository: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    commit: 8fda7d9469de72608d2c1aef4e04e882bcb545ec
+    tree: 1e5b0aece88f8a3b17772edd99e4d531ceb46e6a
+    checkoutDigest: b2cf3006fd78993b32b64951e7b733a490ced4dddefd50a9d6804791c6b96149
+gitIdentities:
+  - repositoryId: root
+    repository: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    implementationCommit: 8fda7d9469de72608d2c1aef4e04e882bcb545ec
+    implementationTree: 1e5b0aece88f8a3b17772edd99e4d531ceb46e6a
+    closureCommit: 8fda7d9469de72608d2c1aef4e04e882bcb545ec
+    allowedClosurePaths:
+      - .delivery/tasks/**
+authorizationArtifacts: []
+extensionArtifacts: []

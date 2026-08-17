@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "sop-evidence-v2",
+  "taskId": "global-sop-2-1-beta-1-fix-1-repair-4",
+  "contractDigest": "2ff6e70da0842c175492f9d2c087ef9c230d60b3eb7426bb9ec8a9aa13bc9336",
+  "runId": "fix1-repair4-p0-repair-20260816",
+  "runner": {
+    "version": "2.0.0",
+    "policyDigest": "258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f"
+  },
+  "implementationIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "commit": "9b5e9d7aeaff87bb431b55e9ecf5944e591bd490",
+      "tree": "cfce858488fbed818dd57aba7c7cd7f4edac7629",
+      "checkoutDigest": "35a4e8eb85b4adcec684fa239a255f2efcf94152a08a3ce0ee6ac0215beb4c5b"
+    }
+  ],
+  "receipts": [
+    {
+      "acceptanceId": "FIX1-PREFLIGHT-SCHEMA",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-PREFLIGHT-SCHEMA.json",
+      "sha256": "5bd6744e6286f08618eb67a42260950deab3f79f76ca37b6a28646601602f5a5"
+    },
+    {
+      "acceptanceId": "FIX1-PREFLIGHT-CLI",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-PREFLIGHT-CLI.json",
+      "sha256": "a96f668b1b99508dd2b87906d475578a6a94f48959aa7936a4719eaa1c766c60"
+    },
+    {
+      "acceptanceId": "FIX1-ACTOR-REGISTRY",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-ACTOR-REGISTRY.json",
+      "sha256": "40dbb678d9683d0c18f2343cce59a1ccc26c616702bf74192201c0d05db9a43e"
+    },
+    {
+      "acceptanceId": "FIX1-ACCOUNTABILITY-POLICY",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-ACCOUNTABILITY-POLICY.json",
+      "sha256": "96af3f81bdc4f48c89e673f67b7623eb8e33ac06ba65750cf42fddede523086c"
+    },
+    {
+      "acceptanceId": "FIX1-SANCTIONS-ENFORCEMENT",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-SANCTIONS-ENFORCEMENT.json",
+      "sha256": "7e2b06bb7bcef6a0cd8edf14169f60834976b75ecef7cafe1c51d748f62edbe6"
+    },
+    {
+      "acceptanceId": "FIX1-REMEDIATION-BRIDGE",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-REMEDIATION-BRIDGE.json",
+      "sha256": "a8c00358129819e3b82906164800581f7d7c4476792199ffceebe558f6034d49"
+    },
+    {
+      "acceptanceId": "FIX1-BOOTSTRAP",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-BOOTSTRAP.json",
+      "sha256": "61663fa77854ab41fd417d6c198c00456f8a69ee75f88e1c07c2d3830705a24b"
+    },
+    {
+      "acceptanceId": "FIX1-REINSTATEMENT",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-REINSTATEMENT.json",
+      "sha256": "dafb7849ba4ceb96e94a33c4041da46983bef7a11ce7f5303f77c64941afd47f"
+    },
+    {
+      "acceptanceId": "FIX1-COMPATIBILITY",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-COMPATIBILITY.json",
+      "sha256": "c772ca7311c32a3f09ae9c4c6f54ccf003890c6d2634bddeedfa5c1e73081a9e"
+    },
+    {
+      "acceptanceId": "FIX1-UNIT-ALL",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-UNIT-ALL.json",
+      "sha256": "4104f9e353f1eb2b7c581d62d47bf7b22c34e911beb9f49ba9f8f542060a7d3e"
+    },
+    {
+      "acceptanceId": "FIX1-INTEGRATION-ALL",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-INTEGRATION-ALL.json",
+      "sha256": "1caa28c1a1ff663d96db3bfa86fa711b0b35031106481c3ef686ffacce0329d0"
+    },
+    {
+      "acceptanceId": "FIX1-TYPECHECK",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-TYPECHECK.json",
+      "sha256": "445110e3162478c02dc8920ff7c1b828706b4b89991c84482ffefd536dee3df0"
+    },
+    {
+      "acceptanceId": "FIX1-BUILD",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-BUILD.json",
+      "sha256": "cd5bd83c6aa5fa9bc6508dfcc387b416f34ed4e42c00c4555c1baffaf186314d"
+    },
+    {
+      "acceptanceId": "FIX1-DOCS",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-DOCS.json",
+      "sha256": "0c4d2e09de3a715e4e1cffbb72bd3783fbd49ed646088a64aceb589608fe22aa"
+    },
+    {
+      "acceptanceId": "FIX1-PLACEHOLDERS",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-PLACEHOLDERS.json",
+      "sha256": "27283a3295a47ca8a703b2b6ec78c727e5f6ec58232cc1f51c15ac1ff66000f4"
+    },
+    {
+      "acceptanceId": "FIX1-LICENSES",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-LICENSES.json",
+      "sha256": "ea0f118a2464eebaf9704bf307b269990848c919e2703a7445e12fe5778560e6"
+    },
+    {
+      "acceptanceId": "FIX1-PINNED-CHECK",
+      "path": ".delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-4/receipts/fix1-repair4-p0-repair-20260816/FIX1-PINNED-CHECK.json",
+      "sha256": "ec072023f923e124135c1651227ad39742df5bfac3778c01769da3e08a176c7d"
+    }
+  ],
+  "summary": {
+    "passedIds": [
+      "FIX1-PREFLIGHT-SCHEMA",
+      "FIX1-PREFLIGHT-CLI",
+      "FIX1-ACTOR-REGISTRY",
+      "FIX1-ACCOUNTABILITY-POLICY",
+      "FIX1-SANCTIONS-ENFORCEMENT",
+      "FIX1-REMEDIATION-BRIDGE",
+      "FIX1-BOOTSTRAP",
+      "FIX1-REINSTATEMENT",
+      "FIX1-COMPATIBILITY",
+      "FIX1-UNIT-ALL",
+      "FIX1-INTEGRATION-ALL",
+      "FIX1-TYPECHECK",
+      "FIX1-BUILD",
+      "FIX1-DOCS",
+      "FIX1-PLACEHOLDERS",
+      "FIX1-LICENSES",
+      "FIX1-PINNED-CHECK"
+    ],
+    "failedIds": []
+  }
+}

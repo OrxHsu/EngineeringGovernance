@@ -1,0 +1,289 @@
+schemaVersion: 2
+taskId: global-sop-2-1-beta-self-upgrade-readiness-2
+implementationOwner: codex
+objective: >-
+  Implement and independently validate a task-scoped, fail-closed coordinator
+  for the one-time local EngineeringGovernance upgrade from pinned 2.0.0 to the
+  closed 2.1.0-beta.0 release. Freeze exact plan and release semantics, an
+  expiring recorded-claim apply grant, consumption records, rollback behavior,
+  and the post-upgrade validation boundary before any upgrade write occurs.
+scope:
+  - Preserve readiness-1 as SUPERSEDED audit history and address CR-001 through CR-005 without rewriting its contract.
+  - Add scripts/self-upgrade/verify-release-binding.mjs as a read-only semantic verifier for the exact closed release-6 artifacts, source range, receipt, release record, and archive bytes.
+  - Add scripts/self-upgrade/apply-reviewed-self-upgrade.mjs as the only authorized apply vehicle; it must have verify-only, apply, and recover modes and must reject every unrecognized argument or unknown key.
+  - Add exact task-owned schemas for an engineering-governance-self-upgrade-grant-v1 document and an engineering-governance-self-upgrade-consumption-v1 record without changing the released runner schemas or governance identity.
+  - Freeze the direct beta dry-run stdout byte identity, parsed plan digest 45060ce307993ca1e260591030ea1745bbdc73ab11c92eb23beacf5c070f944c, five ordered writes, modes, and generatedTargets empty.
+  - Freeze the beta archive path and SHA-256 9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447 and release-record raw SHA-256 dc9f034f9622d0e466d310f9e6c95ed1a2e0a8b0fd76c01eb9245367fa76d700.
+  - Create one apply grant at .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-2/upgrade-apply-grant.json with grantor user, role user, trustLevel local-claim, consumeOnce true, issuedAt 2026-08-15T16:21:57.000Z, expiresAt 2026-08-29T16:21:57.000Z, exact task/contract/plan/archive/write bindings, and no broader authority.
+  - The task-level authorization requirement authorizes only implementation and verification of the coordinator; it does not authorize applying the upgrade.
+  - The coordinator may apply only after this readiness task is CLOSED and only while the grant is active, unconsumed, byte-valid, and bound to the exact closed contract, independent review, candidate verification, closure, plan, archive, and five managed before identities.
+  - Before apply, persist a complete task-owned backup manifest and byte/mode backups for every existing managed path, plus absence state for the new beta runtime; atomically mark the grant consumption attempt before the first managed write.
+  - On any apply or beta postcheck failure, fail closed, restore every managed path to its exact before bytes/mode or absence, verify the old pinned 2.0.0 wrapper, retain the consumed failed attempt and recovery evidence, and require a new reviewed task before retry.
+  - On success, require the pinned beta wrapper to return valid true, record exactly one successful consumption result, and reject every replay of the grant or old plan digest.
+  - After successful apply, create a separate beta-pinned schema-v2 post-upgrade validation task before any ProjTrav or other consumer migration.
+nonGoals:
+  - Do not apply the real upgrade inside this readiness task or its evidence commands.
+  - Do not alter src, dist, VERSION, package.json, released schemas, released archive bytes, release-6 artifacts, or governance identity sources.
+  - Do not create or start the post-upgrade validation task before a successful coordinator apply.
+  - Do not modify ProjTrav, NoMe, any other consumer, remote system, registry, deployment, service, database, or external communication.
+  - Do not inspect, adapt, copy, or authorize TREK implementation material.
+  - Do not infer standing authorization, silently replan, retry a consumed grant, reuse a stale digest, or continue after incomplete recovery.
+authorityInputs:
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - RISK_CLASSIFICATION.md
+  - MIGRATING_TO_2.0.md
+  - README.md
+  - docs/handoffs/global-sop-hardening-1.md
+  - .delivery/policy.yaml
+  - .delivery/extensions.yaml
+  - AGENTS.md
+  - .delivery/bin/check-delivery-policy.sh
+  - .delivery/runtime/engineering-governance-2.0.0.tgz
+  - .delivery/tasks/global-sop-2-1-beta-release-6/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-release-6/candidate.yaml
+  - .delivery/tasks/global-sop-2-1-beta-release-6/verification.json
+  - .delivery/tasks/global-sop-2-1-beta-release-6/review.yaml
+  - .delivery/tasks/global-sop-2-1-beta-release-6/closure.yaml
+  - .delivery/tasks/global-sop-2-1-beta-release-6/ledger.jsonl
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-1/contract.yaml
+  - .delivery/tasks/global-sop-2-1-beta-self-upgrade-readiness-1/ledger.jsonl
+  - releases/2.1.0-beta.0/archive-verification.json
+  - releases/2.1.0-beta.0/release-record.json
+  - releases/2.1.0-beta.0/implementation-review-75e70217.yaml
+  - /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz
+  - src/commands/adopt.ts
+  - src/commands/upgrade.ts
+  - src/commands/init.ts
+  - src/commands/check.ts
+  - src/project/mutate.ts
+  - src/project/task-graph.ts
+  - schemas/authorization.schema.json
+  - tests/integration/cli-workflow.test.ts
+  - tests/integration/adoption-verification.test.ts
+  - tests/integration/portable-gate.test.ts
+  - tests/integration/project-adoption.test.ts
+  - tests/unit/task-graph-v2.test.ts
+  - tests/unit/release-records.test.ts
+repositories:
+  - id: root
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+acceptance:
+  - id: EG21-PRE-UPGRADE-PINNED-CHECK
+    observation: The installed 2.0.0 wrapper validates the real project and complete task graph before any upgrade write.
+    positiveCases:
+      - The wrapper exits zero with valid true, no errors, release-6 CLOSED, and readiness-1 SUPERSEDED.
+    negativeCases:
+      - Source beta output, a partial graph, stale output, or a nonzero check substitutes for the installed pinned wrapper.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: ./.delivery/bin/check-delivery-policy.sh
+      arguments: []
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: EG21-UPGRADE-PLAN-EXACT
+    observation: >-
+      The direct beta dry-run emits exactly the reviewed stdout SHA-256
+      dfc0761686796f8ee7f0efa24b33b1717ff587ae3d4d46efa35b1156b7535f84
+      and empty stderr. Parsed JSON is exactly projectRoot, digest
+      45060ce307993ca1e260591030ea1745bbdc73ab11c92eb23beacf5c070f944c,
+      writes in the frozen order, and generatedTargets empty. Writes are:
+      policy afc8b02db177efe840aa095580e7d6d99c3cff454488591751727621d42769bc to
+      31230b6e5f850adbb9909d0a2e46cd0cfb93fd4c2c59a707d8438a71c83ce92a
+      with no mode; extensions f84ae926bf35b42fdb3766caa4c10e3f52e5ab3edc59c864de3ce5a828a6092e
+      unchanged with no mode; AGENTS b30d9bbdd951af144c397547ee86b3121bf869d58d6f7cafab26b382fe44a8b2
+      to f1c12e3345707dce3328631209cb3f795a4e2c57cc5e0bd5e9a9affe4ce7b033
+      with no mode; beta runtime null to 9a53b39b3cdeda7ddc7a36b06bb6bf57aa163f13bcfe10e64b1ff094fef06447
+      with mode 420; wrapper e6cedeb03631ca96a664ce65adfa45f5a8151c348b711cb847d7b17cba302ba7
+      unchanged with mode 493.
+    positiveCases:
+      - Repeated dry-runs on unchanged managed paths produce byte-identical stdout and empty stderr.
+    negativeCases:
+      - Archive substitution, changed before identity, added/removed/reordered/duplicated write, mode drift, generated target, symlink, dirty managed path, wrong source identity, or different digest passes the exact observer.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments: [dist/cli/main.js, upgrade, /Users/xgh/Documents/VibeCoding/EngineeringGovernance, --runner-bundle, /Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz, --json]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy:
+      expectedExitCode: 0
+      output: exact
+      expectedStdoutSha256: dfc0761686796f8ee7f0efa24b33b1717ff587ae3d4d46efa35b1156b7535f84
+      expectedStderrSha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      checkoutMutation: forbidden
+      replay: required
+  - id: EG21-RELEASE-BINDING-SEMANTIC
+    observation: >-
+      The read-only verifier fails unless release-6 ledger state is CLOSED and
+      exact contract/candidate/evidence/verification/review/closure identities
+      match; it recomputes the complete Git range through candidate commit
+      9b5e9d7aeaff87bb431b55e9ecf5944e591bd490 and tree
+      cfce858488fbed818dd57aba7c7cd7f4edac7629, checks archive receipt and bytes,
+      and requires the release record raw SHA-256
+      dc9f034f9622d0e466d310f9e6c95ed1a2e0a8b0fd76c01eb9245367fa76d700.
+    positiveCases:
+      - Verifier emits exactly the frozen one-line JSON success record and empty stderr.
+    negativeCases:
+      - Non-CLOSED release, stale/cross-task artifact, wrong raw or semantic digest, missing/reordered/duplicate commit, wrong tree, replaced archive, receipt mismatch, schema-only record, symlink, or unknown key passes.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments: [scripts/self-upgrade/verify-release-binding.mjs]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy:
+      expectedExitCode: 0
+      output: exact
+      expectedStdoutSha256: 43b9cfb720d80e6fc2b272c5e868d14b14a88948d9bb9703522b2c9d34148249
+      expectedStderrSha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      checkoutMutation: forbidden
+      replay: required
+  - id: EG21-APPLY-GRANT-VERIFY
+    observation: >-
+      Verify-only mode rejects unless the task-owned apply grant has the exact
+      schema/key set, user/local-claim grantor, exact readiness-2 contract raw
+      and semantic identity, plan/archive/write bindings, consumeOnce true,
+      issuedAt 2026-08-15T16:21:57.000Z, expiresAt
+      2026-08-29T16:21:57.000Z, current time before expiry, readiness task not
+      yet applied, and no consumption record.
+    positiveCases:
+      - Verify-only emits exactly the frozen one-line JSON success record and empty stderr without writing.
+    negativeCases:
+      - Missing, empty, duplicate, reordered, unknown-key, wrong-type, expired, cross-task, forged, changed, already-consumed, broader-scope, wrong plan/archive/write, symlink, or traversal grant passes.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments: [scripts/self-upgrade/apply-reviewed-self-upgrade.mjs, --verify-only, --project, /Users/xgh/Documents/VibeCoding/EngineeringGovernance, --task-id, global-sop-2-1-beta-self-upgrade-readiness-2]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy:
+      expectedExitCode: 0
+      output: exact
+      expectedStdoutSha256: 38bdebc9638c432e3c838aca236bb8b3963c936eea664474ba13437b02b8dedf
+      expectedStderrSha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      checkoutMutation: forbidden
+      replay: required
+  - id: EG21-COORDINATOR-UNIT
+    observation: >-
+      Unit tests mechanically validate exact grant/consumption/backup schemas,
+      expiry, normalized identities, one-time consumption, five-write ordering,
+      mode binding, and fail-closed parsing without performing a real upgrade.
+    positiveCases:
+      - All coordinator unit cases pass with zero skips.
+    negativeCases:
+      - Null, array, schema-only, missing nested, wrong type, unknown key, duplicate, reordered, stale, expired, forged, cross-task, partially populated, or already-consumed data passes or throws an unchecked TypeError.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/unit/self-upgrade-coordinator.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: EG21-COORDINATOR-INTEGRATION
+    observation: >-
+      Temporary-repository integration tests exercise verify-only, successful
+      exact apply, beta postcheck, apply without grant, wrong plan/archive,
+      dirty and symlink paths, grant replay, and injected failure after every
+      write position. Every failure restores exact before bytes/modes/absence,
+      retains a consumed failed attempt, validates old 2.0.0 recovery, and
+      refuses retry.
+    positiveCases:
+      - All real coordinator integration cases pass in temporary repositories with zero skips and no mutation of this project.
+    negativeCases:
+      - Partial apply is called success, backup is incomplete, rollback changes bytes/modes, beta runtime remains after failure, failed grant can retry, recovery is not idempotent, or success lacks beta postcheck and one consumption record.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/integration/self-upgrade-coordinator.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: EG21-UPGRADE-CORE-INTEGRATION
+    observation: >-
+      Existing adoption suites plus project-adoption cover dry-run, exact digest
+      apply, postcheck, invalid archive, MANAGED_FILE_CHANGED,
+      DIRTY_MANAGED_PATH, MANAGED_PATH_IS_SYMLINK, and generated-target guards.
+    positiveCases:
+      - Every named integration suite passes with zero skips.
+    negativeCases:
+      - Any claimed dirty, symlink, stale plan, archive, apply, or postcheck path is omitted from the frozen command.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/integration/cli-workflow.test.ts, tests/integration/adoption-verification.test.ts, tests/integration/portable-gate.test.ts, tests/integration/project-adoption.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: EG21-UPGRADE-UNIT
+    observation: >-
+      Release-record unit tests prove only exact schema acceptance/rejection;
+      separate task-graph unit cases prove terminal stale-policy compatibility
+      and rejection for every non-terminal state: DEFINED, IN_PROGRESS,
+      CANDIDATE, ACCEPTED, REPAIR_REQUIRED, and BLOCKED.
+    positiveCases:
+      - All named unit cases pass with zero skips.
+    negativeCases:
+      - Schema validation is mislabeled semantic binding, a non-terminal state is omitted, or forged runner identity passes recomputation.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [exec, vitest, run, tests/unit/release-records.test.ts, tests/unit/task-graph-v2.test.ts]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: EG21-BETA-TYPECHECK
+    observation: TypeScript source and coordinator tests typecheck under the frozen Node 22 environment.
+    positiveCases: [pnpm typecheck exits zero]
+    negativeCases: [Build, prior evidence, or another checkout substitutes for typecheck]
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/bin/pnpm
+      arguments: [typecheck]
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+  - id: EG21-SOURCE-GRAPH
+    observation: The beta source task-graph validator returns valid true and zero errors for the real pre-upgrade project and complete history.
+    positiveCases: [The validator exits zero and emits valid true with every task represented]
+    negativeCases: [A graph error is ignored or full source policy mismatch is substituted for graph validation]
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/Cellar/node@22/22.23.1/bin/node
+      arguments:
+        - --input-type=module
+        - -e
+        - "import { validateProjectTaskGraph } from './dist/project/task-graph.js'; const r=validateProjectTaskGraph(process.cwd()); console.log(JSON.stringify(r)); process.exit(r.valid ? 0 : 1)"
+      environment: { PATH: /opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin }
+    observerPolicy: { expectedExitCode: 0, output: nonempty, checkoutMutation: forbidden, replay: required }
+authorizationRequirements:
+  - id: AUTH-EG21-READINESS-IMPLEMENTATION
+    action: implement-and-verify-local-self-upgrade-coordinator
+    target: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    scope:
+      - Add only task-scoped self-upgrade verifier/coordinator/schema/test files and the exact apply grant frozen by this contract.
+      - Run only read-only or temporary-repository evidence; do not apply the real project upgrade in this task.
+      - Preserve release bytes, governance identity sources, managed policy paths, ProjTrav, other consumers, and every remote or production system.
+    trustLevel: recorded-claim
+    consumeOnce: true
+evidenceFreshnessMs: 86400000
+openChoices: []
+signals:
+  mutation: true
+  classificationComplete: true
+  crossModule: true
+  security: true
+  migration: true
+  projectMinimum: R3

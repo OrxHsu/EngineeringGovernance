@@ -1,0 +1,248 @@
+schemaVersion: 2
+taskId: global-sop-contract-readiness-gate-1
+sopVersion: 2.0.0
+policyDigest: eba8165bd069c0e85e5b08217ea260e7b027e85158404a50644c03b57a909aca
+risk: R3
+riskSignals:
+  mutation: true
+  classificationComplete: true
+  crossModule: true
+  userVisible: false
+  security: true
+  projectMinimum: R3
+implementationOwner: codex
+objective: Add a global pre-implementation contract-readiness gate for R2/R3
+  tasks. A task at R2 or R3 must receive an independent, exact-contract
+  completeness review before its implementation owner may transition it from
+  DEFINED to IN_PROGRESS. The gate must bind the canonical contract bytes and
+  digest, require a structured completeness checklist and classified findings,
+  preserve R1 simplicity, and remain compatible with legacy v1 history.
+scope:
+  - src/commands/task-contract-review-v2.ts
+  - src/state/contract-readiness.ts
+  - src/state/ledger.ts
+  - src/commands/task-transition-v2.ts
+  - src/cli/main.ts
+  - src/cli/input.ts
+  - src/policy/load.ts
+  - src/model/types.ts
+  - src/project/task-graph.ts
+  - schemas/contract-review.schema.json
+  - schemas/task-contract.schema.json
+  - schemas/task-event.schema.json
+  - templates/task-contract-review.yaml
+  - templates/task-contract.yaml
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - README.md
+  - MIGRATING_TO_2.0.md
+  - tests/unit/contract-readiness.test.ts
+  - tests/unit/task-contract-review-v2.test.ts
+  - tests/unit/task-ledger-v2.test.ts
+  - tests/unit/task-graph-v2.test.ts
+  - tests/integration/contract-review-gate.test.ts
+  - tests/integration/cli-v2-hardening.test.ts
+nonGoals:
+  - Do not change ProjTrav or NoMe project adoption state.
+  - Do not rewrite, upgrade, or reinterpret v1 task directories.
+  - Do not add Phase 2D-specific product requirements to the global package.
+  - Do not implement remote registry publication, deployment, push, or external
+    communication.
+  - Do not allow the contract reviewer to invent unresolved product decisions.
+authorityInputs:
+  - CORE_INVARIANTS.md
+  - DEVELOPMENT_SOP.md
+  - RISK_CLASSIFICATION.md
+  - MIGRATING_TO_2.0.md
+  - README.md
+  - schemas/task-contract.schema.json
+  - src/state/transitions.ts
+  - src/state/ledger.ts
+  - tests/unit/task-ledger-v2.test.ts
+  - tests/unit/task-graph-v2.test.ts
+repositories:
+  - id: root
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+    baseline:
+      head: 20ddb5ce95cbbf7110e9fadf677500d04e64daf8
+      tree: a40f52c629735de6e9016c961adf9f3ce477c48b
+      checkoutDigest: 03927ec0f5a65773e955ce02bb28fdd3106080e980d969ba2b9d5bf875e738f1
+      trackedPaths: []
+      untrackedPaths:
+        - .delivery/inputs/global-sop-contract-readiness-gate-1.yaml
+        - docs/handoffs/global-sop-hardening-1.md
+acceptance:
+  - id: CONTRACT-GATE-SCHEMA
+    observation: R2/R3 contract-review artifacts use one canonical path, exact
+      schema, reviewer identity, contract byte/digest binding, complete required
+      checklist, and classified findings; malformed, duplicate, cross-task,
+      stale, self-review, and missing-category inputs are rejected.
+    positiveCases:
+      - An accepted contract review binds the canonical contract.yaml bytes and
+        semantic digest.
+      - Every required completeness category is present and passes before
+        ACCEPTED is legal.
+      - A contract violation, newly discovered defect, or new requirement is
+        explicitly classified.
+    negativeCases:
+      - A reviewer equal to the implementation owner is rejected for R2/R3.
+      - A review with a stale contract digest, missing checklist category,
+        duplicate finding ID, or unknown key is rejected.
+      - A contract review from another task or non-canonical path is rejected.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/unit/contract-readiness.test.ts
+        - tests/unit/task-contract-review-v2.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-TRANSITION
+    observation: The only legal R2/R3 transition from DEFINED to IN_PROGRESS
+      requires a valid accepted contract-review artifact bound to the current
+      contract; R1 tasks retain the existing owner transition path.
+    positiveCases:
+      - An implementation owner can transition an R2/R3 task only with the exact
+        accepted contract-review artifact reference.
+      - The ledger records the contract-review artifact and preserves
+        append-only continuity.
+      - Contract review approval is not treated as implementation acceptance.
+    negativeCases:
+      - DEFINED to IN_PROGRESS without contract review is rejected.
+      - A review with REPAIR_REQUIRED, wrong actor, wrong task, or changed bytes
+        is rejected.
+      - A caller-supplied state label cannot bypass the transition gate.
+    evidenceKind: unit
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/unit/task-ledger-v2.test.ts
+        - tests/integration/contract-review-gate.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-GRAPH
+    observation: Project task-graph validation preserves v1 legacy inspect-only
+      history, validates the canonical v2 contract-review artifact for new R2/R3
+      tasks, rejects orphan or duplicate reviews, and does not infer readiness
+      from filenames or caller-authored state fields.
+    positiveCases:
+      - Existing closed v2 and legacy v1 task histories remain checkable without
+        rewriting.
+      - A new R2/R3 task with accepted contract review and ledger binding passes
+        graph validation.
+      - R1 tasks without a contract-review artifact remain valid.
+    negativeCases:
+      - An R2/R3 task with missing, duplicate, stale, or cross-task contract
+        review fails graph validation.
+      - A legacy v1 review or closure is not promoted to v2 contract readiness.
+      - A non-canonical contract-review filename is not accepted as current
+        readiness.
+    evidenceKind: integration
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - exec
+        - vitest
+        - run
+        - tests/unit/task-graph-v2.test.ts
+        - tests/integration/cli-v2-hardening.test.ts
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+  - id: CONTRACT-GATE-DOCS
+    observation: Canonical SOP documentation and templates describe the
+      pre-implementation contract-readiness gate, role separation,
+      defect/new-requirement classification, and the distinction between global
+      rules and project extensions without adding Phase 2D-specific behavior.
+    positiveCases:
+      - The global policy states that R2/R3 implementation cannot begin before
+        accepted contract readiness.
+      - Templates expose the required review structure and reviewer/owner
+        separation.
+      - Documentation preserves the rule that project extensions may strengthen
+        but not weaken core invariants.
+    negativeCases:
+      - Documentation does not authorize self-review or silent post-freeze
+        contract edits.
+      - The global package does not grant TREK source access or redefine product
+        behavior.
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - check:placeholders
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: not-required
+  - id: CONTRACT-GATE-FULL
+    observation: The full governance package typecheck, test suite, build,
+      placeholder check, and license check pass with the new gate and no
+      unrelated file mutation.
+    positiveCases:
+      - pnpm check exits zero with fresh output.
+      - The emitted dist bytes match the source build used for the candidate.
+      - The worktree contains only scoped implementation, test, documentation,
+        and task artifacts.
+    negativeCases:
+      - Any existing v1 history is rewritten or any unrelated worktree path is
+        staged.
+      - A generated runner omits the contract-review schema or command behavior.
+    evidenceKind: static
+    command:
+      repositoryId: root
+      cwd: .
+      executable: /opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs
+      arguments:
+        - check
+      environment:
+        NODE_OPTIONS: --enable-source-maps
+      executableSha256: 98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090
+    observerPolicy:
+      expectedExitCode: 0
+      output: nonempty
+      checkoutMutation: forbidden
+      replay: required
+evidenceFreshnessMs: 86400000
+authorizationRequirements: []
+extensions: []
+openChoices:
+  - Internal module names and helper decomposition.
+  - Whether the beta release is consumed locally or by a future reviewed project
+    upgrade.
+contractDigest: 5ed7efce487ac0854a972f0d9af94a5dbef3adb3331028583a9fec9c6dd03c19

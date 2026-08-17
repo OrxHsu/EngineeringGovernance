@@ -1,0 +1,568 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "sop-replay-plan-v2",
+  "projectRoot": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+  "taskId": "global-sop-2-1-beta-release-5",
+  "contract": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml",
+    "sha256": "4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7",
+    "digest": "7389dc93c1ea8e3f5a4172ce447904454e5c55bc648ca234a8d3889fa46e6e00"
+  },
+  "candidate": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/candidate.yaml",
+    "sha256": "1a8cb4cbd56398cb5a83bbba38a416e0b3d8f64e9c62fe6641de1e476a7d9ce4",
+    "digest": "a0ab7967640e0974dd2422e2eb89c94a1c5474b95d71125b1a7814ac44bfcf3b"
+  },
+  "implementationIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "commit": "8fda7d9469de72608d2c1aef4e04e882bcb545ec",
+      "tree": "1e5b0aece88f8a3b17772edd99e4d531ceb46e6a",
+      "checkoutDigest": "b2cf3006fd78993b32b64951e7b733a490ced4dddefd50a9d6804791c6b96149"
+    }
+  ],
+  "checkoutSnapshots": [
+    {
+      "id": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "head": "8fda7d9469de72608d2c1aef4e04e882bcb545ec",
+      "tree": "1e5b0aece88f8a3b17772edd99e4d531ceb46e6a",
+      "trackedDiffSha256": "f1d911154721221497dcdd8ebf6ce778722e17dae248427fdf405b76b23bd781",
+      "trackedPaths": [
+        ".delivery/tasks/global-sop-2-1-beta-release-5/ledger.jsonl",
+        "releases/2.1.0-beta.0/archive-verification.json",
+        "releases/2.1.0-beta.0/release-record.json"
+      ],
+      "untracked": [
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-1-supersede.yaml",
+          "type": "file",
+          "sha256": "545831a23018ea745a0ae8fcb1d936945980858a425a739611de69b84e36061c"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-1.yaml",
+          "type": "file",
+          "sha256": "6e423f54d3f91ff461ec46b6bc4d77f6c1172183b13727ab1945dd94e5065834"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-2-supersede.yaml",
+          "type": "file",
+          "sha256": "d6d2e7bc44d6de87e04b3d88279fafd52fabe9fd6514c6c4b1978bc94f908059"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-2.yaml",
+          "type": "file",
+          "sha256": "4d080ce33e48e1c85f4635d9d1ca2aa5df04c510875bf7a8a4ff18805b80190b"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-3-supersede.yaml",
+          "type": "file",
+          "sha256": "54bcd85feb20b50220fdffbfb59091d749b659b930047eaec92fbc4a91b80df3"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-3.yaml",
+          "type": "file",
+          "sha256": "da441dc74737c16ad5680ff726857da32d0fcb28e0a848b58445e7babb023347"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-4-supersede.yaml",
+          "type": "file",
+          "sha256": "c10580f55d487ce8885d2c85b6285697643c2ea7224bc46c163ebfc8f812f3c0"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-4.yaml",
+          "type": "file",
+          "sha256": "5b1d85dd3ffd4100b0a03e320de945f344508b1aba39ed64bbfa0d3f2fdffb2c"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-candidate.yaml",
+          "type": "file",
+          "sha256": "028695ce21e0a2e9f7c4597d53bba447c17ce5e990fec55aed41ed714f696cc7"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-archive.yaml",
+          "type": "file",
+          "sha256": "0871bba936c12b30b6631a067dfefb47654909ebfe5e9a435249684cb096f71c"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-build.yaml",
+          "type": "file",
+          "sha256": "0367b1ac4f1bc5af2b770dc175c547bfd7ed87084b6866ce69267f5f56bb3d77"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-docs.yaml",
+          "type": "file",
+          "sha256": "b794a62447fb0fb3f6ef6d55d6c8f74944242dc3dde31cee335027151a8950a6"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-integration-all.yaml",
+          "type": "file",
+          "sha256": "c83edbe8150c3ca1fc37daf050b1d18a31c878ed04bd422c9558c93b02f1cc0e"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-licenses.yaml",
+          "type": "file",
+          "sha256": "a4cd1848356903023869620ac533b247d01cd57bfd85fdd8b7297f7c27cc5c4a"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-pinned-check.yaml",
+          "type": "file",
+          "sha256": "bf71b3356485ef1e41a0b565ba03d3b39c02163b107a5dc7dbce7c131c79767d"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-placeholders.yaml",
+          "type": "file",
+          "sha256": "49d205340c2638512d15885c3e2a467b5cfe6c42242297824ed4ed2403b9c68a"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-record-schemas.yaml",
+          "type": "file",
+          "sha256": "f68e1f163fc788f6d8e411877d7e2264cca57d46c041f2ada1cc19943b0c2477"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-release-record.yaml",
+          "type": "file",
+          "sha256": "079e9ab76567f138a94050c67b9387b0841f17bf1ee2c904f12b1c7caa59f2b0"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-repair-integration.yaml",
+          "type": "file",
+          "sha256": "405fc033c7f06071b303d4f686dc3373185565e2f778abc9fe29d0c4ca4d0649"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-repair-unit.yaml",
+          "type": "file",
+          "sha256": "219fb50d818ce6725f87b746a64208541e0cdaf13ed8592584e289c3089e8e1d"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-typecheck.yaml",
+          "type": "file",
+          "sha256": "9b4891424bc007d0880ba68cb09810a5141b14a1ffbe72e704b6489efa640c06"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-2-1-beta-release-5-execute-sop21-unit-all.yaml",
+          "type": "file",
+          "sha256": "5395e32ab964a906c16055bf625cd3d9ec4a50fbabde7667d4dd09c5c6d1b5aa"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-contract-readiness-gate-1-supersede.yaml",
+          "type": "file",
+          "sha256": "3c119fb15bd283a2a778e3247578cdd0168da4d2202a8e12ab0ef97efe70d4a4"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-contract-readiness-gate-1.yaml",
+          "type": "file",
+          "sha256": "139e0961667aebcd1e76b0e019db5a04814bf0c5ae059494bb3c547af35ede6c"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-contract-readiness-gate-2-supersede.yaml",
+          "type": "file",
+          "sha256": "ff451f071565c9470e920631aadd1314db6ccda2aa47d256751e4cce4293f874"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-contract-readiness-gate-2.yaml",
+          "type": "file",
+          "sha256": "d5f23a0ba95354f6c0ecdb37894c1602487fbd016f328acdde58838fab8dfd44"
+        },
+        {
+          "path": ".delivery/inputs/global-sop-contract-readiness-gate-3-supersede.yaml",
+          "type": "file",
+          "sha256": "7c6bb683b0e6335a43482d12424e4618c2081e02a9ae7e95307a0b69ac448883"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-1/contract.yaml",
+          "type": "file",
+          "sha256": "27ce430c5d34a4d6620e3f60480143125f7c2998e8187600bc0b917dc7558439"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-1/ledger.jsonl",
+          "type": "file",
+          "sha256": "b9dfd8f90999bf4d96024dc52303fb0c7b3f56d5a711bb5c03a3ad7ac24937cd"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-2/contract.yaml",
+          "type": "file",
+          "sha256": "f2f114324a2a618617186663a1d7f015ad587736de2b0994774711e4d25b9c32"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-2/ledger.jsonl",
+          "type": "file",
+          "sha256": "deec43c44d2f1c1678780406d2f0ed1a6875802248c50fe0680fb28166959f36"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-3/contract.yaml",
+          "type": "file",
+          "sha256": "da24dbb60ccf4d5414894878c36f3222a0b5833b4d8e2795b5bf7691d74d0640"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-3/ledger.jsonl",
+          "type": "file",
+          "sha256": "72898fd26f15e6b3f308ac1b1a968ff79f121314b743f68682d39857e3a53213"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-4/contract.yaml",
+          "type": "file",
+          "sha256": "f79028633867246e7a0edfe34e29969e45ed8b59cf3f17928c386eac2af587c6"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-4/ledger.jsonl",
+          "type": "file",
+          "sha256": "f8723407bf55bdcdf5d6a287c045f8a199826896b1e6cbf23bec3d389deaec7e"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-5/candidate.yaml",
+          "type": "file",
+          "sha256": "1a8cb4cbd56398cb5a83bbba38a416e0b3d8f64e9c62fe6641de1e476a7d9ce4"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-2-1-beta-release-5/evidence.json",
+          "type": "file",
+          "sha256": "af2cad568a405675195f970a517718fb84d02f6f6dad05fb92dbe36b1a17fff0"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-contract-readiness-gate-1/contract.yaml",
+          "type": "file",
+          "sha256": "ddb9d6aad067c88645893c0006244b87199d6736ed28b6df491866ea4576bf84"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-contract-readiness-gate-1/ledger.jsonl",
+          "type": "file",
+          "sha256": "95d1763037afc57da79bad0ba10205406173ff38f96f61b04f5551a53749dd49"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-contract-readiness-gate-2/contract.yaml",
+          "type": "file",
+          "sha256": "cbb090bf0d4b640a3e4944ca8f0da4d89a85c9884f7dda1809e7d9930ff8ee55"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-contract-readiness-gate-2/ledger.jsonl",
+          "type": "file",
+          "sha256": "876d002a6a385853260b818f5416158ad9d9f50935315d5b836dbf0f5bc9188c"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-contract-readiness-gate-3/contract.yaml",
+          "type": "file",
+          "sha256": "9e7b131d4b8949e85d8d15dd76f336a708b40e890f5c5135d3e3b9b297076b45"
+        },
+        {
+          "path": ".delivery/tasks/global-sop-contract-readiness-gate-3/ledger.jsonl",
+          "type": "file",
+          "sha256": "8c29c2769c19892dedf68c16eaf4490d71adf32f57a9d352e1e951bb8e63affa"
+        },
+        {
+          "path": "docs/handoffs/global-sop-hardening-1.md",
+          "type": "file",
+          "sha256": "3b9240f202e5d23038b324ccf39a2dcb92dcc44740dc83f829bad5f1706c8239"
+        }
+      ],
+      "statusDigest": "370048471e54b48b0359b128514bd2b35ec9be89d248cf8e3ea40b501dc9efc0"
+    }
+  ],
+  "gates": [
+    {
+      "acceptanceId": "SOP21-RECORD-SCHEMAS",
+      "gateDigest": "c270fdd48cda1384e4c9f5de23527bbfd121b7cae12838b871e8f829f80832ef",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "exec",
+          "vitest",
+          "run",
+          "tests/unit/release-records.test.ts"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-REPAIR-UNIT",
+      "gateDigest": "6b04ca1e3e0e62f5e198e8b1903536566b6904ddf6ef1baadc125bfdd357872a",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "exec",
+          "vitest",
+          "run",
+          "tests/unit/contract-readiness.test.ts",
+          "tests/unit/task-contract-review-v2.test.ts",
+          "tests/unit/task-ledger-v2.test.ts"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-REPAIR-INTEGRATION",
+      "gateDigest": "afef2f3ea4146f9f172ff5df2333a535198bc64ce8a89ba7ff283306d11c5285",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "exec",
+          "vitest",
+          "run",
+          "tests/integration/cli-v2-hardening.test.ts",
+          "tests/integration/contract-review-gate.test.ts"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-ARCHIVE",
+      "gateDigest": "b1785e83c0b5099d01f6b4d4437c951010808d25200ac791f8b8f179702bfa3a",
+      "command": {
+        "executable": "/opt/homebrew/Cellar/node@22/22.23.1/bin/node",
+        "executableSha256": "9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e",
+        "arguments": [
+          "scripts/verify-beta-runner-reproducibility.mjs",
+          "--output",
+          "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0",
+          "--version",
+          "2.1.0-beta.0"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-RELEASE-RECORD",
+      "gateDigest": "9cc6ba17dedbfef5d25c8e0f57f2cd2e4bada0178c075876695150da9cb0045c",
+      "command": {
+        "executable": "/opt/homebrew/Cellar/node@22/22.23.1/bin/node",
+        "executableSha256": "9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e",
+        "arguments": [
+          "scripts/emit-beta-release-record.mjs",
+          "--task-id",
+          "global-sop-2-1-beta-release-5",
+          "--base-commit",
+          "8e41388ca14c30646e990fbe2e7c976e0018b9fc",
+          "--archive",
+          "/Users/xgh/Documents/VibeCoding/EngineeringGovernanceReleaseCandidates/2.1.0-beta.0/engineering-governance-2.1.0-beta.0.tgz",
+          "--archive-receipt",
+          "releases/2.1.0-beta.0/archive-verification.json",
+          "--prior-finding",
+          "releases/2.1.0-beta.0/implementation-review-75e70217.yaml"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-UNIT-ALL",
+      "gateDigest": "78548ee150a2d7829b18f79864651bd5f3d487757b3682ab6037e92bf15383f1",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "exec",
+          "vitest",
+          "run",
+          "tests/unit"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-INTEGRATION-ALL",
+      "gateDigest": "a53aa1e9a66dc0078d4953db7d47b2667f9f0b43a1ac968a8dbae638e62b5d1e",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "exec",
+          "vitest",
+          "run",
+          "tests/integration"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-TYPECHECK",
+      "gateDigest": "9411548e9e7c87f5326a5134f28cb5ee14d48c39f38cd80bd00cb04f53c0ca5e",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "typecheck"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-BUILD",
+      "gateDigest": "214f96aabb1a447fdb715e855273d9dc7ad5beac4e64c052cbf7dccffa6b0b68",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "build"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-DOCS",
+      "gateDigest": "37ecc4bbe03bc2aca54caf1251ab98e50de0f3713108ee80b0af741d6f17cc67",
+      "command": {
+        "executable": "/opt/homebrew/Cellar/node@22/22.23.1/bin/node",
+        "executableSha256": "9eb69bb1886d409b3f34064f0c81e146b3a31e240faba29b3db5f6d94587e96e",
+        "arguments": [
+          "scripts/check-governance-docs.mjs"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-PLACEHOLDERS",
+      "gateDigest": "2e23f875a4b44ed1d1c45626781ddff136afd294cea402c4baf42efcc54a0b28",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "check:placeholders"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-LICENSES",
+      "gateDigest": "4942de793d9c1daa4aebd6ada9eba06787112bfc904ce6a43683eeefd54808fe",
+      "command": {
+        "executable": "/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs",
+        "executableSha256": "98e6b99a881d64a1cc982c3e60aa260bf02160386b12e74475e06486dc74b090",
+        "arguments": [
+          "check:licenses"
+        ],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    },
+    {
+      "acceptanceId": "SOP21-PINNED-CHECK",
+      "gateDigest": "92f5c7268ff18d06b625c5753cabe226222cdd2f19c5ac900a0cf99687767ac4",
+      "command": {
+        "executable": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/bin/check-delivery-policy.sh",
+        "executableSha256": "e6cedeb03631ca96a664ce65adfa45f5a8151c348b711cb847d7b17cba302ba7",
+        "arguments": [],
+        "cwd": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+        "environment": {
+          "PATH": "/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin"
+        }
+      },
+      "observerPolicy": {
+        "expectedExitCode": 0,
+        "output": "nonempty",
+        "checkoutMutation": "forbidden",
+        "replay": "required"
+      }
+    }
+  ],
+  "digest": "f8dfb11abdc0198a0a3ed8129fe17e3342cff4ebdc8b741bf16e7a6917db611f"
+}

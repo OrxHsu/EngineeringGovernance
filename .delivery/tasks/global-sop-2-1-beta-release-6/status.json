@@ -1,0 +1,10 @@
+{
+  "taskId": "global-sop-2-1-beta-release-6",
+  "state": "CLOSED",
+  "nextAction": "No further action in this release task; self-upgrade and consumer migration require separate schema-v2 tasks.",
+  "userActionRequired": false,
+  "reviewDecision": "ACCEPTED",
+  "reviewer": "independent-implementation-reviewer",
+  "releaseVersion": "2.1.0-beta.0",
+  "publicationStatus": "local-unpublished"
+}

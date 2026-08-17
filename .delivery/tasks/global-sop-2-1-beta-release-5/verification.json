@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "sop-candidate-verification-v2",
+  "producer": {
+    "name": "@xgh/engineering-governance",
+    "version": "2.0.0",
+    "policyDigest": "258befcfe9f8d24f8ba031e8a99941043e7fbfaba557a16949b10169fd02205f"
+  },
+  "taskId": "global-sop-2-1-beta-release-5",
+  "contract": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/contract.yaml",
+    "sha256": "4fdd13be16a0201d81b8d12dd69ac19435fb3e2c632a7154cfa1d3292e93abe7",
+    "digest": "7389dc93c1ea8e3f5a4172ce447904454e5c55bc648ca234a8d3889fa46e6e00"
+  },
+  "candidate": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/candidate.yaml",
+    "sha256": "1a8cb4cbd56398cb5a83bbba38a416e0b3d8f64e9c62fe6641de1e476a7d9ce4",
+    "digest": "a0ab7967640e0974dd2422e2eb89c94a1c5474b95d71125b1a7814ac44bfcf3b"
+  },
+  "evidence": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/evidence.json",
+    "sha256": "af2cad568a405675195f970a517718fb84d02f6f6dad05fb92dbe36b1a17fff0"
+  },
+  "receipts": [
+    {
+      "acceptanceId": "SOP21-RECORD-SCHEMAS",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-RECORD-SCHEMAS.json",
+      "sha256": "a1bcc32bbb786f8bfaccfc409eecdad4e16e793278f031d81a3775f1950104d6"
+    },
+    {
+      "acceptanceId": "SOP21-REPAIR-UNIT",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-REPAIR-UNIT.json",
+      "sha256": "3974dd84c5d6a4d340831141df10199585e48b27902d95d4d78fbe43a28307f4"
+    },
+    {
+      "acceptanceId": "SOP21-REPAIR-INTEGRATION",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-REPAIR-INTEGRATION.json",
+      "sha256": "1e262a7359cf317d84158848e0d6ccefb58de1f7ceaf2494386ff0f0260d25ad"
+    },
+    {
+      "acceptanceId": "SOP21-ARCHIVE",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-ARCHIVE.json",
+      "sha256": "d5a43f58b1fea9855be24a623b63a7d157d73b1d246e29085c3c3f24281538ac"
+    },
+    {
+      "acceptanceId": "SOP21-RELEASE-RECORD",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-RELEASE-RECORD.json",
+      "sha256": "95dd2a82c6816df3c614731f0c830f51647f7da2f08fe624db5e2def361ce52f"
+    },
+    {
+      "acceptanceId": "SOP21-UNIT-ALL",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-UNIT-ALL.json",
+      "sha256": "92879072e17c7e7cdff1d5c188c7a421a8b3df6efb431342acdaf4bb977473f5"
+    },
+    {
+      "acceptanceId": "SOP21-INTEGRATION-ALL",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-INTEGRATION-ALL.json",
+      "sha256": "9f39ce946dc0005d04ac6457259119370e77264f705e6dcc7d9270586b12fe66"
+    },
+    {
+      "acceptanceId": "SOP21-TYPECHECK",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-TYPECHECK.json",
+      "sha256": "3376548dea9b49547e5e4e8c8359378b3339ea98956d59f2247c8d2e372c0590"
+    },
+    {
+      "acceptanceId": "SOP21-BUILD",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-BUILD.json",
+      "sha256": "e7dd7a031ccbe1561ed43bac5be7356569161839f11d01b3346bbe144a610745"
+    },
+    {
+      "acceptanceId": "SOP21-DOCS",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-DOCS.json",
+      "sha256": "f140647059aabece88226052efd2d3ca53b5295d5cbba5aea5dd54c2d892eb0c"
+    },
+    {
+      "acceptanceId": "SOP21-PLACEHOLDERS",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-PLACEHOLDERS.json",
+      "sha256": "d07571b3364e213143ed03953cf7605ba3b2f737685b13ae7e0d642fec4b7707"
+    },
+    {
+      "acceptanceId": "SOP21-LICENSES",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-LICENSES.json",
+      "sha256": "501823a6db2de4506b41a315403bde1e068115a0311ed4983e16da3242f0b424"
+    },
+    {
+      "acceptanceId": "SOP21-PINNED-CHECK",
+      "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/receipts/release5-final-20260815/SOP21-PINNED-CHECK.json",
+      "sha256": "66b449e2eaf9b815564895034312c9df74a4335743b656b3edc59de9f0381ab7"
+    }
+  ],
+  "authorizationArtifacts": [],
+  "extensionArtifacts": [],
+  "implementationIdentities": [
+    {
+      "repositoryId": "root",
+      "repository": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance",
+      "commit": "8fda7d9469de72608d2c1aef4e04e882bcb545ec",
+      "tree": "1e5b0aece88f8a3b17772edd99e4d531ceb46e6a",
+      "checkoutDigest": "b2cf3006fd78993b32b64951e7b733a490ced4dddefd50a9d6804791c6b96149"
+    }
+  ],
+  "authorizationTrust": [],
+  "extensionResults": [],
+  "replay": {
+    "path": "/Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/replay-verification.json",
+    "sha256": "fb7ff44c91924a1975eba61457c8817f8d3a401b56403bbc99398025520a5f41",
+    "planDigest": "f8dfb11abdc0198a0a3ed8129fe17e3342cff4ebdc8b741bf16e7a6917db611f"
+  },
+  "verifiedAt": "2026-08-15T08:06:43.286Z",
+  "decision": "eligible"
+}

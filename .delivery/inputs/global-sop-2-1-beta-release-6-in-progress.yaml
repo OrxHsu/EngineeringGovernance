@@ -1,0 +1,8 @@
+schemaVersion: 2
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+taskId: global-sop-2-1-beta-release-6
+actorId: codex
+to: IN_PROGRESS
+artifacts:
+  - kind: contract-review
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-6/contract-review.yaml

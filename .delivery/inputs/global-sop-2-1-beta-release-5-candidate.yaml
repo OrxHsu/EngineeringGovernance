@@ -1,0 +1,10 @@
+schemaVersion: 2
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+taskId: global-sop-2-1-beta-release-5
+actorId: codex
+to: CANDIDATE
+artifacts:
+  - kind: candidate
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/candidate.yaml
+  - kind: evidence
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-5/evidence.json

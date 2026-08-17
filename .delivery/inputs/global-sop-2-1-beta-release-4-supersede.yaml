@@ -1,0 +1,8 @@
+schemaVersion: 2
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+taskId: global-sop-2-1-beta-release-4
+actorId: codex
+to: SUPERSEDED
+artifacts:
+  - kind: contract
+    path: /Users/xgh/Documents/VibeCoding/EngineeringGovernance/.delivery/tasks/global-sop-2-1-beta-release-4/contract.yaml

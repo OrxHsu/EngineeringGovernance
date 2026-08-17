@@ -1,0 +1,54 @@
+schemaVersion: 1
+artifactType: engineering-governance-contract-defect-v1
+defectId: FIX1-REPAIR3-CONTRACT-BOOTSTRAP-001
+taskId: global-sop-2-1-beta-1-fix-1-repair-3
+classification: newly_discovered_contract_defect
+severity: BLOCKER
+responsibleRole: contract_author
+responsibleActorId: codex
+discoveredAt: 2026-08-16T05:32:28.000Z
+observation: >-
+  The accepted repair-3 contract requires one canonical authorization file to
+  serve both as the pinned 2.0.0 lifecycle authorization and as the new beta1
+  remediation authorization. The two authoritative validators accept mutually
+  exclusive exact-key schemas, so no file can satisfy both and the task cannot
+  produce a candidate that its pinned runner can verify.
+authorities:
+  pinnedRunnerArchive:
+    path: .delivery/runtime/engineering-governance-2.0.0.tgz
+    sha256: 481dc68efb8b8d05ad1fd55d80d3e72ba49ae071f6400953b644520b007499c3
+  pinnedAuthorizationSchema:
+    archivePath: package/schemas/authorization.schema.json
+    sha256: 6f0c08646c3e20f428c5bff5bb58ddc0b9bc4bd122b66620185ab014a6720f86
+    acceptedArtifactType: sop-authorization-v2
+  sourceAuthorizationSchema:
+    path: schemas/authorization.schema.json
+    sha256AtDiscovery: fe5734ca4b9ecb0a623666b0d7ca423b077a532c181f08b9ad0fd0df4707a29b
+    addedArtifactType: engineering-governance-remediation-authorization-v1
+  contract:
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract.yaml
+    rawSha256: 3362187bbbbf2f65e05967311ede552e6ecb807097dbf67eb2035dad8d82bc14
+    semanticDigest: 6a3617ad72facc1258aefafc706a7a3396bc2812fe477886f11ca5905fabbb36
+  acceptedContractReview:
+    path: .delivery/tasks/global-sop-2-1-beta-1-fix-1-repair-3/contract-review.yaml
+    rawSha256: 505c63258f35fd9465dcfefc5389a0afce4d9ea508cb3cfa5d0ba8da61afb47b
+    reviewerId: independent-contract-reviewer-fix1
+incompatibility:
+  - The pinned candidate verifier requires the canonical authorization path to contain schemaVersion 2 and artifactType sop-authorization-v2 with contractDigest and without remediation-only keys.
+  - The repair-3 contract requires that same canonical path to contain artifactType engineering-governance-remediation-authorization-v1 with contract, supervisorId, reviewer IDs, and consumeOnce, and without contractDigest.
+  - Both schema variants set additionalProperties false, so satisfying either exact key set invalidates the other.
+consequence: >-
+  repair-3 is not closable under the project-pinned runner. Existing source and
+  test work is not accepted implementation evidence and no CANDIDATE transition
+  may be recorded for this contract.
+requiredReplacement:
+  taskId: global-sop-2-1-beta-1-fix-1-repair-4
+  requirements:
+    - Preserve repair-3 and this defect artifact as immutable predecessor evidence and transition repair-3 only to SUPERSEDED.
+    - Use one standard sop-authorization-v2 artifact at the pinned runner's canonical authorization path for the repair-4 lifecycle requirement.
+    - Use a separate engineering-governance-remediation-authorization-v1 sidecar for supervisor, reviewer, contract, scope, expiry, and consume-once remediation semantics.
+    - Bind the sidecar to the lifecycle authorization path, raw SHA-256, semantic digest, requirement ID, task, accepted contract, supervisor, and both independent reviewer IDs.
+    - The pinned candidate authorizationArtifacts set references only the standard lifecycle authorization; source bootstrap and accountability verification validate the sidecar independently.
+    - Derive remediation eligibility from the exact frozen repair-4 contract, predecessor defect binding, lifecycle authorization, and sidecar identities. A task ID hardcode or matching action string alone must never grant eligibility.
+    - Require adversarial rejection of omitted, empty, duplicated, swapped, stale, forged, cross-task, cross-contract, wrong-reviewer, wrong-supervisor, wrong-path, wrong-digest, expired, and multiply consumed artifacts.
+    - Obtain a fresh independent R3 contract review before implementation resumes.

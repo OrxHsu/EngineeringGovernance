@@ -1,0 +1,29 @@
+schemaVersion: 1
+artifactType: engineering-governance-accountability-incident-v1
+incidentId: upgrade-artifact-mapping-loss-20260817
+projectRoot: /Users/xgh/Documents/VibeCoding/EngineeringGovernance
+subjectActorId: codex
+reportedBy: user-authority
+failureContext:
+  blockedComponent: governance-tool
+  failureCode: UPGRADE_ARTIFACT_MAPPING_LOSS
+  observedAt: 2026-08-17T10:32:00Z
+finding:
+  findingId: INC-UPGRADE-001
+  severity: BLOCKER
+  classification: newly_discovered_defect
+  defectClass: upgrade-policy-extension-preservation
+  responsibleRole: tool
+  culpability: non_culpable_tool_defect
+  observation: The upgrade planner replaces the adopted project's artifactMapping with an empty object, which would silently remove accountability configuration.
+evidenceRefs:
+  - path: src/commands/adopt.ts
+    rawSha256: 61c44092455bb0a98719d47b3fb12716833080db9751214c62c085f9cd38265b
+    semanticDigest: 358fdd53060b0bcf080e2251b2b356d763b3b5b662d89049fbc1db675644304d
+grantor:
+  id: user-authority
+  role: user
+  trustLevel: local-claim
+issuedAt: 2026-08-17T10:33:24Z
+expiresAt: 2026-08-18T10:33:24Z
+status: approved
