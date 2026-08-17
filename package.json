@@ -2,6 +2,7 @@
   "name": "@xgh/engineering-governance",
   "version": "2.1.0",
   "private": false,
+  "license": "Apache-2.0",
   "type": "module",
   "engines": {
     "node": ">=22 <23"
@@ -22,6 +23,7 @@
     "MIGRATING_TO_2.0.md",
     "RISK_CLASSIFICATION.md",
     "LICENSE",
+    "NOTICE",
     "SECURITY.md",
     "CHANGELOG.md",
     "VERSION"

@@ -11,7 +11,7 @@ Version 2 is a breaking lifecycle and artifact-format release. Existing 1.x
 projects remain pinned until an explicit reviewed upgrade; see
 [`MIGRATING_TO_2.0.md`](MIGRATING_TO_2.0.md).
 
-This project is available under the [MIT License](LICENSE). Security reports
+This project is available under the [Apache-2.0 License](LICENSE). Security reports
 should follow [SECURITY.md](SECURITY.md), not a public issue.
 
 Release candidate metadata and the reproducible runner are in

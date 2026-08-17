@@ -1,7 +1,7 @@
 releaseId: sop-2.1.0-release-v1
 packageVersion: 2.1.0
 status: prepared-private
-license: MIT
+license: Apache-2.0
 remote: origin
 defaultBranch: main
 scope:
