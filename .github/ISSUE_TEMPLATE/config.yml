@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support and usage questions
+    url: https://github.com/OrxHsu/EngineeringGovernance/discussions
+    about: Use Discussions for setup help and usage questions.
+  - name: Security reports
+    url: https://github.com/OrxHsu/EngineeringGovernance/security
+    about: Report suspected vulnerabilities through GitHub security reporting.
