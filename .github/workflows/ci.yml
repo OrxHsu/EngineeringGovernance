@@ -21,4 +21,12 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm exec vitest run --shard=1/4
+      - run: pnpm exec vitest run --shard=2/4
+      - run: pnpm exec vitest run --shard=3/4
+      - run: pnpm exec vitest run --shard=4/4
+      - run: pnpm build
+      - run: pnpm check:placeholders
+      - run: pnpm check:licenses
