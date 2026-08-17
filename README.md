@@ -1,7 +1,7 @@
 # Engineering Governance
 
 [![CI](https://github.com/OrxHsu/EngineeringGovernance/actions/workflows/ci.yml/badge.svg)](https://github.com/OrxHsu/EngineeringGovernance/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/OrxHsu/EngineeringGovernance?include_prereleases)](https://github.com/OrxHsu/EngineeringGovernance/releases)
+[![Release](https://img.shields.io/github/v/release/OrxHsu/EngineeringGovernance)](https://github.com/OrxHsu/EngineeringGovernance/releases)
 [![License](https://img.shields.io/github/license/OrxHsu/EngineeringGovernance)](LICENSE)
 
 Engineering Governance is the canonical, versioned development workflow for

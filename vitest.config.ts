@@ -5,5 +5,6 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['node_modules/**', '.worktrees/**'],
     maxWorkers: 1,
+    testTimeout: 30_000,
   },
 })

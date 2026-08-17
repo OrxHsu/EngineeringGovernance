@@ -12,7 +12,11 @@ import {
 } from '../../src/accountability/enforce.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { validateDocument } from '../../src/policy/load.js'
-import { ACCOUNTABILITY_FIXTURE_ROOT, rebindAccountabilityFixture } from '../helpers/accountability-fixture.js'
+import {
+  ACCOUNTABILITY_FIXTURE_ROOT,
+  rebindAccountabilityFixture,
+  rebindRuntimeCommands,
+} from '../helpers/accountability-fixture.js'
 
 const projectRoot = process.cwd()
 const fixtureRoot = ACCOUNTABILITY_FIXTURE_ROOT
@@ -84,7 +88,7 @@ function fixture(): { root: string; taskRoot: string } {
   const taskRoot = join(root, '.delivery', 'tasks', taskId)
   mkdirSync(join(taskRoot, 'authorizations'), { recursive: true })
   const contractSource = parse(readFileSync(join(fixtureRoot, 'tasks', taskId, 'contract.yaml'), 'utf8')) as Record<string, any>
-  const rewritten = rewriteRoot(contractSource, projectRoot, root) as Record<string, any>
+  const rewritten = rebindRuntimeCommands(rewriteRoot(contractSource, projectRoot, root)) as Record<string, any>
   const { contractDigest: _discarded, ...unsignedContract } = rewritten
   const contract = { ...unsignedContract, contractDigest: canonicalDigest(unsignedContract) }
   const contractText = stringify(contract, { lineWidth: 0 })
