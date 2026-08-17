@@ -1,0 +1,20 @@
+{
+  "releaseId": "sop-2.1.0-release-v1",
+  "packageVersion": "2.1.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/OrxHsu/EngineeringGovernance",
+  "visibility": "public",
+  "defaultBranch": "main",
+  "publishedCommit": "f5baf5a70a8cb7c65d5fac3031618fc10b829da7",
+  "tag": "sop-2.1.0-release-v1",
+  "tagObject": "587dbafd82be373240e84b3adeea9aaf34f029cc",
+  "releaseUrl": "https://github.com/OrxHsu/EngineeringGovernance/releases/tag/sop-2.1.0-release-v1",
+  "publishedAt": "2026-08-17T13:22:58Z",
+  "asset": {
+    "filename": "engineering-governance-2.1.0.tgz",
+    "sha256": "0c569aff2b0838bd44274d5ce0ccda0d3f1fc639550e45245c60aa907e901d5d",
+    "url": "https://github.com/OrxHsu/EngineeringGovernance/releases/download/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz"
+  },
+  "npmPublication": "not-published",
+  "notes": "Public GitHub source and release asset are published. npm remains a separate, intentionally deferred distribution channel."
+}

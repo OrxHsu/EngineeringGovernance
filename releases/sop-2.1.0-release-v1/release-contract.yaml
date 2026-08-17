@@ -1,6 +1,6 @@
 releaseId: sop-2.1.0-release-v1
 packageVersion: 2.1.0
-status: prepared-private
+status: published
 license: Apache-2.0
 remote: origin
 defaultBranch: main
@@ -12,8 +12,6 @@ scope:
   - reproducible Node 22 runner
   - security policy
 nonGoals:
-  - public repository visibility
-  - Git tag publication
   - npm publication
   - deployment or external consumer migration
 acceptance:
@@ -22,5 +20,6 @@ acceptance:
   - clean Node 22 pnpm check passes
   - project and pinned runner checks return valid true
   - global Codex adapter check returns valid true
-  - repository is pushed to private origin/main
-nextAction: Owner final confirmation before public visibility and publication.
+  - repository is public at the recorded release URL
+  - tag and GitHub Release are published
+nextAction: npm publication remains deferred and requires a separate decision.

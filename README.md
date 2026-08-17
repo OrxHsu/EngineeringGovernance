@@ -1,12 +1,16 @@
 # Engineering Governance
 
+[![CI](https://github.com/OrxHsu/EngineeringGovernance/actions/workflows/ci.yml/badge.svg)](https://github.com/OrxHsu/EngineeringGovernance/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/OrxHsu/EngineeringGovernance?include_prereleases)](https://github.com/OrxHsu/EngineeringGovernance/releases)
+[![License](https://img.shields.io/github/license/OrxHsu/EngineeringGovernance)](LICENSE)
+
 Engineering Governance is the canonical, versioned development workflow for
 user-owned projects. It defines risk classification, task states, evidence
 integrity, independent review, exception handling, and safe project adoption.
 
-The repository is prepared for `sop-2.1.0-release-v1`, the first formal `2.1.0`
-release line. The private remote is updated for final owner review; public
-visibility and publication remain separate explicit actions.
+`sop-2.1.0-release-v1` is the first formal `2.1.0` release. The repository is
+public and the release is published on GitHub; npm publication remains a
+separate channel and is intentionally not provided by this release.
 Version 2 is a breaking lifecycle and artifact-format release. Existing 1.x
 projects remain pinned until an explicit reviewed upgrade; see
 [`MIGRATING_TO_2.0.md`](MIGRATING_TO_2.0.md).
@@ -14,10 +18,43 @@ projects remain pinned until an explicit reviewed upgrade; see
 This project is available under the [Apache-2.0 License](LICENSE). Security reports
 should follow [SECURITY.md](SECURITY.md), not a public issue.
 
-Release candidate metadata and the reproducible runner are in
+Release metadata and the reproducible runner are in
 [`releases/sop-2.1.0-release-v1`](releases/sop-2.1.0-release-v1). The recorded
-status is `prepared-private`; changing repository visibility, publishing the
-Git tag, and publishing a package require the owner's final confirmation.
+publication is documented in [`publication-record.json`](releases/sop-2.1.0-release-v1/publication-record.json).
+
+## Quick Start
+
+Clone the public repository and run its clean-machine checks:
+
+```sh
+git clone https://github.com/OrxHsu/EngineeringGovernance.git
+cd EngineeringGovernance
+pnpm install --frozen-lockfile
+pnpm check
+```
+
+To install the Codex adapter and `delivery-sop` Skill through the reviewable
+local plan flow:
+
+```sh
+pnpm sop -- global install --tool codex
+pnpm sop -- global install --tool codex --apply-plan <the-same-plan-digest>
+```
+
+The release archive is available from [GitHub Releases](https://github.com/OrxHsu/EngineeringGovernance/releases/tag/sop-2.1.0-release-v1).
+Its SHA-256 is recorded in `archive-verification.json`.
+
+## Project Map
+
+- `skills/delivery-sop/`: Codex operational adapter.
+- `src/`, `schemas/`, `templates/`: CLI enforcement and machine-readable contracts.
+- `tests/`: unit, integration, and adversarial verification.
+- `DEVELOPMENT_SOP.md`: canonical workflow rules.
+- `SECURITY.md`: vulnerability reporting and scope boundaries.
+
+The CLI governs local reviewable project files. It does not authenticate people
+or agents and does not authorize deployment, production, billing, or external
+service changes.
 
 ## Runtime
 
