@@ -7,9 +7,9 @@ release-candidate, and unreleased snapshots are not supported security targets.
 
 ## Reporting A Vulnerability
 
-Do not open a public issue for a suspected vulnerability. Use GitHub private
-vulnerability reporting or a private security advisory for
-`OrxHsu/EngineeringGovernance`. Include the affected version,
+Do not open a public issue for a suspected vulnerability. Once this repository
+is public, use GitHub private vulnerability reporting or a private security
+advisory for `OrxHsu/EngineeringGovernance`. Include the affected version,
 reproduction steps, impact, and any suggested mitigation. Do not include
 credentials, private keys, or user data in a report.
 
