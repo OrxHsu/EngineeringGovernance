@@ -20,24 +20,24 @@
         "tree": "782a149bb0967171adeb05667186fadbe5a80bbd"
       }
     ],
-    "candidateCommit": "a45f7e96103e13f51311461a074f8dbdbdcd68f2",
-    "candidateTree": "d43a767c79164bfe701984dd06a05313a8773dcb"
+    "candidateCommit": "3fd23148d9d6401548f295ef216552fb03bf845a",
+    "candidateTree": "178eeab0f0473d9297f171cd0a49806669a0ca52"
   },
   "archive": {
     "filename": "engineering-governance-2.1.0.tgz",
     "path": "releases/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz",
-    "sha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
+    "sha256": "0c569aff2b0838bd44274d5ce0ccda0d3f1fc639550e45245c60aa907e901d5d",
     "version": "2.1.0",
     "verificationReceipt": {
       "path": "releases/sop-2.1.0-release-v1/archive-verification.json",
-      "rawSha256": "03d1e2ab53b8a61116d412b5fddf3a9004eabd698205a423baf33b27ec65e3cd",
-      "digest": "f15380488f35ec07737fbceae076b43d63554dc8446700044c5fc7ea12fb1b7b",
+      "rawSha256": "4fc23a15145cc901cd20f340c8cb8ecf3aad29a063dc4c74c2c94d8c5e9f0ddf",
+      "digest": "78875d1c65c3efab69fab83673efe4ad3e196f4d9bc54a4e84132da67271c9cc",
       "archivePath": "releases/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz",
-      "sha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
-      "firstBuildSha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
-      "secondBuildSha256": "b46e08654983d4deb78acbc783a1b52860202b009dbdb792f828804062762bac",
-      "candidateCommit": "a45f7e96103e13f51311461a074f8dbdbdcd68f2",
-      "candidateTree": "d43a767c79164bfe701984dd06a05313a8773dcb",
+      "sha256": "0c569aff2b0838bd44274d5ce0ccda0d3f1fc639550e45245c60aa907e901d5d",
+      "firstBuildSha256": "0c569aff2b0838bd44274d5ce0ccda0d3f1fc639550e45245c60aa907e901d5d",
+      "secondBuildSha256": "0c569aff2b0838bd44274d5ce0ccda0d3f1fc639550e45245c60aa907e901d5d",
+      "candidateCommit": "3fd23148d9d6401548f295ef216552fb03bf845a",
+      "candidateTree": "178eeab0f0473d9297f171cd0a49806669a0ca52",
       "version": "2.1.0",
       "identical": true
     }
