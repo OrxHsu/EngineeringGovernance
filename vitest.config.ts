@@ -6,5 +6,6 @@ export default defineConfig({
     exclude: ['node_modules/**', '.worktrees/**'],
     maxWorkers: process.env.CI === 'true' ? 4 : 1,
     testTimeout: 30_000,
+    hookTimeout: 60_000,
   },
 })
