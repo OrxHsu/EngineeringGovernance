@@ -33,7 +33,11 @@ jobs:
       - run: pnpm exec vitest run --shard=1/4
       - run: pnpm exec vitest run --shard=2/4
       - run: pnpm exec vitest run --shard=3/4
-      - run: pnpm exec vitest run --shard=4/4
+      - run: pnpm exec vitest run --shard=4/4 --exclude tests/unit/task-graph-v2.test.ts --exclude tests/integration/cli-v2-hardening.test.ts
+      - run: pnpm exec vitest run tests/unit/task-graph-v2.test.ts --testNamePattern='rejects'
+      - run: pnpm exec vitest run tests/unit/task-graph-v2.test.ts --testNamePattern='(accepts|reports|keeps|surfaces)'
+      - run: pnpm exec vitest run tests/integration/cli-v2-hardening.test.ts --testNamePattern='(returns|starts|verifies|executes|uses)'
+      - run: pnpm exec vitest run tests/integration/cli-v2-hardening.test.ts --testNamePattern='(rejects|inspects|keeps|applies)'
       - run: pnpm build
       - run: pnpm check:placeholders
       - run: pnpm check:licenses
