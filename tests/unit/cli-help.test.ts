@@ -13,11 +13,21 @@ describe('sop CLI', () => {
       'check',
       'upgrade',
       'task',
+      'contract',
+      'accountability',
       'legacy',
       'global',
     ])
     const task = buildProgram().commands.find((command) => command.name() === 'task')!
-    expect(task.commands.map((command) => command.name())).toContain('transition')
+    expect(task.commands.map((command) => command.name())).toEqual(expect.arrayContaining([
+      'preflight', 'transition', 'contract-review-request', 'review-summary', 'verify-clean',
+    ]))
+    const contract = buildProgram().commands.find((command) => command.name() === 'contract')!
+    expect(contract.commands.map((command) => command.name())).toContain('self-check')
+    const accountability = buildProgram().commands.find((command) => command.name() === 'accountability')!
+    expect(accountability.commands.map((command) => command.name())).toEqual(expect.arrayContaining([
+      'status', 'gates', 'recovery-plan', 'incident-record',
+    ]))
   })
 })
 

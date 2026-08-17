@@ -64,13 +64,13 @@ describe('project command workflow', () => {
     expect(plan.writes.every((write) => write.after === undefined)).toBe(true)
     expect(plan.writes.map((write) => write.path)).toContain(join(
       project,
-      '.delivery/runtime/engineering-governance-2.1.0-beta.0.tgz',
+      '.delivery/runtime/engineering-governance-2.1.0-re.tgz',
     ))
   }, 15_000)
 
   it('rejects a correctly named runner archive with unverified internals', () => {
     const project = mkdtempSync(join(tmpdir(), 'governance-cli-invalid-runner-'))
-    const bundle = join(project, 'engineering-governance-2.1.0-beta.0.tgz')
+    const bundle = join(project, 'engineering-governance-2.1.0-re.tgz')
     writeFileSync(bundle, 'not a governance runner\n')
     expect(() => planAdoption(project, { runnerBundlePath: bundle })).toThrow()
   })

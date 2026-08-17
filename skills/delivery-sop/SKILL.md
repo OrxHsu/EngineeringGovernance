@@ -26,21 +26,28 @@ restate or invent global policy in this Skill.
 
 ## Start or resume work
 
-1. For a new mutating task, prepare a schema-v2 YAML input and run
-   `~/.codex/bin/sop task start --project <absolute-project-path> --input <absolute-input-path>`.
-2. Inspect the returned start plan, then apply only its exact unchanged digest.
+1. For a new beta1 mutating task, first run the read-only
+   `~/.codex/bin/sop task preflight --project <absolute-project-path> --input <absolute-input-path>`.
+   The preflight plan binds input bytes, semantic design bindings, authority
+   identities, repository baselines, risk, authorization, and actor standing.
+   Do not start when it is invalid.
+2. Prepare a schema-v2 YAML input and run
+   `~/.codex/bin/sop task start --project <absolute-project-path> --input <absolute-input-path> --preflight-plan <preflight-digest>`.
+   Beta1 start must consume the exact unchanged preflight plan digest.
+3. Inspect the returned start plan, then apply only its exact unchanged digest.
    The runner creates the contract and ledger at their canonical paths. Report
    the CLI-derived risk, state, required artifacts, and authorization gates. Do
    not infer a lower risk from task size.
-3. Before implementation, use `~/.codex/bin/sop task transition --input
+4. Before implementation, use `~/.codex/bin/sop task transition --input
    <absolute-input-path>` to inspect the owner transition to `IN_PROGRESS`, then
    apply only its exact unchanged digest. Use the same dry-run/apply operation
    for owner transitions to `CANDIDATE`, `BLOCKED`, `CANCELLED`, or
    `SUPERSEDED`; the `CANDIDATE` input binds its canonical candidate and
    verification artifacts.
-4. For resumed work, read the existing task artifacts and confirm their policy,
-   contract, owner, state, and implementation identities before continuing.
-5. Keep the single recorded implementation owner through repair. A reviewer
+5. For resumed work, read the existing task artifacts and confirm their policy,
+   contract, owner set, state, and implementation identities before continuing.
+6. Keep the frozen implementation-owner set through repair. Each mutation and
+   transition must identify exactly one acting owner from that set. A reviewer
    inspects the candidate but does not edit it.
 
 ## Verify, review, and close
@@ -66,11 +73,31 @@ restate or invent global policy in this Skill.
    and ledger state. Apply a returned transition only with its exact reviewed
    plan digest.
 6. If repair is required, return one consolidated finding set to the recorded
-   implementation owner and preserve the same contract.
+   implementation-owner set and preserve the same contract.
 7. Evaluate the canonical closure artifact with
    `~/.codex/bin/sop task close --input <absolute-closure-path>`. Closure binds
    the accepted ledger event, candidate, verification, review, status artifacts,
    and next action. Apply its transition only with the exact reviewed plan digest.
+
+At every beta1 boundary, query `~/.codex/bin/sop accountability status --project
+<absolute-project-path> --actor <id-or-alias>` when actor eligibility matters.
+Standing is recomputed from the policy-anchored append-only registry and event
+chain; caller-supplied role, standing, alias, reward, or stale plan values are
+not authority. Sanctions remain active until the frozen, user-authorized,
+risk-matched remediation and reinstatement requirements are evidenced.
+
+When the governance tool or review lifecycle is itself blocked, do not fabricate
+a task transition. Prepare an exact user-authorized incident input and use
+`~/.codex/bin/sop accountability incident-record --project <absolute-project-path>
+--input <absolute-input-path>` followed by its unchanged `--apply-plan` digest.
+This path records responsibility and deduction in the accountability event chain
+without treating the blocked task or review as accepted.
+
+For a pinned-runner bootstrap remediation, keep the standard lifecycle
+authorization in candidate authorization arrays and validate any richer
+remediation sidecar independently. Require the exact CANDIDATE ledger event to
+consume both mutually bound artifacts once; never grant the exception from a
+task ID or action string alone.
 
 Stop on a blocked authorization instead of performing the restricted action.
 Do not mutate production or external systems through this Skill.

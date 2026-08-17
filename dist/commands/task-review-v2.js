@@ -6,10 +6,13 @@ import { governanceIdentity } from './adopt.js';
 import { verifyHardenedCandidate, } from './task-verify-v2.js';
 import { canonicalDigest } from '../model/digest.js';
 import { normalizeActorId } from '../model/actor.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { planTaskTransition, readTaskLedger } from '../state/ledger.js';
 import { validateAcceptanceAuthority } from '../state/transitions.js';
+import { actorEligibilityErrors, isAccountabilityContract } from '../accountability/enforce.js';
+import { accountabilityFindingErrors } from '../accountability/policy.js';
 function sha256(input) {
     return createHash('sha256').update(input).digest('hex');
 }
@@ -192,17 +195,36 @@ export function verifyHardenedReview(reviewPathInput, now = new Date(), context 
         errors.push('REVIEWER_ID_INVALID');
     }
     if (reviewerId !== undefined) {
-        errors.push(...validateAcceptanceAuthority(contract.risk, contract.implementationOwner, reviewerId).errors);
+        errors.push(...validateAcceptanceAuthority(contract.risk, contract, reviewerId).errors);
+        if (isAccountabilityContract(contract, review.taskId)) {
+            errors.push(...actorEligibilityErrors({
+                projectRoot,
+                taskId: review.taskId,
+                actorId: reviewerId,
+                role: 'implementation-reviewer',
+                risk: contract.risk,
+            }));
+        }
     }
     const findingIds = review.findings.map((finding) => finding.id);
     if (new Set(findingIds).size !== findingIds.length)
         errors.push('REVIEW_FINDING_IDS_DUPLICATED');
+    if (isAccountabilityContract(contract, review.taskId)) {
+        for (const finding of review.findings) {
+            errors.push(...accountabilityFindingErrors({
+                finding,
+                taskId: review.taskId,
+                implementationOwners: implementationOwnersOf(contract),
+                ...(typeof contract.contractAuthor === 'string' ? { contractAuthor: contract.contractAuthor } : {}),
+            }).map((error) => `REVIEW_${finding.id}_${error}`));
+        }
+    }
     const ledger = readTaskLedger({
         projectRoot,
         taskId: review.taskId,
         contractDigest: contract.contractDigest,
         contractSha256: review.contract.sha256,
-        implementationOwner: contract.implementationOwner,
+        implementationOwners: implementationOwnersOf(contract),
     });
     if (!ledger.valid)
         errors.push(...ledger.errors.map((error) => `TASK_LEDGER_INVALID:${error}`));

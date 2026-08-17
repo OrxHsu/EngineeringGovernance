@@ -71,7 +71,8 @@
         "negativeCases": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "evidenceKind": { "$ref": "#/$defs/evidenceKind" },
         "command": { "$ref": "#/$defs/command" },
-        "observerPolicy": { "$ref": "#/$defs/observerPolicy" }
+        "observerPolicy": { "$ref": "#/$defs/observerPolicy" },
+        "bindingRefs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
       }
     },
     "authorizationRequirement": {
@@ -111,7 +112,7 @@
     "hardened": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "taskId", "sopVersion", "policyDigest", "contractDigest", "risk", "riskSignals", "implementationOwner", "objective", "scope", "nonGoals", "authorityInputs", "repositories", "acceptance", "evidenceFreshnessMs", "authorizationRequirements", "extensions", "openChoices"],
+      "required": ["schemaVersion", "taskId", "sopVersion", "policyDigest", "contractDigest", "risk", "riskSignals", "objective", "scope", "nonGoals", "authorityInputs", "repositories", "acceptance", "evidenceFreshnessMs", "authorizationRequirements", "extensions", "openChoices"],
       "properties": {
         "schemaVersion": { "const": 2 },
         "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
@@ -148,6 +149,13 @@
           }
         },
         "implementationOwner": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$" },
+        "implementationOwners": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$" } },
+        "contractAuthor": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$" },
+        "contractPreflight": { "type": "object" },
+        "designBindings": { "type": "object" },
+        "predecessors": { "type": "array" },
+        "selfReview": { "$ref": "https://engineering-governance.local/schemas/self-review.schema.json" },
+        "knownIssues": { "$ref": "https://engineering-governance.local/schemas/known-issues.schema.json" },
         "objective": { "type": "string", "minLength": 1 },
         "scope": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "nonGoals": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
@@ -205,7 +213,11 @@
           }
         },
         "openChoices": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
-      }
+      },
+      "oneOf": [
+        { "required": ["implementationOwner"], "properties": { "implementationOwner": true, "implementationOwners": false } },
+        { "required": ["implementationOwners"], "properties": { "implementationOwner": false, "implementationOwners": true } }
+      ]
     }
   },
   "oneOf": [

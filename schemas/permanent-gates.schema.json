@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/permanent-gates.schema.json",
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "priorTriggerDigest", "triggerDigest", "triggeredAt", "taskId", "blocked"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 1 },
+        "priorTriggerDigest": { "oneOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "triggerDigest": { "$ref": "#/$defs/digest" },
+        "triggeredAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+        "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "blocked": { "type": "boolean" }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateId", "defectClass", "gateType", "rule", "installedAt", "triggeredBy", "triggerHistory"],
+      "properties": {
+        "gateId": { "type": "string", "pattern": "^pg-[a-f0-9]{16}$" },
+        "defectClass": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "gateType": { "enum": ["preflight-check", "post-implementation", "review-required"] },
+        "rule": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "installedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+        "triggeredBy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["taskId", "findingId", "remediationEventDigest"],
+          "properties": {
+            "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+            "findingId": { "type": "string", "minLength": 1 },
+            "remediationEventDigest": { "$ref": "#/$defs/digest" }
+          }
+        },
+        "triggerHistory": { "type": "array", "items": { "$ref": "#/$defs/trigger" } }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "actorId", "gates", "documentDigest"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-permanent-gates-v1" },
+    "actorId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "gates": { "type": "array", "items": { "$ref": "#/$defs/gate" } },
+    "documentDigest": { "$ref": "#/$defs/digest" }
+  }
+}

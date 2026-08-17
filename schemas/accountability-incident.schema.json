@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/accountability-incident.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "incidentId", "projectRoot", "subjectActorId", "reportedBy", "failureContext", "finding", "evidenceRefs", "grantor", "issuedAt", "expiresAt", "status"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-accountability-incident-v1" },
+    "incidentId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "projectRoot": { "type": "string", "pattern": "^/" },
+    "subjectActorId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "reportedBy": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "failureContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blockedComponent", "failureCode", "observedAt"],
+      "properties": {
+        "blockedComponent": { "enum": ["governance-tool", "contract-review", "implementation-review", "task-lifecycle", "other"] },
+        "failureCode": { "type": "string", "minLength": 1 },
+        "conversationId": { "type": "string", "minLength": 1 },
+        "observedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["findingId", "severity", "classification", "defectClass", "responsibleRole", "culpability", "observation"],
+      "properties": {
+        "findingId": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["BLOCKER", "HIGH", "MEDIUM", "LOW"] },
+        "classification": { "enum": ["contract_violation", "newly_discovered_defect", "new_requirement"] },
+        "defectClass": { "type": "string", "minLength": 1 },
+        "responsibleRole": { "enum": ["contract_author", "implementation_owner", "contract_reviewer", "implementation_reviewer", "tool", "none"] },
+        "culpability": { "enum": ["culpable", "non_culpable_new_requirement", "non_culpable_tool_defect", "missed_existing_blocker"] },
+        "observation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "rawSha256", "semanticDigest"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "grantor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "trustLevel"],
+      "properties": { "id": { "const": "user-authority" }, "role": { "const": "user" }, "trustLevel": { "const": "local-claim" } }
+    },
+    "issuedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+    "expiresAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+    "status": { "const": "approved" }
+  }
+}

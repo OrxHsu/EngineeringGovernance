@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parse } from 'yaml'
 
 import { validateDocument } from '../../src/policy/load.js'
 
@@ -34,5 +37,10 @@ describe('contract review schema', () => {
     const result = validateDocument('contract-review', invalid)
     expect(result.valid).toBe(false)
     expect(result.errors.join('\n')).toContain('additionalProperties')
+  })
+
+  it('accepts the assisted-review template shape', () => {
+    const template = parse(readFileSync(join(process.cwd(), 'templates/task-contract-review-assisted.yaml'), 'utf8'))
+    expect(validateDocument('contract-review', template)).toEqual({ valid: true, errors: [] })
   })
 })

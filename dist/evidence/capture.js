@@ -4,6 +4,7 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFile
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { governanceIdentity } from '../commands/adopt.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 import { canonicalDigest } from '../model/digest.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { canonicalTaskPath, readTaskLedger } from '../state/ledger.js';
@@ -163,7 +164,7 @@ function readHardenedContract(input) {
         taskId: input.taskId,
         contractDigest,
         contractSha256: sha256(raw),
-        implementationOwner: contract.implementationOwner,
+        implementationOwners: implementationOwnersOf(contract),
     });
     if (!ledger.valid)
         throw new Error(`TASK_LEDGER_INVALID:${ledger.errors.join(',')}`);

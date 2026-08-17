@@ -3,9 +3,13 @@ import { existsSync, lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { normalizeActorId } from '../model/actor.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 import { canonicalDigest } from '../model/digest.js';
 import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
+import { actorEligibilityErrors, isAccountabilityContract } from '../accountability/enforce.js';
+import { accountabilityFindingErrors } from '../accountability/policy.js';
+import { SELF_REVIEW_DIMENSIONS } from '../review/mutual-review.js';
 const checklistKeys = [
     'scope_non_goals',
     'authority_dependencies',
@@ -43,6 +47,49 @@ function findingsOrdered(items) {
         const previousRank = severityRank[previous.severity];
         return rank > previousRank || (rank === previousRank && previous.id < item.id);
     });
+}
+function exactSorted(values, expected) {
+    return JSON.stringify(values) === JSON.stringify([...expected].sort());
+}
+function assistedReviewErrors(projectRoot, selfReview, assistedReview, decision) {
+    if (assistedReview === undefined)
+        return ['CONTRACT_REVIEW_ASSISTED_REVIEW_REQUIRED'];
+    const errors = [];
+    for (const [key, item] of Object.entries(assistedReview.checklist)) {
+        errors.push(...evidenceErrors(projectRoot, item.evidenceRefs, `ASSISTED_${key}`));
+        if (decision === 'ACCEPTED' && item.status === 'FAIL') {
+            errors.push(`CONTRACT_REVIEW_ASSISTED_FAILURE_UNRESOLVED:${key}`);
+        }
+    }
+    const comparison = assistedReview.selfReviewComparison;
+    const names = comparison.dimensions.map((dimension) => dimension.name);
+    if (JSON.stringify(names) !== JSON.stringify(SELF_REVIEW_DIMENSIONS)) {
+        errors.push('CONTRACT_REVIEW_COMPARISON_DIMENSIONS_INVALID');
+        return errors;
+    }
+    const selfStatuses = new Map(selfReview.dimensions.map((dimension) => [dimension.name, dimension.status]));
+    for (const dimension of comparison.dimensions) {
+        if (selfStatuses.get(dimension.name) !== dimension.selfStatus) {
+            errors.push(`CONTRACT_REVIEW_COMPARISON_SELF_STATUS_MISMATCH:${dimension.name}`);
+        }
+    }
+    const agreementCount = comparison.dimensions.filter((dimension) => (dimension.selfStatus === 'PASS'
+        ? dimension.reviewerStatus === 'PASS'
+        : dimension.reviewerStatus !== 'PASS')).length;
+    const agreementRate = Math.round((agreementCount / SELF_REVIEW_DIMENSIONS.length) * 10_000) / 100;
+    if (comparison.agreementRate !== agreementRate)
+        errors.push('CONTRACT_REVIEW_COMPARISON_RATE_INVALID');
+    const missed = comparison.dimensions
+        .filter((dimension) => dimension.selfStatus === 'PASS' && dimension.reviewerStatus !== 'PASS')
+        .map((dimension) => dimension.name);
+    const overcautious = comparison.dimensions
+        .filter((dimension) => dimension.selfStatus === 'CONCERN' && dimension.reviewerStatus === 'PASS')
+        .map((dimension) => dimension.name);
+    if (!exactSorted(comparison.codexMissed, missed))
+        errors.push('CONTRACT_REVIEW_COMPARISON_MISSED_INVALID');
+    if (!exactSorted(comparison.codexOvercautious, overcautious))
+        errors.push('CONTRACT_REVIEW_COMPARISON_OVERCAUTIOUS_INVALID');
+    return errors;
 }
 function safeRegularFile(path) {
     try {
@@ -186,12 +233,28 @@ export function verifyContractReadinessArtifact(projectRootInput, taskId, review
     }
     try {
         if (reviewArtifact.reviewer === undefined || typeof reviewArtifact.reviewer !== 'object' || reviewArtifact.reviewer === null || Array.isArray(reviewArtifact.reviewer)
-            || normalizeActorId(reviewArtifact.reviewer.id) === normalizeActorId(contract.implementationOwner)) {
+            || implementationOwnersOf(contract).includes(normalizeActorId(reviewArtifact.reviewer.id))
+            || (typeof contract.contractAuthor === 'string'
+                && normalizeActorId(reviewArtifact.reviewer.id) === normalizeActorId(contract.contractAuthor))) {
             errors.push('CONTRACT_REVIEW_SELF_REVIEW_FORBIDDEN');
         }
     }
     catch {
         errors.push('CONTRACT_REVIEW_REVIEWER_INVALID');
+    }
+    if (isAccountabilityContract(contract, taskId) && reviewArtifact.reviewer?.id !== undefined) {
+        try {
+            errors.push(...actorEligibilityErrors({
+                projectRoot,
+                taskId,
+                actorId: normalizeActorId(reviewArtifact.reviewer.id),
+                role: 'contract-reviewer',
+                risk: contract.risk,
+            }));
+        }
+        catch {
+            errors.push('CONTRACT_REVIEW_REVIEWER_INVALID');
+        }
     }
     for (const key of checklistKeys) {
         const item = reviewArtifact.checklist?.[key];
@@ -204,6 +267,12 @@ export function verifyContractReadinessArtifact(projectRootInput, taskId, review
             if (item.applicabilityReason !== undefined)
                 errors.push(`CONTRACT_REVIEW_CHECKLIST_REASON_UNEXPECTED:${key}`);
         }
+    }
+    if (contract.selfReview !== undefined) {
+        errors.push(...assistedReviewErrors(projectRoot, contract.selfReview, reviewArtifact.assistedReview, reviewArtifact.decision));
+    }
+    else if (reviewArtifact.assistedReview !== undefined) {
+        errors.push('CONTRACT_REVIEW_ASSISTED_REVIEW_UNEXPECTED');
     }
     const applicability = r3Applicability(contract);
     for (const key of r3Keys) {
@@ -236,6 +305,18 @@ export function verifyContractReadinessArtifact(projectRootInput, taskId, review
     }
     for (const finding of reviewArtifact.findings)
         errors.push(...evidenceErrors(projectRoot, finding.evidenceRefs, `FINDING_${finding.id}`));
+    if (isAccountabilityContract(contract, taskId)) {
+        for (const finding of reviewArtifact.findings) {
+            errors.push(...accountabilityFindingErrors({
+                finding: finding,
+                taskId,
+                ...('implementationOwners' in contract
+                    ? { implementationOwners: implementationOwnersOf(contract) }
+                    : { implementationOwner: implementationOwnersOf(contract)[0] }),
+                ...(typeof contract.contractAuthor === 'string' ? { contractAuthor: contract.contractAuthor } : {}),
+            }).map((error) => `CONTRACT_REVIEW_${finding.id}_${error}`));
+        }
+    }
     if (reviewArtifact.decision === 'ACCEPTED') {
         if (reviewArtifact.findings.length !== 0 || reviewArtifact.nextStage !== 'implementation' || reviewArtifact.userActionRequired) {
             errors.push('CONTRACT_REVIEW_ACCEPTANCE_INVARIANT_INVALID');

@@ -27,6 +27,24 @@ import {
 } from '../commands/task-transition-v2.js'
 import { verifyHardenedReview } from '../commands/task-review-v2.js'
 import { verifyContractReview } from '../commands/task-contract-review-v2.js'
+import { runTaskPreflight } from '../commands/task-preflight.js'
+import { accountabilityStatus } from '../commands/accountability-status.js'
+import { accountabilityGates } from '../commands/accountability-gates.js'
+import { accountabilityRecoveryPlan } from '../commands/accountability-recovery-plan.js'
+import {
+  applyAccountabilityBootstrap,
+  planAccountabilityBootstrap,
+  summarizeAccountabilityBootstrapPlan,
+} from '../commands/accountability-bootstrap.js'
+import {
+  applyAccountabilityIncident,
+  planAccountabilityIncident,
+  summarizeAccountabilityIncidentPlan,
+} from '../commands/accountability-incident.js'
+import { verifyCleanTask } from '../commands/task-verify-clean.js'
+import { contractSelfCheck } from '../commands/contract-self-check.js'
+import { buildContractReviewRequest } from '../review/contract-review-assist.js'
+import { formatReviewSummary, generateReviewSummary } from '../commands/task-review-summary.js'
 import { verifyHardenedClose } from '../commands/task-close-v2.js'
 import {
   captureCommandExecution,
@@ -120,18 +138,37 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
   adoptionCommand('upgrade')
 
   const task = program.command('task')
+  task.command('preflight')
+    .requiredOption('--project <path>')
+    .requiredOption('--input <path>')
+    .action((options: { project: string; input: string }) => {
+      writeJson(output, runTaskPreflight({ projectRoot: options.project, inputPath: options.input }))
+    })
   task.command('start')
     .requiredOption('--input <path>')
     .requiredOption('--project <path>')
+    .option('--preflight-plan <digest>')
     .option('--apply-plan <digest>')
-    .action((options: { input: string; project: string; applyPlan?: string }) => {
+    .action((options: { input: string; project: string; preflightPlan?: string; applyPlan?: string }) => {
       const context = loadAdoptedProjectContext(options.project)
       const input = loadCliInput<TaskStartInput>(options.input)
       requireActiveV2(input.value)
+      const beta1Input = input.value.contractAuthor !== undefined
+        || input.value.designBindings !== undefined
+        || input.value.predecessors !== undefined
+      const preflight = beta1Input
+        ? runTaskPreflight({ projectRoot: context.projectRoot, inputPath: input.unresolvedPath })
+        : undefined
+      if (beta1Input && (!preflight?.valid || preflight.plan === undefined || options.preflightPlan !== preflight.plan.planDigest)) {
+        throw new Error('TASK_START_PREFLIGHT_PLAN_MISMATCH')
+      }
       const plan = planTaskStart(
         context.projectRoot,
         input.value,
-        { projectExtensions: context.projectExtensions },
+        {
+          projectExtensions: context.projectExtensions,
+          ...(preflight?.plan === undefined ? {} : { contractPreflight: preflight.plan }),
+        },
       )
       writeJson(output, options.applyPlan === undefined
         ? plan
@@ -197,6 +234,21 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
       const input = loadCliInput<unknown>(options.input)
       writeJson(output, verifyContractReview(input.unresolvedPath))
     })
+  task.command('contract-review-request')
+    .requiredOption('--project <path>')
+    .requiredOption('--task-id <id>')
+    .action((options: { project: string; taskId: string }) => {
+      writeJson(output, buildContractReviewRequest(options.project, options.taskId))
+    })
+  task.command('review-summary')
+    .requiredOption('--project <path>')
+    .requiredOption('--task-id <id>')
+    .option('--json')
+    .action((options: { project: string; taskId: string; json?: boolean }) => {
+      const summary = generateReviewSummary(options.project, options.taskId)
+      if (options.json === true) writeJson(output, summary)
+      else output.write(`${formatReviewSummary(summary)}\n`)
+    })
   task.command('review')
     .requiredOption('--input <path>')
     .option('--apply-plan <digest>')
@@ -218,6 +270,60 @@ export function buildProgram(output: CliOutput = defaultOutput): Command {
         output,
         applyCliTransition(verifyHardenedClose(input.unresolvedPath), options.applyPlan),
       )
+    })
+  task.command('verify-clean')
+    .requiredOption('--project <path>')
+    .requiredOption('--task-id <id>')
+    .action((options: { project: string; taskId: string }) => {
+      writeJson(output, verifyCleanTask(options.project, options.taskId))
+    })
+
+  const contract = program.command('contract')
+  contract.command('self-check')
+    .requiredOption('--input <path>')
+    .option('--response <path>')
+    .action((options: { input: string; response?: string }) => {
+      writeJson(output, contractSelfCheck(options.input, options.response))
+    })
+
+  const accountability = program.command('accountability')
+  accountability.command('status')
+    .requiredOption('--project <path>')
+    .requiredOption('--actor <id-or-alias>')
+    .action((options: { project: string; actor: string }) => {
+      writeJson(output, accountabilityStatus(options.project, options.actor))
+    })
+  accountability.command('gates')
+    .requiredOption('--project <path>')
+    .requiredOption('--actor <id-or-alias>')
+    .action((options: { project: string; actor: string }) => {
+      writeJson(output, accountabilityGates(options.project, options.actor))
+    })
+  accountability.command('recovery-plan')
+    .requiredOption('--project <path>')
+    .requiredOption('--actor <id-or-alias>')
+    .action((options: { project: string; actor: string }) => {
+      writeJson(output, accountabilityRecoveryPlan(options.project, options.actor))
+    })
+  accountability.command('bootstrap')
+    .requiredOption('--project <path>')
+    .requiredOption('--input <path>')
+    .option('--apply-plan <digest>')
+    .action((options: { project: string; input: string; applyPlan?: string }) => {
+      const plan = planAccountabilityBootstrap(options.project, options.input)
+      writeJson(output, options.applyPlan === undefined
+        ? summarizeAccountabilityBootstrapPlan(plan)
+        : applyAccountabilityBootstrap(plan, options.applyPlan))
+    })
+  accountability.command('incident-record')
+    .requiredOption('--project <path>')
+    .requiredOption('--input <path>')
+    .option('--apply-plan <digest>')
+    .action((options: { project: string; input: string; applyPlan?: string }) => {
+      const plan = planAccountabilityIncident(options.project, options.input)
+      writeJson(output, options.applyPlan === undefined
+        ? summarizeAccountabilityIncidentPlan(plan)
+        : applyAccountabilityIncident(plan, options.applyPlan))
     })
 
   const legacy = program.command('legacy')

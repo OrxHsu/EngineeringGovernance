@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path'
 
 import { readTaskLedger } from '../state/ledger.js'
 import { verifyContractReadinessArtifact, type ContractReadinessVerification } from '../state/contract-readiness.js'
+import { implementationOwnersOf } from '../model/ownership.js'
 
 export interface ContractReviewVerification extends ContractReadinessVerification {
   state?: string
@@ -24,7 +25,7 @@ export function verifyContractReview(reviewPathInput: string): ContractReviewVer
       taskId,
       contractDigest: result.contract.contractDigest,
       contractSha256: createHash('sha256').update(readFileSync(resolve(taskRoot, 'contract.yaml'))).digest('hex'),
-      implementationOwner: result.contract.implementationOwner,
+      implementationOwners: implementationOwnersOf(result.contract),
     })
     if (!ledger.valid) return { ...result, errors: [...result.errors, ...ledger.errors.map((error) => `CONTRACT_REVIEW_LEDGER_INVALID:${error}`)], valid: false }
     return ledger.currentState === undefined ? result : { ...result, state: ledger.currentState }

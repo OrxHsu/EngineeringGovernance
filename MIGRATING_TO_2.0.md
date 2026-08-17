@@ -90,3 +90,37 @@ an upgrade. Run `sop unadopt <project>` to inspect the exact removal plan and
 apply only its unchanged digest. This removes managed policy/adapter/runner
 material while preserving task/evidence history, Git history, and unrelated
 project files.
+
+## 2.1.0-beta.1 source candidate
+
+Beta1 adds contract preflight and strict-v1 accountability to new beta1 tasks.
+It does not replace, rewrite, or invalidate terminal 2.0.0 or beta0 history and
+does not upgrade a project's pinned runner. A separate reviewed release task
+must build the archive; a separate reviewed self-upgrade task must install it;
+consumer migration remains a third separately authorized operation.
+
+Before a new beta1 mutating task starts, run `task preflight` and pass its exact
+digest to `task start --preflight-plan`. The runner recomputes actor standing at
+each role-bearing boundary. Restricted actors regain permissions only through
+the documented evidence-bound, user-authorized reinstatement sequence; reward
+or recognition labels do not waive any lifecycle gate.
+
+## 2.1.0-re hardening candidate
+
+`2.1.0-re` adds three forward-only behaviors without rewriting historical
+contracts or ledgers:
+
+- New contracts write `implementationOwners` as a non-empty canonical actor
+  set. Historical `implementationOwner` contracts remain readable. Every
+  lifecycle event still records exactly one acting owner.
+- New R3 `task start` plans fail before mutation unless the input and preflight
+  already contain the self-review and known-issues structure required by the
+  downstream independent review request.
+- A user-authorized `accountability incident-record` plan may record a finding
+  and deduction directly in the accountability event chain when the normal
+  governance or review path is blocked. It does not accept, transition, repair,
+  or close the blocked task.
+
+Adopted projects receive these behaviors only through a separately reviewed
+runner upgrade. Existing beta0-beta3 task artifacts retain their original
+version and ownership fields.

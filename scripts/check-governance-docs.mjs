@@ -22,7 +22,7 @@ const assertions = [
   {
     name: 'implementation and reviewer roles are separate',
     file: 'DEVELOPMENT_SOP.md',
-    test: (value) => /contract author and implementation\s+owner are not the contract-readiness approver[\s\S]{0,500}independent reviewer runs[\s\S]{0,700}Self-review is forbidden/u.test(value),
+    test: (value) => /contract author and all implementation\s+owners are not the contract-readiness approver[\s\S]{0,500}independent reviewer runs[\s\S]{0,900}self-review is advisory only/u.test(value),
   },
   {
     name: 'generic checklist and finding order are frozen',
@@ -59,7 +59,68 @@ const assertions = [
   {
     name: 'task template declares readiness',
     file: 'templates/task-contract.yaml',
-    test: (value) => /contractReadiness:[\s\S]{0,140}gateVersion:\s*2\.1\.0-beta\.0/u.test(value),
+    test: (value) => /contractReadiness:[\s\S]{0,140}gateVersion:\s*2\.1\.0-re/u.test(value),
+  },
+  {
+    name: 're source identity is documented',
+    file: 'README.md',
+    test: (value) => /local `2\.1\.0-re` release candidate/u.test(value)
+      && /task preflight --project/u.test(value)
+      && /accountability status --project/u.test(value),
+  },
+  {
+    name: 'graduated accountability sanctions and recovery are semantic rules',
+    file: 'DEVELOPMENT_SOP.md',
+    test: (value) => /BLOCKER\/HIGH\/MEDIUM\/LOW finding\s+scores 3\/2\/1\/0/u.test(value)
+      && /Repeat surcharges are defect-class specific/u.test(value)
+      && /`WARNING` may perform R0\/R1 work/u.test(value)
+      && /`SUSPENDED` is read-only[\s\S]{0,500}Reinstatement requires\s+permanent\s+gates/u.test(value)
+      && /never waives contract readiness, evidence,[\s\S]{0,120}provenance/u.test(value),
+  },
+  {
+    name: 'project policy anchors strict-v1 accountability paths',
+    file: '.delivery/policy.yaml',
+    test: (value) => /accountability\.ruleset:\s*strict-v1/u.test(value)
+      && /accountability\.registryPath:\s*\.delivery\/accountability\/actors\.jsonl/u.test(value)
+      && /accountability\.eventsPath:\s*\.delivery\/accountability\/events\.jsonl/u.test(value)
+      && /accountability\.genesisDigest:\s*c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071/u.test(value),
+  },
+  {
+    name: 'bootstrap remediation keeps lifecycle and sidecar authority separate',
+    file: 'DEVELOPMENT_SOP.md',
+    test: (value) => /lifecycle authorization remains the\s+runner-native `sop-authorization-v2`/u.test(value)
+      && /separate `engineering-governance-remediation-authorization-v1`\s+sidecar/u.test(value)
+      && /`CANDIDATE` ledger event references both exact artifacts once/u.test(value)
+      && /task ID or matching action string alone never grants an exception/u.test(value),
+  },
+  {
+    name: 'delivery skill requires beta1 preflight and status checks',
+    file: 'skills/delivery-sop/SKILL.md',
+    test: (value) => /task preflight --project/u.test(value)
+      && /--preflight-plan <preflight-digest>/u.test(value)
+      && /accountability status --project/u.test(value),
+  },
+  {
+    name: 'beta2 mutual review remains advisory and independently verified',
+    file: 'DEVELOPMENT_SOP.md',
+    test: (value) => /Beta2 mutual-review assistance[\s\S]{0,700}provider-neutral request packet/u.test(value)
+      && /reviewer must be\s+distinct from the contract author and every implementation owner/u.test(value)
+      && /performs no transition/u.test(value),
+  },
+  {
+    name: 'mutual-review CLI and guides are discoverable',
+    file: 'README.md',
+    test: (value) => /contract self-check --input/u.test(value)
+      && /task contract-review-request --project/u.test(value)
+      && /task review-summary --project/u.test(value),
+  },
+  {
+    name: 'beta3 accountability CLI and clean-task boundaries are discoverable',
+    file: 'README.md',
+    test: (value) => /task verify-clean --project/u.test(value)
+      && /accountability gates --project/u.test(value)
+      && /accountability recovery-plan --project/u.test(value)
+      && /read-only views/u.test(value),
   },
 ]
 

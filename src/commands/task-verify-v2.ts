@@ -6,9 +6,11 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { parse } from 'yaml'
 
 import { governanceIdentity } from './adopt.js'
+import { isRemediationBridgeContract, remediationBridgeErrors } from '../accountability/enforce.js'
 import { verifyGitIdentity } from '../evidence/git-identity.js'
 import type { HardenedCommandExecutionArtifact } from '../evidence/capture.js'
 import { canonicalDigest } from '../model/digest.js'
+import { implementationOwnersOf, primaryImplementationOwner } from '../model/ownership.js'
 import { validateDocument } from '../policy/load.js'
 import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { readTaskLedger } from '../state/ledger.js'
@@ -60,7 +62,8 @@ interface HardenedContract {
   sopVersion: string
   policyDigest: string
   contractDigest: string
-  implementationOwner: string
+  implementationOwner?: string
+  implementationOwners?: string[]
   repositories: Array<{
     id: string
     path: string
@@ -136,7 +139,7 @@ export interface HardenedVerificationArtifact {
   decision: 'eligible'
 }
 
-interface AuthorizationV2 {
+interface StandardAuthorizationV2 {
   schemaVersion: 2
   artifactType: 'sop-authorization-v2'
   authorizationId: string
@@ -152,6 +155,8 @@ interface AuthorizationV2 {
   status: 'approved'
   attestation?: { provider: string; subject: string; proof: string }
 }
+
+type AuthorizationV2 = StandardAuthorizationV2
 
 export interface HardenedCandidateVerificationDecision {
   valid: boolean
@@ -401,7 +406,7 @@ function authorizationErrors(input: {
       continue
     }
     const schema = validateDocument('authorization', authorization)
-    if (!schema.valid || authorization.schemaVersion !== 2) {
+    if (!schema.valid || authorization.schemaVersion !== 2 || authorization.artifactType !== 'sop-authorization-v2') {
       errors.push(`AUTHORIZATION_SCHEMA_INVALID:${requirement.id}`)
       continue
     }
@@ -518,7 +523,7 @@ export function verifyHardenedCandidate(
     taskId: input.taskId,
     contractDigest: contract.contractDigest,
     contractSha256: input.contract.sha256,
-    implementationOwner: contract.implementationOwner,
+    implementationOwners: implementationOwnersOf(contract),
   })
   if (!ledger.valid) {
     errors.push(...ledger.errors.map((error) => `TASK_LEDGER_INVALID:${error}`))
@@ -675,6 +680,18 @@ export function verifyHardenedCandidate(
     verificationTime,
   })
   errors.push(...authorization.errors)
+  if (isRemediationBridgeContract(contract)) {
+    const bridge = remediationBridgeErrors({
+      projectRoot,
+      taskId: contract.taskId,
+      actorId: primaryImplementationOwner(contract),
+      role: 'implementation-owner',
+      enforceExpiry: true,
+      ledgerEvents: ledger.events,
+      requireConsumption: true,
+    })
+    errors.push(...bridge.errors.map((error) => `REMEDIATION_BRIDGE_INVALID:${error}`))
+  }
   const extensionResults: ExternalSourceVerificationResult[] = []
   const implementationChanges = changedPaths(contract, input.implementationIdentities)
   errors.push(...implementationChanges.errors)

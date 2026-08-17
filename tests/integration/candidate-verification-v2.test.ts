@@ -32,7 +32,10 @@ function write(path: string, content: string): void {
   writeFileSync(path, content)
 }
 
-function fixture(replay: 'required' | 'not-required' = 'not-required'): {
+function fixture(
+  replay: 'required' | 'not-required' = 'not-required',
+  authorization: 'none' | 'standard' | 'remediation' = 'none',
+): {
   candidate: Record<string, unknown>
   candidatePath: string
   evidencePath: string
@@ -79,7 +82,14 @@ function fixture(replay: 'required' | 'not-required' = 'not-required'): {
         replay,
       },
     }],
-    authorizationRequirements: [],
+    authorizationRequirements: authorization !== 'none' ? [{
+      id: 'AUTH-CANDIDATE-REMEDIATION',
+      action: 'verify-remediation-candidate',
+      target: repository,
+      scope: ['candidate-v2'],
+      trustLevel: 'recorded-claim',
+      consumeOnce: true,
+    }] : [],
     evidenceFreshnessMs: 60_000,
     openChoices: [],
     signals: { mutation: true, crossModule: true },
@@ -88,6 +98,37 @@ function fixture(replay: 'required' | 'not-required' = 'not-required'): {
   const contractPath = join(repository, task.artifacts[0]!.path)
   const contractContent = readFileSync(contractPath, 'utf8')
   const contract = parse(contractContent) as { contractDigest: string }
+  const authorizationPath = join(
+    repository,
+    '.delivery/tasks/candidate-v2/authorizations/AUTH-CANDIDATE-REMEDIATION.json',
+  )
+  if (authorization !== 'none') {
+    write(authorizationPath, `${JSON.stringify({
+      schemaVersion: 2,
+      artifactType: authorization === 'standard' ? 'sop-authorization-v2' : 'engineering-governance-remediation-authorization-v1',
+      authorizationId: authorization === 'standard' ? 'candidate-remediation-authorization' : 'AUTH-CANDIDATE-REMEDIATION',
+      requirementId: 'AUTH-CANDIDATE-REMEDIATION',
+      taskId: 'candidate-v2',
+      ...(authorization === 'standard' ? { contractDigest: contract.contractDigest } : { contract: {
+        path: contractPath,
+        rawSha256: sha256(contractContent),
+        semanticDigest: contract.contractDigest,
+      } }),
+      grantor: { id: 'user-authority', role: 'user', trustLevel: 'local-claim' },
+      action: 'verify-remediation-candidate',
+      target: repository,
+      scope: ['candidate-v2'],
+      ...(authorization === 'standard' ? {} : {
+        supervisorId: 'user-authority',
+        contractReviewerId: 'contract-reviewer',
+        implementationReviewerId: 'implementation-reviewer',
+      }),
+      issuedAt: new Date(Date.now() - 60_000).toISOString(),
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      ...(authorization === 'standard' ? {} : { consumeOnce: true }),
+      status: 'approved',
+    }, null, 2)}\n`)
+  }
   writeAcceptedContractReadinessReview({
     root: repository,
     taskId: 'candidate-v2',
@@ -146,7 +187,11 @@ function fixture(replay: 'required' | 'not-required' = 'not-required'): {
       closureCommit,
       allowedClosurePaths: ['.delivery/tasks/**'],
     }],
-    authorizationArtifacts: [],
+    authorizationArtifacts: authorization !== 'none' ? [{
+      requirementId: 'AUTH-CANDIDATE-REMEDIATION',
+      path: authorizationPath,
+      sha256: sha256(readFileSync(authorizationPath)),
+    }] : [],
     extensionArtifacts: [],
   }
   const candidatePath = join(repository, '.delivery/tasks/candidate-v2/candidate.yaml')
@@ -167,6 +212,10 @@ function fixture(replay: 'required' | 'not-required' = 'not-required'): {
     artifacts: [
       { kind: 'candidate', path: candidatePath },
       { kind: 'evidence', path: evidencePath },
+      ...(authorization !== 'none' ? [{
+        kind: 'authorization:AUTH-CANDIDATE-REMEDIATION',
+        path: authorizationPath,
+      }] : []),
     ],
   })
   if (!applyTaskTransition(candidateTransition, candidateTransition.digest).applied) {
@@ -206,6 +255,32 @@ describe('v2 candidate verification', () => {
     expect(() => persistHardenedVerificationArtifact(decision.verificationArtifact!)).toThrow(
       'VERIFICATION_ARTIFACT_ALREADY_EXISTS',
     )
+  })
+
+  it('accepts a standard lifecycle authorization consumed exactly once', () => {
+    const value = fixture('not-required', 'standard')
+    const decision = verifyCandidateEligibility(value.candidate as never, {
+      candidatePath: value.candidatePath,
+      evidenceVerificationTime: new Date(),
+    })
+
+    expect(decision.errors).toEqual([])
+    expect(decision.valid).toBe(true)
+    expect(decision.verificationArtifact?.authorizationTrust).toEqual([{
+      requirementId: 'AUTH-CANDIDATE-REMEDIATION',
+      trustLevel: 'local-claim',
+    }])
+  })
+
+  it('rejects a remediation sidecar when supplied as a candidate authorization', () => {
+    const value = fixture('not-required', 'remediation')
+    const decision = verifyCandidateEligibility(value.candidate as never, {
+      candidatePath: value.candidatePath,
+      evidenceVerificationTime: new Date(),
+    })
+
+    expect(decision.valid).toBe(false)
+    expect(decision.errors).toContain('AUTHORIZATION_SCHEMA_INVALID:AUTH-CANDIDATE-REMEDIATION')
   })
 
   it('rejects post-candidate evidence substitution and candidate-owned gate requirements', () => {

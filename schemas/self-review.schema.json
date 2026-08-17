@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/self-review.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "artifactType", "reviewId", "taskId", "author",
+    "subjectDigest", "reviewedAt", "durationSeconds", "attemptCount", "effort",
+    "dimensions", "overallStatus"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-self-review-v1" },
+    "reviewId": { "type": "string", "pattern": "^srv-[a-z0-9][a-z0-9._-]*-[a-f0-9]{64}$" },
+    "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "author": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "subjectDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "reviewedAt": { "type": "string", "minLength": 1 },
+    "durationSeconds": { "type": "integer", "minimum": 0, "maximum": 300 },
+    "attemptCount": { "const": 1 },
+    "effort": { "const": "medium" },
+    "dimensions": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "evidence"],
+        "properties": {
+          "name": {
+            "enum": [
+              "scope_coverage", "acceptance_sufficiency", "authority_completeness",
+              "r3_mandatory", "contradictions", "obvious_gaps"
+            ]
+          },
+          "status": { "enum": ["PASS", "CONCERN"] },
+          "evidence": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      }
+    },
+    "overallStatus": { "enum": ["PASSED", "PASSED_WITH_CONCERNS", "TIMEOUT_SUBMITTED"] }
+  }
+}

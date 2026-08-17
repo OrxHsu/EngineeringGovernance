@@ -1,0 +1,76 @@
+schemaVersion: 2
+artifactType: sop-contract-review-v2
+reviewId: crv-example-task-0000000000000000000000000000000000000000000000000000000000000000
+taskId: example-task
+risk: R2
+reviewer:
+  id: independent-reviewer
+  trustLevel: local-claim
+decision: ACCEPTED
+contract:
+  path: /absolute/project/.delivery/tasks/example-task/contract.yaml
+  rawSha256: '0000000000000000000000000000000000000000000000000000000000000000'
+  digest: '0000000000000000000000000000000000000000000000000000000000000000'
+checklist:
+  scope_non_goals:
+    status: PASS
+    evidenceRefs: &contractEvidence
+      - id: E-001
+        kind: contract
+        path: .delivery/tasks/example-task/contract.yaml
+        sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+        digest: '0000000000000000000000000000000000000000000000000000000000000000'
+  authority_dependencies: { status: PASS, evidenceRefs: *contractEvidence }
+  risk_owner_reviewer: { status: PASS, evidenceRefs: *contractEvidence }
+  behavior_state_transitions: { status: PASS, evidenceRefs: *contractEvidence }
+  security_trust: { status: PASS, evidenceRefs: *contractEvidence }
+  evidence_environment: { status: PASS, evidenceRefs: *contractEvidence }
+  external_source_provenance: { status: PASS, evidenceRefs: *contractEvidence }
+  rollout_recovery_compatibility: { status: PASS, evidenceRefs: *contractEvidence }
+  unresolved_product_decisions: { status: PASS, evidenceRefs: *contractEvidence }
+r3Requirements:
+  trust_threat_analysis: { status: NA, applicabilityReason: risk-below-r3, evidenceRefs: *contractEvidence }
+  migration_recovery_rollback: { status: NA, applicabilityReason: risk-below-r3, evidenceRefs: *contractEvidence }
+  specialized_gates: { status: NA, applicabilityReason: risk-below-r3, evidenceRefs: *contractEvidence }
+  scoped_authorization: { status: NA, applicabilityReason: risk-below-r3, evidenceRefs: *contractEvidence }
+  production_observation: { status: NA, applicabilityReason: risk-below-r3, evidenceRefs: *contractEvidence }
+assistedReview:
+  checklist:
+    scope_coverage:
+      status: PASS
+      observation: Every objective outcome is represented by an exact scope item.
+      evidenceRefs: *contractEvidence
+    acceptance_sufficiency:
+      status: PASS
+      observation: Every scope item has observable positive and negative acceptance cases.
+      evidenceRefs: *contractEvidence
+    authority_completeness:
+      status: PASS
+      observation: The exact governing inputs and changed modules are identified.
+      evidenceRefs: *contractEvidence
+    r3_dimensions:
+      status: PASS
+      observation: R3-specific dimensions are either covered or mechanically not applicable.
+      evidenceRefs: *contractEvidence
+    compatibility_consideration:
+      status: PASS
+      observation: Compatibility and recovery behavior are explicitly addressed by the contract.
+      evidenceRefs: *contractEvidence
+    self_review_alignment:
+      status: PASS
+      observation: The author self-review agrees with the independent evidence assessment.
+      evidenceRefs: *contractEvidence
+  selfReviewComparison:
+    dimensions:
+      - { name: scope_coverage, selfStatus: PASS, reviewerStatus: PASS, observation: The assessments agree. }
+      - { name: acceptance_sufficiency, selfStatus: PASS, reviewerStatus: PASS, observation: The assessments agree. }
+      - { name: authority_completeness, selfStatus: PASS, reviewerStatus: PASS, observation: The assessments agree. }
+      - { name: r3_mandatory, selfStatus: PASS, reviewerStatus: PASS, observation: The assessments agree. }
+      - { name: contradictions, selfStatus: PASS, reviewerStatus: PASS, observation: The assessments agree. }
+      - { name: obvious_gaps, selfStatus: PASS, reviewerStatus: PASS, observation: The assessments agree. }
+    agreementRate: 100
+    codexMissed: []
+    codexOvercautious: []
+findings: []
+nextStage: implementation
+userActionRequired: false

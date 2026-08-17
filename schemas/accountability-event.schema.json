@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/accountability-event.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "eventType", "sequence", "priorEventDigest", "eventDigest", "policyDigest", "subjectActorId", "source", "score", "lifetimePenaltyScore", "activePenaltyScore", "standing", "permissions", "authorization", "occurredAt"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-accountability-event-v1" },
+    "eventType": { "enum": ["finding_assessed", "standing_changed", "calibration_recorded", "calibration_reset", "recognition_granted", "recognition_revoked"] },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "priorEventDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "eventDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "policyDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "subjectActorId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "source": { "type": "object", "additionalProperties": false, "required": ["taskId", "artifactPath", "rawSha256", "semanticDigest", "reviewId", "findingId"], "properties": { "taskId": { "type": "string", "minLength": 1 }, "artifactPath": { "type": "string", "minLength": 1 }, "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "reviewId": { "type": "string", "minLength": 1 }, "findingId": { "type": "string", "minLength": 1 } } },
+    "score": { "type": "object", "additionalProperties": false, "required": ["base", "repeatSurcharge", "immediateSuspension", "delta"], "properties": { "base": { "type": "integer", "minimum": 0 }, "repeatSurcharge": { "type": "integer", "minimum": 0 }, "immediateSuspension": { "type": "boolean" }, "delta": { "type": "integer", "minimum": 0 } } },
+    "lifetimePenaltyScore": { "type": "integer", "minimum": 0 },
+    "activePenaltyScore": { "type": "integer", "minimum": 0 },
+    "scoreChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["delta", "reason"],
+      "properties": {
+        "delta": { "type": "integer" },
+        "reason": { "enum": ["finding", "clean-task", "remediation", "time-decay"] },
+        "isFirstOffense": { "type": "boolean" },
+        "isRepeatOffense": { "type": "boolean" },
+        "repeatCount": { "type": "integer", "minimum": 0 },
+        "defectClass": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+      }
+    },
+    "standingChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "enum": ["GOOD_STANDING", "WARNING", "WATCH", "PROBATION", "SUSPENDED"] },
+        "to": { "enum": ["GOOD_STANDING", "WARNING", "WATCH", "PROBATION", "SUSPENDED"] }
+      }
+    },
+    "permanentGatesInstalled": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["defectClass", "gateType", "rule"],
+        "properties": {
+          "defectClass": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "gateType": { "enum": ["preflight-check", "post-implementation", "review-required"] },
+          "rule": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "standing": { "enum": ["GOOD_STANDING", "WARNING", "WATCH", "PROBATION", "SUSPENDED"] },
+    "permissions": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "authorization": {
+      "oneOf": [
+        { "const": "none" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["authorizationId", "path", "rawSha256", "semanticDigest"],
+          "properties": {
+            "authorizationId": { "type": "string", "minLength": 1 },
+            "path": { "type": "string", "minLength": 1 },
+            "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        }
+      ]
+    },
+    "incident": { "$ref": "https://engineering-governance.local/schemas/accountability-incident.schema.json" },
+    "occurredAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" }
+  }
+}

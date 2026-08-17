@@ -3,12 +3,14 @@ import { existsSync, lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { normalizeActorId } from '../model/actor.js';
+import { implementationOwnersOf, isImplementationOwner } from '../model/ownership.js';
 import { canonicalDigest } from '../model/digest.js';
 import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { applyPlannedWrites } from '../project/mutate.js';
 import { canTransition, validateAcceptanceAuthority } from './transitions.js';
 import { verifyContractReadinessArtifact } from './contract-readiness.js';
+import { actorEligibilityErrors, isAccountabilityContract } from '../accountability/enforce.js';
 const ownerTransitionTargets = new Set([
     'IN_PROGRESS',
     'CANDIDATE',
@@ -18,11 +20,21 @@ const ownerTransitionTargets = new Set([
 ]);
 function transitionAuthorityErrors(input) {
     const errors = [];
-    if (ownerTransitionTargets.has(input.to) && input.actorId !== input.contract.implementationOwner) {
+    if (ownerTransitionTargets.has(input.to) && !isImplementationOwner(input.contract, input.actorId)) {
         errors.push('TASK_TRANSITION_IMPLEMENTATION_OWNER_REQUIRED');
     }
+    if (isAccountabilityContract(input.contract, input.taskId) && ownerTransitionTargets.has(input.to)) {
+        errors.push(...actorEligibilityErrors({
+            projectRoot: input.projectRoot,
+            taskId: input.taskId,
+            actorId: input.actorId,
+            role: 'implementation-owner',
+            risk: input.contract.risk,
+            enforceExpiry: input.enforceExpiry,
+        }));
+    }
     if (input.to === 'ACCEPTED' || input.to === 'REPAIR_REQUIRED') {
-        errors.push(...validateAcceptanceAuthority(input.contract.risk, input.contract.implementationOwner, input.actorId).errors);
+        errors.push(...validateAcceptanceAuthority(input.contract.risk, input.contract, input.actorId).errors);
     }
     const kindCount = (kind) => input.artifacts.filter((artifact) => artifact.kind === kind).length;
     if (input.to === 'CANDIDATE' && (kindCount('candidate') !== 1 || kindCount('evidence') !== 1)) {
@@ -94,13 +106,20 @@ export function initialTaskEvent(input) {
 }
 export function readTaskLedger(input) {
     const errors = [];
+    let expectedOwners = [];
+    try {
+        expectedOwners = implementationOwnersOf(input);
+    }
+    catch {
+        errors.push('TASK_LEDGER_EXPECTED_OWNERS_INVALID');
+    }
     let authorityContract;
     try {
         const loaded = loadLedgerContract(input.projectRoot, input.taskId);
         authorityContract = loaded.contract;
         if (sha256(loaded.raw) !== input.contractSha256
             || loaded.contract.contractDigest !== input.contractDigest
-            || loaded.contract.implementationOwner !== input.implementationOwner)
+            || JSON.stringify(implementationOwnersOf(loaded.contract)) !== JSON.stringify(expectedOwners))
             errors.push('TASK_LEDGER_CONTRACT_IDENTITY_MISMATCH');
     }
     catch {
@@ -148,7 +167,7 @@ export function readTaskLedger(input) {
             if (event.previousEventDigest !== null || event.from !== null || event.to !== 'DEFINED') {
                 errors.push('TASK_LEDGER_INITIAL_TRANSITION_INVALID');
             }
-            if (event.actorId !== input.implementationOwner)
+            if (!expectedOwners.includes(event.actorId))
                 errors.push('TASK_LEDGER_INITIAL_OWNER_MISMATCH');
             const expectedContractPath = `.delivery/tasks/${input.taskId}/contract.yaml`;
             if (event.artifactRefs.length !== 1
@@ -166,10 +185,13 @@ export function readTaskLedger(input) {
             }
             if (authorityContract !== undefined) {
                 errors.push(...transitionAuthorityErrors({
+                    projectRoot: input.projectRoot,
+                    taskId: input.taskId,
                     contract: authorityContract,
                     actorId: event.actorId,
                     to: event.to,
                     artifacts: event.artifactRefs,
+                    enforceExpiry: false,
                 }).map((error) => `${error}:${index + 1}`));
                 errors.push(...contractReadinessErrors({
                     projectRoot: input.projectRoot,
@@ -233,7 +255,7 @@ export function planTaskTransition(input) {
         taskId: input.taskId,
         contractDigest: loaded.contract.contractDigest,
         contractSha256: sha256(loaded.raw),
-        implementationOwner: loaded.contract.implementationOwner,
+        implementationOwners: implementationOwnersOf(loaded.contract),
     });
     if (!ledger.valid || ledger.currentState === undefined || ledger.ledgerPath === undefined) {
         throw new Error(`TASK_LEDGER_INVALID:${ledger.errors.join(',')}`);
@@ -243,6 +265,8 @@ export function planTaskTransition(input) {
     }
     const actorId = normalizeActorId(input.actorId);
     const authorityErrors = transitionAuthorityErrors({
+        projectRoot: loaded.root,
+        taskId: input.taskId,
         contract: loaded.contract,
         actorId,
         to: input.to,
@@ -311,7 +335,7 @@ function planErrors(plan, approvedDigest) {
         taskId: plan.taskId,
         contractDigest: loaded.contract.contractDigest,
         contractSha256: sha256(loaded.raw),
-        implementationOwner: loaded.contract.implementationOwner,
+        implementationOwners: implementationOwnersOf(loaded.contract),
     });
     if (!ledger.valid || ledger.currentState === undefined || ledger.ledgerPath === undefined) {
         errors.push('TASK_TRANSITION_LEDGER_INVALID');
@@ -331,6 +355,8 @@ function planErrors(plan, approvedDigest) {
         || plan.event.contractDigest !== loaded.contract.contractDigest)
         errors.push('TASK_TRANSITION_EVENT_INVALID');
     errors.push(...transitionAuthorityErrors({
+        projectRoot: loaded.root,
+        taskId: plan.taskId,
         contract: loaded.contract,
         actorId: plan.event.actorId,
         to: plan.event.to,

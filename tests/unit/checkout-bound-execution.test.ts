@@ -122,6 +122,31 @@ describe('checkout-bound execution', () => {
     expect(JSON.parse(readFileSync(outputPath, 'utf8'))).toEqual(artifact)
   })
 
+  it('does not make one tool-owned receipt change the next execution identity', () => {
+    const root = repository()
+    writeFileSync(join(root, '.gitignore'), '.delivery/tasks/**/receipts/\n')
+    git(root, 'add', '.gitignore')
+    git(root, 'commit', '-m', 'ignore tool-owned receipts')
+    contract(root, "process.stdout.write('observed\\n')")
+
+    const first = captureCommandExecution({
+      schemaVersion: 2,
+      projectRoot: root,
+      taskId: 'checkout-bound-task',
+      acceptanceId: 'AC-01',
+      runId: 'run-1',
+    })
+    const second = captureCommandExecution({
+      schemaVersion: 2,
+      projectRoot: root,
+      taskId: 'checkout-bound-task',
+      acceptanceId: 'AC-01',
+      runId: 'run-2',
+    })
+
+    expect(second.repositoriesBefore).toEqual(first.repositoriesBefore)
+  })
+
   it('rejects caller-controlled commands and detects observer mutation', () => {
     const root = repository()
     const marker = join(root, 'marker.txt')

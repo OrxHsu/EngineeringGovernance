@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/accountability-status.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "policyVersion", "actorId", "aliases", "lifetimePenaltyScore", "activePenaltyScore", "standing", "permissions", "unresolvedDefectClasses", "calibration", "recognition", "sourceEvents"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-accountability-status-v1" },
+    "policyVersion": { "const": "strict-v1" },
+    "actorId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "aliases": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "lifetimePenaltyScore": { "type": "integer", "minimum": 0 },
+    "activePenaltyScore": { "type": "integer", "minimum": 0 },
+    "standing": { "enum": ["GOOD_STANDING", "WARNING", "WATCH", "PROBATION", "SUSPENDED"] },
+    "permissions": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "unresolvedDefectClasses": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "calibration": { "type": "object", "additionalProperties": false, "required": ["currentStage", "consecutiveCleanCount", "requiredCleanCount", "qualifyingRefs", "lastResetRef"], "properties": { "currentStage": { "type": "string", "minLength": 1 }, "consecutiveCleanCount": { "type": "integer", "minimum": 0 }, "requiredCleanCount": { "type": "integer", "minimum": 0 }, "qualifyingRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } }, "lastResetRef": { "type": ["string", "null"] } } },
+    "recognition": { "type": "object", "additionalProperties": false, "required": ["status", "grantedByEvent", "revokedByEvent"], "properties": { "status": { "enum": ["NONE", "RELIABLE"] }, "grantedByEvent": { "type": ["string", "null"] }, "revokedByEvent": { "type": ["string", "null"] } } },
+    "sourceEvents": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["sequence", "eventDigest", "eventType", "sourceRef"], "properties": { "sequence": { "type": "integer", "minimum": 1 }, "eventDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "eventType": { "type": "string", "minLength": 1 }, "sourceRef": { "type": "string", "minLength": 1 } } } }
+  }
+}

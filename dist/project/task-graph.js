@@ -3,11 +3,14 @@ import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from '
 import { extname, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { canonicalDigest } from '../model/digest.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { verifyHardenedCandidate, } from '../commands/task-verify-v2.js';
 import { readTaskLedger } from '../state/ledger.js';
 import { PRE_GATE_POLICY_DIGEST, verifyContractReadinessArtifact } from '../state/contract-readiness.js';
+import { readAccountabilityEvents, withAccountabilityReadScope } from '../accountability/derive.js';
+import { policyDigestAllowedForProject } from '../accountability/registry.js';
 const terminalTaskStates = new Set(['CLOSED', 'CANCELLED', 'SUPERSEDED']);
 function sha256(input) {
     return createHash('sha256').update(input).digest('hex');
@@ -349,6 +352,13 @@ function validateCurrentReview(input) {
         }
         return;
     }
+    const latestCandidateEvent = [...input.events].reverse().find((event) => event.to === 'CANDIDATE');
+    if (latestCandidateEvent !== undefined && latestCandidateEvent.sequence > reviewEvent.sequence) {
+        if (input.reviews.length > 0 || input.verifications.length > 0) {
+            input.errors.push(`TASK_GRAPH_STALE_REVIEW_ARTIFACT:${input.taskId}`);
+        }
+        return;
+    }
     const reviewPath = join(input.taskRoot, 'review.yaml');
     const verificationPath = join(input.taskRoot, 'verification.json');
     const review = input.reviews.find((artifact) => artifact.path === reviewPath);
@@ -553,7 +563,7 @@ function validateClosureGraph(input) {
         }
     }
 }
-export function validateProjectTaskGraph(projectPath) {
+function validateProjectTaskGraphWithinAccountabilityScope(projectPath) {
     const projectRoot = realpathSync(resolve(projectPath));
     const policyIdentity = projectPolicyIdentity(projectRoot);
     const tasksRoot = join(projectRoot, '.delivery', 'tasks');
@@ -563,6 +573,18 @@ export function validateProjectTaskGraph(projectPath) {
         return { valid: false, errors: ['TASK_GRAPH_ROOT_UNSAFE'], tasks: [] };
     }
     const errors = [];
+    try {
+        const policyPath = join(projectRoot, '.delivery', 'policy.yaml');
+        const policy = existsSync(policyPath) ? parse(readFileSync(policyPath, 'utf8')) : undefined;
+        const mapping = policy?.artifactMapping;
+        if (typeof mapping === 'object' && mapping !== null && !Array.isArray(mapping)
+            && mapping['accountability.ruleset'] !== undefined) {
+            readAccountabilityEvents(projectRoot);
+        }
+    }
+    catch (error) {
+        errors.push(`TASK_GRAPH_ACCOUNTABILITY_INVALID:${error instanceof Error ? error.message : 'UNKNOWN'}`);
+    }
     const tasks = [];
     const entries = readdirSync(tasksRoot, { withFileTypes: true })
         .sort((left, right) => left.name.localeCompare(right.name));
@@ -620,11 +642,11 @@ export function validateProjectTaskGraph(projectPath) {
             taskId: entry.name,
             contractDigest,
             contractSha256: sha256(contractRaw),
-            implementationOwner: contract.implementationOwner,
+            implementationOwners: implementationOwnersOf(contract),
         });
         errors.push(...ledger.errors.map((error) => `TASK_GRAPH_LEDGER_INVALID:${entry.name}:${error}`));
         if (policyIdentity !== undefined
-            && (contract.sopVersion !== policyIdentity.version || contract.policyDigest !== policyIdentity.digest)
+            && (contract.sopVersion !== policyIdentity.version || !policyDigestAllowedForProject(projectRoot, contract.policyDigest))
             && (ledger.currentState === undefined || !terminalTaskStates.has(ledger.currentState))) {
             errors.push(`TASK_GRAPH_CONTRACT_POLICY_IDENTITY_MISMATCH:${entry.name}`);
         }
@@ -706,4 +728,7 @@ export function validateProjectTaskGraph(projectPath) {
     }
     const uniqueErrors = [...new Set(errors)].sort();
     return { valid: uniqueErrors.length === 0, errors: uniqueErrors, tasks };
+}
+export function validateProjectTaskGraph(projectPath) {
+    return withAccountabilityReadScope(() => validateProjectTaskGraphWithinAccountabilityScope(projectPath));
 }

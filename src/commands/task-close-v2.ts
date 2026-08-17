@@ -6,11 +6,14 @@ import { parse } from 'yaml'
 
 import { governanceIdentity } from './adopt.js'
 import { canonicalDigest } from '../model/digest.js'
+import { implementationOwnersOf } from '../model/ownership.js'
 import { normalizeActorId } from '../model/actor.js'
 import { validateDocument } from '../policy/load.js'
 import { validateHardenedTaskContract } from '../policy/task-contract.js'
 import { planTaskTransition, readTaskLedger, type TaskTransitionPlan } from '../state/ledger.js'
 import { verifyHardenedReview } from './task-review-v2.js'
+import { actorEligibilityErrors, isAccountabilityContract } from '../accountability/enforce.js'
+import type { Risk } from '../model/types.js'
 
 interface ArtifactReference { path: string; sha256: string }
 interface ArtifactWithDigest extends ArtifactReference { digest: string }
@@ -36,7 +39,9 @@ interface ContractV2 {
   sopVersion: string
   policyDigest: string
   contractDigest: string
-  implementationOwner: string
+  implementationOwner?: string
+  implementationOwners?: string[]
+  risk: Risk
   [key: string]: unknown
 }
 
@@ -260,7 +265,7 @@ export function verifyHardenedClose(closurePathInput: string, now = new Date()):
     taskId: closure.taskId,
     contractDigest: contract.contractDigest,
     contractSha256: closure.contract.sha256,
-    implementationOwner: contract.implementationOwner,
+    implementationOwners: implementationOwnersOf(contract),
   })
   if (!ledger.valid) errors.push(...ledger.errors.map((error) => `TASK_LEDGER_INVALID:${error}`))
   else if (ledger.currentState !== 'ACCEPTED') {
@@ -298,6 +303,15 @@ export function verifyHardenedClose(closurePathInput: string, now = new Date()):
     closerId = normalizeActorId(closure.closer.id)
   } catch {
     errors.push('CLOSER_ID_INVALID')
+  }
+  if (closerId !== undefined && isAccountabilityContract(contract, closure.taskId)) {
+    errors.push(...actorEligibilityErrors({
+      projectRoot,
+      taskId: closure.taskId,
+      actorId: closerId,
+      role: 'closer',
+      risk: contract.risk,
+    }))
   }
 
   const uniqueErrors = [...new Set(errors)].sort()

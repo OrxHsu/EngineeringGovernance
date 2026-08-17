@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/accountability-bootstrap.schema.json",
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path", "rawSha256", "semanticDigest"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["contract", "review", "ledger", "report", "defect"] },
+        "path": { "type": "string", "minLength": 1 },
+        "rawSha256": { "$ref": "#/$defs/digest" },
+        "semanticDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["findingId", "severity", "classification", "defectClass", "responsibleRole", "responsibleActorId", "culpability", "origin", "scoreDelta"],
+      "properties": {
+        "findingId": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["BLOCKER", "HIGH", "MEDIUM", "LOW"] },
+        "classification": { "enum": ["contract_violation", "newly_discovered_defect", "new_requirement"] },
+        "defectClass": { "type": "string", "minLength": 1 },
+        "responsibleRole": { "type": "string", "minLength": 1 },
+        "responsibleActorId": { "type": ["string", "null"] },
+        "culpability": { "enum": ["culpable", "non_culpable_new_requirement", "non_culpable_tool_defect", "missed_existing_blocker"] },
+        "origin": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["taskId", "artifactPath", "rawSha256", "semanticDigest", "reviewId", "evidenceRefs"],
+          "properties": {
+            "taskId": { "type": "string", "minLength": 1 },
+            "artifactPath": { "type": "string", "minLength": 1 },
+            "rawSha256": { "$ref": "#/$defs/digest" },
+            "semanticDigest": { "$ref": "#/$defs/digest" },
+            "reviewId": { "type": "string", "minLength": 1 },
+            "evidenceRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "scoreDelta": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actorId", "aliases", "lifetimePenaltyScore", "activePenaltyScore", "standing", "permissions", "unresolvedDefectClasses"],
+      "properties": {
+        "actorId": { "type": "string", "minLength": 1 },
+        "aliases": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "lifetimePenaltyScore": { "type": "integer", "minimum": 0 },
+        "activePenaltyScore": { "type": "integer", "minimum": 0 },
+        "standing": { "enum": ["GOOD_STANDING", "WARNING", "WATCH", "PROBATION", "SUSPENDED"] },
+        "permissions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "unresolvedDefectClasses": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "remediationHistorical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorizationPath", "authorizationRawSha256", "authorizationSemanticDigest", "taskId", "action", "supervisorId", "contractReviewerId", "implementationReviewerId", "issuedAt", "expiresAt", "consumeOnce"],
+      "properties": {
+        "authorizationPath": { "type": "string", "minLength": 1 },
+        "authorizationRawSha256": { "$ref": "#/$defs/digest" },
+        "authorizationSemanticDigest": { "$ref": "#/$defs/digest" },
+        "taskId": { "type": "string", "minLength": 1 },
+        "action": { "type": "string", "minLength": 1 },
+        "supervisorId": { "type": "string", "minLength": 1 },
+        "contractReviewerId": { "type": "string", "minLength": 1 },
+        "implementationReviewerId": { "type": "string", "minLength": 1 },
+        "issuedAt": { "type": "string", "minLength": 1 },
+        "expiresAt": { "type": "string", "minLength": 1 },
+        "consumeOnce": { "const": true }
+      }
+    },
+    "remediationBridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lifecycleAuthorizationPath", "lifecycleAuthorizationRawSha256", "lifecycleAuthorizationSemanticDigest", "sidecarPath", "sidecarRawSha256", "sidecarSemanticDigest", "taskId", "action", "supervisorId", "contractReviewerId", "implementationReviewerId", "issuedAt", "expiresAt", "consumeOnce"],
+      "properties": {
+        "lifecycleAuthorizationPath": { "type": "string", "minLength": 1 },
+        "lifecycleAuthorizationRawSha256": { "$ref": "#/$defs/digest" },
+        "lifecycleAuthorizationSemanticDigest": { "$ref": "#/$defs/digest" },
+        "sidecarPath": { "type": "string", "minLength": 1 },
+        "sidecarRawSha256": { "$ref": "#/$defs/digest" },
+        "sidecarSemanticDigest": { "$ref": "#/$defs/digest" },
+        "taskId": { "type": "string", "minLength": 1 },
+        "action": { "type": "string", "minLength": 1 },
+        "supervisorId": { "type": "string", "minLength": 1 },
+        "contractReviewerId": { "type": "string", "minLength": 1 },
+        "implementationReviewerId": { "type": "string", "minLength": 1 },
+        "issuedAt": { "type": "string", "minLength": 1 },
+        "expiresAt": { "type": "string", "minLength": 1 },
+        "consumeOnce": { "const": true }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "policyVersion", "taskId", "sources", "findings", "actors", "remediationException"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-accountability-bootstrap-v1" },
+    "policyVersion": { "const": "strict-v1" },
+    "taskId": { "type": "string", "minLength": 1 },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "actors": { "type": "array", "items": { "$ref": "#/$defs/actor" } },
+    "remediationException": {
+      "oneOf": [
+        { "$ref": "#/$defs/remediationHistorical" },
+        { "$ref": "#/$defs/remediationBridge" }
+      ]
+    }
+  }
+}

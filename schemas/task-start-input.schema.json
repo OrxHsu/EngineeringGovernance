@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/task-start-input.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "contractAuthor", "objective", "scope", "nonGoals", "authorityInputs", "repositories", "acceptance", "authorizationRequirements", "evidenceFreshnessMs", "designBindings", "predecessors", "openChoices", "signals"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "artifactType": { "const": "not-applicable input document" },
+    "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "contractAuthor": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "implementationOwner": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "implementationOwners": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" } },
+    "objective": { "type": "string", "minLength": 1 },
+    "scope": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "nonGoals": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "authorityInputs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "repositories": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": false, "required": ["id", "path"], "properties": { "id": { "type": "string", "minLength": 1 }, "path": { "type": "string", "pattern": "^/" } } } },
+    "acceptance": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": true, "required": ["id", "observation", "positiveCases", "negativeCases", "evidenceKind", "command", "observerPolicy", "bindingRefs"], "properties": { "id": { "type": "string", "minLength": 1 }, "observation": { "type": "string", "minLength": 1 }, "positiveCases": { "type": "array", "minItems": 1 }, "negativeCases": { "type": "array", "minItems": 1 }, "evidenceKind": { "enum": ["static", "compile", "unit", "integration", "device", "cloud", "production"] }, "command": { "type": "object" }, "observerPolicy": { "type": "object" }, "bindingRefs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } } } } },
+    "authorizationRequirements": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "action", "target", "scope", "trustLevel", "consumeOnce"], "properties": { "id": { "type": "string", "minLength": 1 }, "action": { "type": "string", "minLength": 1 }, "target": { "type": "string", "minLength": 1 }, "scope": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }, "trustLevel": { "enum": ["recorded-claim", "verified-attestation"] }, "consumeOnce": { "type": "boolean" } } } },
+    "evidenceFreshnessMs": { "type": "integer", "minimum": 1, "maximum": 86400000 },
+    "designBindings": { "$ref": "#/$defs/designBindings" },
+    "predecessors": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["taskId", "contractPath", "contractRawSha256", "contractDigest", "reviewPath", "reviewRawSha256", "decision", "findingIds"], "properties": { "taskId": { "type": "string", "minLength": 1 }, "contractPath": { "type": "string", "minLength": 1 }, "contractRawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "contractDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "reviewPath": { "type": "string", "minLength": 1 }, "reviewRawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "decision": { "const": "REPAIR_REQUIRED" }, "findingIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } } } } },
+    "selfReview": { "$ref": "https://engineering-governance.local/schemas/self-review.schema.json" },
+    "knownIssues": { "$ref": "https://engineering-governance.local/schemas/known-issues.schema.json" },
+    "openChoices": { "type": "array", "maxItems": 0 },
+    "signals": { "type": "object", "minProperties": 1 }
+  },
+  "oneOf": [
+    { "required": ["implementationOwner"], "properties": { "implementationOwner": true, "implementationOwners": false } },
+    { "required": ["implementationOwners"], "properties": { "implementationOwner": false, "implementationOwners": true } }
+  ],
+  "$defs": {
+    "designBindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deliverables", "authorities", "constants", "equalities", "transitions", "actorRoles", "artifactKinds"],
+      "properties": {
+        "deliverables": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "repositoryId", "path", "kind", "schemaRef", "artifactType"], "properties": { "id": { "type": "string", "minLength": 1 }, "repositoryId": { "type": "string", "minLength": 1 }, "path": { "type": "string", "minLength": 1 }, "kind": { "enum": ["source", "schema", "document", "template", "test", "script", "generated"] }, "schemaRef": { "type": "string", "minLength": 1 }, "artifactType": { "type": "string", "minLength": 1 } } } },
+        "authorities": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "location", "repositoryId", "path", "rawSha256", "semanticDigest"], "properties": { "id": { "type": "string", "minLength": 1 }, "location": { "enum": ["repository", "external"] }, "repositoryId": { "type": "string", "minLength": 1 }, "path": { "type": "string", "minLength": 1 }, "rawSha256": { "type": "string", "minLength": 1 }, "semanticDigest": { "type": "string", "minLength": 1 } } } },
+        "constants": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "valueType", "value", "sourceRef"], "properties": { "id": { "type": "string", "minLength": 1 }, "valueType": { "enum": ["string", "integer", "boolean", "digest", "path", "state"] }, "value": {}, "sourceRef": { "type": "string", "minLength": 1 } } } },
+        "equalities": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "leftRef", "rightRef", "comparison"], "properties": { "id": { "type": "string", "minLength": 1 }, "leftRef": { "type": "string", "minLength": 1 }, "rightRef": { "type": "string", "minLength": 1 }, "comparison": { "enum": ["exact_string", "canonical_semantic_digest", "raw_sha256", "ordered_set", "normalized_actor"] } } } },
+        "transitions": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "from", "to", "actorRoleRef", "artifactKindRefs", "authorizationRefs"], "properties": { "id": { "type": "string", "minLength": 1 }, "from": { "type": "string", "minLength": 1 }, "to": { "type": "string", "minLength": 1 }, "actorRoleRef": { "type": "string", "minLength": 1 }, "artifactKindRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } }, "authorizationRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } } } } },
+        "actorRoles": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "actorId", "requiredStanding", "distinctFrom"], "properties": { "id": { "type": "string", "minLength": 1 }, "actorId": { "type": "string", "minLength": 1 }, "requiredStanding": { "enum": ["GOOD_STANDING", "WARNING", "WATCH", "PROBATION", "SUSPENDED"] }, "distinctFrom": { "type": "array", "items": { "type": "string", "minLength": 1 } } } } },
+        "artifactKinds": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "pathPattern", "schemaRef", "minimumCount", "maximumCount"], "properties": { "id": { "type": "string", "minLength": 1 }, "pathPattern": { "type": "string", "minLength": 1 }, "schemaRef": { "type": "string", "minLength": 1 }, "minimumCount": { "type": "integer", "minimum": 0 }, "maximumCount": { "anyOf": [{ "type": "integer" }, { "type": "null" }, { "const": "none" }] } } } }
+      }
+    }
+  }
+}

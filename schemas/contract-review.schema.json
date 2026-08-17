@@ -56,7 +56,40 @@
         "classification": { "enum": ["contract_violation", "newly_discovered_defect", "new_requirement"] },
         "observation": { "type": "string", "minLength": 1 },
         "requiredChange": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidenceRef" } },
+        "defectClass": { "type": "string", "minLength": 1 },
+        "permanentGateId": { "type": "string", "minLength": 1 },
+        "responsibleRole": { "enum": ["contract_author", "implementation_owner", "contract_reviewer", "implementation_reviewer", "tool", "none"] },
+        "responsibleActorId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "culpability": { "enum": ["culpable", "non_culpable_new_requirement", "non_culpable_tool_defect", "missed_existing_blocker"] },
+        "origin": { "type": "object", "additionalProperties": false, "required": ["taskId", "artifactPath", "rawSha256", "semanticDigest", "reviewId", "evidenceRefs"], "properties": { "taskId": { "type": "string", "minLength": 1 }, "artifactPath": { "type": "string", "minLength": 1 }, "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "reviewId": { "type": "string", "minLength": 1 }, "evidenceRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } } } },
+        "scoreDelta": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "assistedCheckItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "observation", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["PASS", "CONCERN", "FAIL"] },
+        "observation": { "type": "string", "minLength": 20 },
         "evidenceRefs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidenceRef" } }
+      }
+    },
+    "comparisonDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "selfStatus", "reviewerStatus", "observation"],
+      "properties": {
+        "name": {
+          "enum": [
+            "scope_coverage", "acceptance_sufficiency", "authority_completeness",
+            "r3_mandatory", "contradictions", "obvious_gaps"
+          ]
+        },
+        "selfStatus": { "enum": ["PASS", "CONCERN"] },
+        "reviewerStatus": { "enum": ["PASS", "CONCERN", "FAIL"] },
+        "observation": { "type": "string", "minLength": 1, "maxLength": 500 }
       }
     }
   },
@@ -130,6 +163,40 @@
       }
     },
     "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "assistedReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checklist", "selfReviewComparison"],
+      "properties": {
+        "checklist": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope_coverage", "acceptance_sufficiency", "authority_completeness",
+            "r3_dimensions", "compatibility_consideration", "self_review_alignment"
+          ],
+          "properties": {
+            "scope_coverage": { "$ref": "#/$defs/assistedCheckItem" },
+            "acceptance_sufficiency": { "$ref": "#/$defs/assistedCheckItem" },
+            "authority_completeness": { "$ref": "#/$defs/assistedCheckItem" },
+            "r3_dimensions": { "$ref": "#/$defs/assistedCheckItem" },
+            "compatibility_consideration": { "$ref": "#/$defs/assistedCheckItem" },
+            "self_review_alignment": { "$ref": "#/$defs/assistedCheckItem" }
+          }
+        },
+        "selfReviewComparison": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dimensions", "agreementRate", "codexMissed", "codexOvercautious"],
+          "properties": {
+            "dimensions": { "type": "array", "minItems": 6, "maxItems": 6, "items": { "$ref": "#/$defs/comparisonDimension" } },
+            "agreementRate": { "type": "number", "minimum": 0, "maximum": 100 },
+            "codexMissed": { "type": "array", "uniqueItems": true, "items": { "enum": ["scope_coverage", "acceptance_sufficiency", "authority_completeness", "r3_mandatory", "contradictions", "obvious_gaps"] } },
+            "codexOvercautious": { "type": "array", "uniqueItems": true, "items": { "enum": ["scope_coverage", "acceptance_sufficiency", "authority_completeness", "r3_mandatory", "contradictions", "obvious_gaps"] } }
+          }
+        }
+      }
+    },
     "nextStage": { "enum": ["implementation", "contract-repair"] },
     "userActionRequired": { "type": "boolean" }
   },

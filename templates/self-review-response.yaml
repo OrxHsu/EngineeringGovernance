@@ -1,0 +1,22 @@
+durationSeconds: 120
+dimensions:
+  - name: scope_coverage
+    status: PASS
+    evidence: Every objective outcome has a named scope item.
+  - name: acceptance_sufficiency
+    status: PASS
+    evidence: Every scope item maps to observable positive and negative cases.
+  - name: authority_completeness
+    status: PASS
+    evidence: All governing inputs and changed modules are identified.
+  - name: r3_mandatory
+    status: PASS
+    evidence: Security, compatibility, and rollback are covered or not applicable.
+  - name: contradictions
+    status: PASS
+    evidence: Scope, non-goals, authorities, and transitions do not conflict.
+  - name: obvious_gaps
+    status: PASS
+    evidence: No obvious evidence, provenance, or negative-case gap remains.
+overallStatus: PASSED
+knownIssues: []

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/known-issues.schema.json",
+  "type": "array",
+  "maxItems": 5,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["dimension", "observation", "severity", "deferReason"],
+    "properties": {
+      "dimension": {
+        "enum": [
+          "scope_coverage", "acceptance_sufficiency", "authority_completeness",
+          "r3_mandatory", "contradictions", "obvious_gaps"
+        ]
+      },
+      "observation": { "type": "string", "minLength": 10, "maxLength": 500 },
+      "severity": { "enum": ["LOW", "MEDIUM"] },
+      "deferReason": { "type": "string", "minLength": 10, "maxLength": 200 }
+    }
+  }
+}

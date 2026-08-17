@@ -19,15 +19,30 @@ const schemaPaths = {
     'contract-review': new URL('../../schemas/contract-review.schema.json', import.meta.url),
     'prior-review-finding': new URL('../../schemas/prior-review-finding.schema.json', import.meta.url),
     'release-record': new URL('../../schemas/release-record.schema.json', import.meta.url),
+    'task-start-input': new URL('../../schemas/task-start-input.schema.json', import.meta.url),
+    'contract-preflight': new URL('../../schemas/contract-preflight.schema.json', import.meta.url),
+    'actor-registry-event': new URL('../../schemas/actor-registry-event.schema.json', import.meta.url),
+    'accountability-event': new URL('../../schemas/accountability-event.schema.json', import.meta.url),
+    'accountability-status': new URL('../../schemas/accountability-status.schema.json', import.meta.url),
+    'accountability-bootstrap': new URL('../../schemas/accountability-bootstrap.schema.json', import.meta.url),
+    'initial-actor-bootstrap': new URL('../../schemas/initial-actor-bootstrap.schema.json', import.meta.url),
+    'permanent-gates': new URL('../../schemas/permanent-gates.schema.json', import.meta.url),
+    'self-review': new URL('../../schemas/self-review.schema.json', import.meta.url),
+    'known-issues': new URL('../../schemas/known-issues.schema.json', import.meta.url),
+    'accountability-incident': new URL('../../schemas/accountability-incident.schema.json', import.meta.url),
 };
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 const validators = new Map();
+for (const kind of ['self-review', 'known-issues', 'accountability-incident']) {
+    ajv.addSchema(JSON.parse(readFileSync(schemaPaths[kind], 'utf8')));
+}
 function validatorFor(kind) {
     const cached = validators.get(kind);
     if (cached)
         return cached;
     const schema = JSON.parse(readFileSync(schemaPaths[kind], 'utf8'));
-    const validator = ajv.compile(schema);
+    const validator = (schema.$id === undefined ? undefined : ajv.getSchema(schema.$id))
+        ?? ajv.compile(schema);
     validators.set(kind, validator);
     return validator;
 }

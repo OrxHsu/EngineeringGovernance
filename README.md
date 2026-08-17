@@ -4,7 +4,7 @@ Engineering Governance is the canonical, versioned development workflow for
 user-owned projects. It defines risk classification, task states, evidence
 integrity, independent review, exception handling, and safe project adoption.
 
-The repository is a local `2.1.0-beta.3` release candidate and remains unpublished.
+The repository is a local `2.1.0-re` release candidate and remains unpublished.
 Version 2 is a breaking lifecycle and artifact-format release. Existing 1.x
 projects remain pinned until an explicit reviewed upgrade; see
 [`MIGRATING_TO_2.0.md`](MIGRATING_TO_2.0.md).
@@ -80,6 +80,8 @@ pnpm sop -- task verify-clean --project /absolute/path/to/project --task-id <tas
 pnpm sop -- accountability status --project /absolute/path/to/project --actor <id-or-alias>
 pnpm sop -- accountability gates --project /absolute/path/to/project --actor <id-or-alias>
 pnpm sop -- accountability recovery-plan --project /absolute/path/to/project --actor <id-or-alias>
+pnpm sop -- accountability incident-record --project /absolute/path/to/project --input /absolute/path/to/incident.yaml
+pnpm sop -- accountability incident-record --project /absolute/path/to/project --input /absolute/path/to/incident.yaml --apply-plan <reviewed-plan-sha256>
 pnpm sop -- legacy inspect --input /absolute/path/to/v1-artifact.yaml
 ```
 
@@ -151,6 +153,13 @@ not rewritten. `task verify-clean`, `accountability gates`, and
 `accountability recovery-plan` are read-only views; they never award credit,
 install a gate, or change standing by themselves. See
 `docs/PERMANENT_GATES.md` and `docs/ACCOUNTABILITY_RECOVERY.md`.
+
+The `2.1.0-re` hardening release supports a canonical set of implementation
+owners while preserving one acting actor per ledger event. It also rejects new
+R3 starts that cannot enter the downstream review path, and provides the
+dry-run-first `accountability incident-record` command for user-authorized
+responsibility and deduction records when the normal governance or review path
+is itself blocked.
 
 Pinned-runner bootstrap remediation keeps the runner-native lifecycle
 authorization separate from the richer remediation sidecar. Candidate

@@ -2,7 +2,7 @@
 
 Status: canonical development policy
 
-Version: 2.1.0-beta.3
+Version: 2.1.0-re
 
 ## 1. Applicability and authority
 
@@ -23,9 +23,11 @@ unchanged `--apply-plan <digest>`. Unadoption preserves `.delivery/tasks/**`,
 
 ## 2. Default operating model
 
-Every mutating task has one implementation owner. That owner investigates,
-implements, debugs, verifies, and prepares the candidate end to end. Another
-agent is not introduced merely to relay prompts or perform routine edits.
+Every mutating task has one or more explicitly recorded implementation owners.
+Each mutation and lifecycle transition records exactly one acting owner from
+that frozen set. The owner set investigates, implements, debugs, verifies, and
+prepares the candidate end to end; adding an owner is a contract change, not an
+informal handoff.
 
 Independent review is proportional to risk:
 
@@ -37,7 +39,7 @@ Independent review is proportional to risk:
 
 ## 3. Task definition
 
-Before mutation, determine risk, implementation owner, objective, scope,
+Before mutation, determine risk, implementation owners, objective, scope,
 non-goals, authoritative inputs, acceptance observations, positive/negative
 cases, required evidence kinds, open implementation choices, and legitimate
 blockers.
@@ -54,8 +56,8 @@ bound, executed, or complete require observable checks.
 
 ### Contract readiness before implementation
 
-For newly created schema-v2 R2/R3 tasks, the contract author and implementation
-owner are not the contract-readiness approver. Before `DEFINED -> IN_PROGRESS`,
+For newly created schema-v2 R2/R3 tasks, the contract author and all implementation
+owners are not the contract-readiness approver. Before `DEFINED -> IN_PROGRESS`,
 an independent reviewer runs `task contract-review --input` against the exact
 `.delivery/tasks/<task-id>/contract-review.yaml` artifact. The artifact binds
 the task, risk, reviewer, raw contract SHA-256, semantic contract digest, nine
@@ -68,7 +70,10 @@ The contract author cannot act as the independent reviewer. An optional
 input-bound author self-review is advisory only and never grants acceptance,
 implementation authority, or a lifecycle transition.
 
-The gate is a global rule, not a Phase 2D rule. R1 tasks keep the simpler owner
+The gate is a global rule, not a Phase 2D rule. New R3 `task start` plans fail
+before writing a contract unless the input already contains the preflight-bound
+author self-review and known-issues structure required by the downstream review
+request. R1 tasks keep the simpler owner
 transition. A task may remain `DEFINED` while waiting for review. A markerless
 R2/R3 schema-v2 contract is grandfathered only when its contract is `sopVersion:
 2.0.0`, its `policyDigest` equals the frozen pre-gate digest
@@ -125,7 +130,7 @@ The independent reviewer may obtain an exact prompt packet through `task
 contract-review-request`. A beta2 canonical review must add the assisted
 checklist and a six-dimension comparison whose agreement rate, missed concerns,
 and overcautious concerns are recomputed by the verifier. The reviewer must be
-distinct from both contract author and implementation owner. `task
+distinct from the contract author and every implementation owner. `task
 review-summary` then renders the accepted or repair-required conclusion for a
 quick user scan, but it performs no transition. Explicit user confirmation and
 the normal review-bound owner transition remain required.
@@ -139,8 +144,9 @@ The accountability registry is a policy-anchored, append-only local claim.
 Actor IDs are normalized and immutable; aliases resolve to one active actor and
 cannot evade a sanction. Findings carry their origin bytes, semantic identity,
 classification, defect class, responsible role, culpability, and score effect.
-Contract violations belong to the contract author, implementation defects to the
-implementation owner, and a defect proven present in previously accepted bytes
+Contract violations belong to the contract author. For a task with multiple
+implementation owners, every implementation defect finding names the exact
+responsible owner from the frozen set. A defect proven present in previously accepted bytes belongs
 to the reviewer who missed it. New requirements and proven tool defects score
 zero. Under beta3 graduated scoring, a first BLOCKER/HIGH/MEDIUM/LOW finding
 scores 3/2/1/0. Repeat surcharges are defect-class specific and escalate as
@@ -165,6 +171,15 @@ thresholds. New violations after the transition are scored under graduated-v2
 rules. The transition preserves the append-only ledger invariant and provides a
 clear version boundary for accountability policy evolution.
 
+When the governance tool, contract review, implementation review, or task
+lifecycle is itself blocked, responsibility recording must not depend on that
+same unavailable path. `accountability incident-record` uses a separate
+dry-run/apply plan, exact evidence identities, an active subject actor, and an
+explicit `user-authority` grant. The applied incident is embedded in the
+append-only accountability event chain and immediately affects the recomputed
+score and standing. It does not create or accept a task state, substitute for a
+review, or authorize implementation.
+
 Standing is recomputed from the append-only event chain at every preflight,
 transition, review, repair, and close boundary. `GOOD_STANDING` has ordinary
 roles. `WARNING` may perform R0/R1 work, requires supervision for R2, and cannot
@@ -179,7 +194,7 @@ Permanent gates live at
 `.delivery/accountability/permanent-gates/<actor-id>.json`. Each document binds
 the normalized actor, remediation event, originating finding, selected rule,
 and a digest-chained trigger history. Preflight-check gates are evaluated for
-both the contract author and implementation owner. An unreadable, forged, or
+the contract author and every implementation owner. An unreadable, forged, or
 unknown preflight gate fails closed. Preflight remains read-only; recording a
 trigger or installing a gate is an explicit mutation after verified
 remediation.
@@ -249,10 +264,11 @@ Incomplete states may become BLOCKED, CANCELLED, or SUPERSEDED only through a
 recorded legal transition. Accepted and closed history is immutable; a later
 defect opens a new task.
 
-The implementation owner moves a v2 task to `IN_PROGRESS`, `CANDIDATE`,
+Any recorded implementation owner may move a v2 task to `IN_PROGRESS`, `CANDIDATE`,
 `BLOCKED`, `CANCELLED`, or `SUPERSEDED` through a dry-run-first `task
 transition` command and applies only the exact returned plan digest. The runner
-checks owner identity at plan time, apply time, and project-check time. A
+checks membership in the frozen owner set at plan time, apply time, and
+project-check time. The ledger still records one acting actor per event. A
 `CANDIDATE` transition must bind the canonical candidate and verification
 artifacts required for that state. Review and close use their dedicated
 commands and enforce independent reviewer authority rather than accepting a
@@ -269,7 +285,7 @@ lifecycle.
 
 ## 5. Implementation
 
-The implementation owner:
+The recorded implementation owners:
 
 1. inspects real repository and authority state;
 2. preserves unrelated work and generated-file ownership;
@@ -280,7 +296,7 @@ The implementation owner:
 6. records exact implementation identities and remaining unknowns;
 7. reports CANDIDATE only when every non-exempt gate passes.
 
-Ordinary engineering decisions remain with the owner. A material product
+Ordinary engineering decisions remain with the owner set. A material product
 decision, unavailable resource, high-risk authorization, or real external
 blocker is raised to the user.
 
@@ -341,8 +357,9 @@ categories are always `PASS`; only the explicitly applicable R3 entries may be
 - new requirement.
 
 On rejection, the reviewer checks sibling paths and the complete affected trust
-boundary, then issues one consolidated repair record. The original owner repairs
-the candidate. Repeated micro-fix prompts are a process failure, not the default
+boundary, then issues one consolidated repair record. The frozen owner set repairs
+the candidate, with every repair mutation attributed to one acting owner.
+Repeated micro-fix prompts are a process failure, not the default
 workflow.
 
 ## 8. Closure

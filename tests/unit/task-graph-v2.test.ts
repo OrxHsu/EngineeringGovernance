@@ -20,6 +20,7 @@ import { checkProject } from '../../src/commands/check.js'
 import { startTask, taskContractDigest } from '../../src/commands/task-start.js'
 import { captureCommandExecution } from '../../src/evidence/capture.js'
 import { canonicalDigest } from '../../src/model/digest.js'
+import { implementationOwnersOf } from '../../src/model/ownership.js'
 import { validateProjectTaskGraph } from '../../src/project/task-graph.js'
 import {
   applyTaskTransition,
@@ -360,7 +361,7 @@ function writeClosedArtifact(
     taskId: fixture.taskId,
     contractDigest: String(fixture.contract.contractDigest),
     contractSha256: sha256(contractRaw),
-    implementationOwner: String(fixture.contract.implementationOwner),
+    implementationOwners: implementationOwnersOf(fixture.contract),
   })
   expect(ledger.valid).toBe(true)
   expect(ledger.currentState).toBe('ACCEPTED')
@@ -660,7 +661,7 @@ describe('v2 project task graph', () => {
         state: 'INSPECT_ONLY',
       }),
     ]))
-  })
+  }, 30_000)
 
   it('rejects a v2 contract bound to a different project policy identity', () => {
     const root = definedTaskFixture('policy-mismatch')

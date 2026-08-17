@@ -4,11 +4,13 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { governanceIdentity } from './adopt.js';
 import { canonicalDigest } from '../model/digest.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 import { normalizeActorId } from '../model/actor.js';
 import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { planTaskTransition, readTaskLedger } from '../state/ledger.js';
 import { verifyHardenedReview } from './task-review-v2.js';
+import { actorEligibilityErrors, isAccountabilityContract } from '../accountability/enforce.js';
 function sha256(input) {
     return createHash('sha256').update(input).digest('hex');
 }
@@ -170,7 +172,7 @@ export function verifyHardenedClose(closurePathInput, now = new Date()) {
         taskId: closure.taskId,
         contractDigest: contract.contractDigest,
         contractSha256: closure.contract.sha256,
-        implementationOwner: contract.implementationOwner,
+        implementationOwners: implementationOwnersOf(contract),
     });
     if (!ledger.valid)
         errors.push(...ledger.errors.map((error) => `TASK_LEDGER_INVALID:${error}`));
@@ -216,6 +218,15 @@ export function verifyHardenedClose(closurePathInput, now = new Date()) {
     }
     catch {
         errors.push('CLOSER_ID_INVALID');
+    }
+    if (closerId !== undefined && isAccountabilityContract(contract, closure.taskId)) {
+        errors.push(...actorEligibilityErrors({
+            projectRoot,
+            taskId: closure.taskId,
+            actorId: closerId,
+            role: 'closer',
+            risk: contract.risk,
+        }));
     }
     const uniqueErrors = [...new Set(errors)].sort();
     if (uniqueErrors.length > 0 || closerId === undefined) {

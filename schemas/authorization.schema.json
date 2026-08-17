@@ -54,10 +54,107 @@
           }
         }
       }
+    },
+    "remediationHistorical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "artifactType", "authorizationId", "requirementId", "taskId", "contract", "grantor", "action", "target", "scope", "supervisorId", "contractReviewerId", "implementationReviewerId", "issuedAt", "expiresAt", "consumeOnce", "status"],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "artifactType": { "const": "engineering-governance-remediation-authorization-v1" },
+        "authorizationId": { "type": "string", "pattern": "^[A-Z0-9][A-Z0-9._-]*$" },
+        "requirementId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "rawSha256", "semanticDigest"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+            "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "grantor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "role", "trustLevel"],
+          "properties": {
+            "id": { "const": "user-authority" },
+            "role": { "const": "user" },
+            "trustLevel": { "const": "local-claim" }
+          }
+        },
+        "action": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "scope": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "supervisorId": { "const": "user-authority" },
+        "contractReviewerId": { "type": "string", "minLength": 1 },
+        "implementationReviewerId": { "type": "string", "minLength": 1 },
+        "issuedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+        "expiresAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+        "consumeOnce": { "const": true },
+        "status": { "const": "approved" }
+      }
+    },
+    "remediationBridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "artifactType", "authorizationId", "requirementId", "taskId", "contract", "lifecycleAuthorization", "grantor", "action", "target", "scope", "supervisorId", "contractReviewerId", "implementationReviewerId", "issuedAt", "expiresAt", "consumeOnce", "status"],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "artifactType": { "const": "engineering-governance-remediation-authorization-v1" },
+        "authorizationId": { "type": "string", "pattern": "^[A-Z0-9][A-Z0-9._-]*$" },
+        "requirementId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "rawSha256", "semanticDigest"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+            "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "lifecycleAuthorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "rawSha256", "semanticDigest", "requirementId"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/", "minLength": 2 },
+            "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "requirementId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" }
+          }
+        },
+        "grantor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "role", "trustLevel"],
+          "properties": {
+            "id": { "const": "user-authority" },
+            "role": { "const": "user" },
+            "trustLevel": { "const": "local-claim" }
+          }
+        },
+        "action": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "pattern": "^/", "minLength": 2 },
+        "scope": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "supervisorId": { "const": "user-authority" },
+        "contractReviewerId": { "type": "string", "minLength": 1 },
+        "implementationReviewerId": { "type": "string", "minLength": 1 },
+        "issuedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+        "expiresAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" },
+        "consumeOnce": { "const": true },
+        "status": { "const": "approved" }
+      }
     }
   },
   "oneOf": [
     { "$ref": "#/$defs/legacy" },
-    { "$ref": "#/$defs/hardened" }
+    { "$ref": "#/$defs/hardened" },
+    { "$ref": "#/$defs/remediationHistorical" },
+    { "$ref": "#/$defs/remediationBridge" }
   ]
 }

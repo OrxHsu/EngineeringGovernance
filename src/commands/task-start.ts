@@ -7,12 +7,17 @@ import { stringify } from 'yaml'
 
 import { canonicalDigest } from '../model/digest.js'
 import { normalizeActorId } from '../model/actor.js'
+import { implementationOwnersOf } from '../model/ownership.js'
+import { CURRENT_CONTRACT_READINESS_VERSION } from '../model/version.js'
 import type { Risk } from '../model/types.js'
 import { classifyRisk, highestRisk, type RiskSignals } from '../policy/risk.js'
 import { validateHardenedTaskContract } from '../policy/task-contract.js'
+import { validateDocument } from '../policy/load.js'
 import { initialTaskEvent } from '../state/ledger.js'
 import { captureCheckoutSnapshot } from '../evidence/checkout-snapshot.js'
 import type { ExtensionDescriptor } from '../extensions/registry.js'
+import type { ContractPreflightDocument } from '../accountability/preflight.js'
+import { mutualReviewEnabled, mutualReviewErrors } from '../review/mutual-review.js'
 import {
   externalSourceExtensionId,
   externalSourceExtensionVersion,
@@ -54,6 +59,7 @@ interface HardenedAcceptanceInput extends LegacyAcceptanceInput {
   evidenceKind: 'static' | 'compile' | 'unit' | 'integration' | 'device' | 'cloud' | 'production'
   command: ContractCommandInput
   observerPolicy: ObserverPolicyInput
+  bindingRefs?: string[]
 }
 
 interface AuthorizationRequirementInput {
@@ -82,7 +88,8 @@ export interface LegacyTaskStartInput {
 export interface HardenedTaskStartInput {
   schemaVersion: 2
   taskId: string
-  implementationOwner: string
+  implementationOwner?: string
+  implementationOwners?: string[]
   objective: string
   scope: string[]
   nonGoals: string[]
@@ -94,12 +101,18 @@ export interface HardenedTaskStartInput {
   extensionInputs?: Record<string, unknown>
   openChoices: string[]
   signals: RiskSignals
+  contractAuthor?: string
+  designBindings?: Record<string, unknown>
+  predecessors?: unknown[]
+  selfReview?: unknown
+  knownIssues?: unknown
 }
 
 export type TaskStartInput = HardenedTaskStartInput
 
 export interface TaskStartContext {
   projectExtensions?: ExtensionDescriptor[]
+  contractPreflight?: ContractPreflightDocument
 }
 
 export interface TaskArtifact {
@@ -256,7 +269,7 @@ function validAcceptance(value: unknown): boolean {
     'evidenceKind',
     'command',
     'observerPolicy',
-  ])) return false
+  ], ['bindingRefs'])) return false
   return nonEmptyString(value.id)
     && nonEmptyString(value.observation)
     && stringArray(value.positiveCases, 1)
@@ -265,6 +278,7 @@ function validAcceptance(value: unknown): boolean {
     && evidenceKinds.has(value.evidenceKind as HardenedAcceptanceInput['evidenceKind'])
     && validCommand(value.command)
     && validObserverPolicy(value.observerPolicy)
+    && (!Object.hasOwn(value, 'bindingRefs') || uniqueStringArray(value.bindingRefs, 1))
 }
 
 function validAuthorizationRequirement(value: unknown): boolean {
@@ -292,7 +306,6 @@ function validateHardenedTaskStartInput(input: unknown): asserts input is TaskSt
   if (!exactKeys(input, [
     'schemaVersion',
     'taskId',
-    'implementationOwner',
     'objective',
     'scope',
     'nonGoals',
@@ -302,10 +315,9 @@ function validateHardenedTaskStartInput(input: unknown): asserts input is TaskSt
     'authorizationRequirements',
     'openChoices',
     'signals',
-  ], ['evidenceFreshnessMs', 'extensionInputs'])
+  ], ['implementationOwner', 'implementationOwners', 'evidenceFreshnessMs', 'extensionInputs', 'contractAuthor', 'designBindings', 'predecessors', 'selfReview', 'knownIssues'])
     || typeof input.taskId !== 'string'
     || !taskIdPattern.test(input.taskId)
-    || !nonEmptyString(input.implementationOwner)
     || !nonEmptyString(input.objective)
     || !uniqueStringArray(input.scope, 1)
     || !uniqueStringArray(input.nonGoals, 0)
@@ -333,8 +345,21 @@ function validateHardenedTaskStartInput(input: unknown): asserts input is TaskSt
         || evidenceFreshnessMs > 86_400_000))
     || (Object.hasOwn(input, 'extensionInputs')
       && input.extensionInputs !== undefined
-      && !record(input.extensionInputs))) {
+      && !record(input.extensionInputs))
+    || (Object.hasOwn(input, 'contractAuthor') && !nonEmptyString(input.contractAuthor))
+    || (Object.hasOwn(input, 'designBindings') && !record(input.designBindings))
+    || (Object.hasOwn(input, 'predecessors') && !Array.isArray(input.predecessors))
+    || (Object.hasOwn(input, 'selfReview') && (input.selfReview === undefined || typeof input.selfReview !== 'object' || input.selfReview === null || Array.isArray(input.selfReview)))
+    || (Object.hasOwn(input, 'knownIssues') && !Array.isArray(input.knownIssues))) {
     throw new Error('TASK_START_INPUT_INVALID')
+  }
+  implementationOwnersOf(input)
+  const beta1Fields = ['contractAuthor', 'designBindings', 'predecessors']
+  const beta1Count = beta1Fields.filter((key) => Object.hasOwn(input, key)).length
+  if (beta1Count !== 0 && beta1Count !== beta1Fields.length) throw new Error('TASK_START_BETA1_INPUT_INCOMPLETE')
+  if (mutualReviewEnabled(input)) {
+    const errors = mutualReviewErrors(input)
+    if (errors.length > 0) throw new Error(errors.join(','))
   }
 }
 
@@ -444,10 +469,24 @@ function validateAcceptanceCommands(
 
 export function startTask(input: TaskStartInput, context: TaskStartContext = {}): TaskStartResult {
   validateHardenedTaskStartInput(input)
+  const beta1Input = input.contractAuthor !== undefined || input.designBindings !== undefined || input.predecessors !== undefined
+  if (beta1Input) {
+    const schema = validateDocument('task-start-input', input)
+    if (!schema.valid) throw new Error(schema.errors.map((error) => `TASK_START_INPUT_SCHEMA_INVALID:${error}`).join(','))
+    if (typeof input.contractAuthor !== 'string' || input.contractAuthor.length === 0 || input.designBindings === undefined || !Array.isArray(input.predecessors)) {
+      throw new Error('TASK_START_BETA1_FIELDS_REQUIRED')
+    }
+  }
+  if (beta1Input && context.contractPreflight === undefined) throw new Error('TASK_START_PREFLIGHT_REQUIRED')
+  if (context.contractPreflight !== undefined) {
+    if (!beta1Input || context.contractPreflight.taskId !== input.taskId) throw new Error('TASK_START_PREFLIGHT_TASK_MISMATCH')
+    const { planDigest, ...unsignedPreflight } = context.contractPreflight
+    if (canonicalDigest(unsignedPreflight) !== planDigest) throw new Error('TASK_START_PREFLIGHT_DIGEST_INVALID')
+  }
   let risk = classifyRisk(input.signals)
   if (risk === 'R0') return { risk, state: 'DEFINED', artifacts: [] }
   const identity = governanceIdentity()
-  const implementationOwner = normalizeActorId(input.implementationOwner)
+  const implementationOwners = implementationOwnersOf(input)
   const repositories = canonicalRepositories(input.repositories)
   validateAcceptanceCommands(input.acceptance, repositories)
   const acceptance = input.acceptance.map((gate) => {
@@ -494,7 +533,14 @@ export function startTask(input: TaskStartInput, context: TaskStartContext = {})
     policyDigest: identity.digest,
     risk,
     riskSignals: input.signals,
-    implementationOwner,
+    implementationOwners,
+    ...(beta1Input ? {
+      contractAuthor: normalizeActorId(input.contractAuthor!),
+      contractPreflight: context.contractPreflight,
+      designBindings: input.designBindings,
+      predecessors: input.predecessors,
+      ...(input.selfReview === undefined ? {} : { selfReview: input.selfReview, knownIssues: input.knownIssues }),
+    } : {}),
     objective: input.objective,
     scope: input.scope,
     nonGoals: input.nonGoals,
@@ -506,7 +552,7 @@ export function startTask(input: TaskStartInput, context: TaskStartContext = {})
     contractReadiness: {
       required: risk === 'R2' || risk === 'R3',
       reviewPath: contractPath.replace(/contract\.yaml$/u, 'contract-review.yaml'),
-      gateVersion: '2.1.0-beta.0',
+      gateVersion: CURRENT_CONTRACT_READINESS_VERSION,
     },
     extensions,
     openChoices: input.openChoices,
@@ -516,7 +562,7 @@ export function startTask(input: TaskStartInput, context: TaskStartContext = {})
   if (!semantic.valid) throw new Error(semantic.errors.join(','))
   const contractContent = stringify(contract)
   const event = initialTaskEvent({
-    actorId: implementationOwner,
+    actorId: implementationOwners[0]!,
     contractDigest: contract.contractDigest,
     contractPath,
     contractSha256: sha256(contractContent),
@@ -541,6 +587,13 @@ export function planTaskStart(
 ): TaskStartPlan {
   const projectRoot = realpathSync(resolve(projectPath))
   const result = startTask(input, context)
+  const reviewReady = input.contractAuthor !== undefined
+    && input.designBindings !== undefined
+    && input.predecessors !== undefined
+    && input.selfReview !== undefined
+    && Array.isArray(input.knownIssues)
+    && context.contractPreflight !== undefined
+  if (result.risk === 'R3' && !reviewReady) throw new Error('TASK_START_REVIEW_READY_CONTRACT_REQUIRED')
   const unsigned = {
     schemaVersion: 2 as const,
     artifactType: 'sop-task-start-plan-v2' as const,

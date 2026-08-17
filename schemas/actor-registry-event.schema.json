@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/actor-registry-event.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "eventType", "sequence", "priorEventDigest", "eventDigest", "policyDigest", "actorId", "aliases", "authorization", "actor", "occurredAt"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-actor-registry-event-v1" },
+    "eventType": { "enum": ["actor_created", "alias_added", "actor_revoked", "actor_restored"] },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "priorEventDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "eventDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "policyDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "actorId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "aliases": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" } },
+    "authorization": {
+      "oneOf": [
+        { "const": "none" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["authorizationId", "path", "rawSha256", "semanticDigest"],
+          "properties": {
+            "authorizationId": { "type": "string", "minLength": 1 },
+            "path": { "type": "string", "minLength": 1 },
+            "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        }
+      ]
+    },
+    "actor": { "type": "object", "additionalProperties": false, "required": ["id", "role", "trustLevel"], "properties": { "id": { "type": "string", "minLength": 1 }, "role": { "type": "string", "minLength": 1 }, "trustLevel": { "const": "local-claim" } } },
+    "occurredAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$" }
+  }
+}

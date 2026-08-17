@@ -1,4 +1,5 @@
 import { normalizeActorId } from '../model/actor.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 const transitions = {
     DEFINED: ['IN_PROGRESS', 'BLOCKED', 'CANCELLED', 'SUPERSEDED'],
     IN_PROGRESS: ['CANDIDATE', 'BLOCKED', 'CANCELLED', 'SUPERSEDED'],
@@ -13,19 +14,23 @@ const transitions = {
 export function canTransition(from, to) {
     return transitions[from].includes(to);
 }
-export function validateAcceptanceAuthority(risk, implementationOwner, reviewOwner) {
+export function validateAcceptanceAuthority(risk, ownership, reviewOwner) {
     if (risk === 'R0' || risk === 'R1')
         return { valid: true, errors: [] };
-    let normalizedOwner;
+    let normalizedOwners;
     let normalizedReviewer;
     try {
-        normalizedOwner = normalizeActorId(implementationOwner);
+        normalizedOwners = Array.isArray(ownership)
+            ? ownership.map(normalizeActorId)
+            : typeof ownership === 'string'
+                ? [normalizeActorId(ownership)]
+                : implementationOwnersOf(ownership);
         normalizedReviewer = reviewOwner === undefined ? undefined : normalizeActorId(reviewOwner);
     }
     catch {
         return { valid: false, errors: ['INDEPENDENT_REVIEW_REQUIRED'] };
     }
-    if (normalizedReviewer === undefined || normalizedReviewer === normalizedOwner) {
+    if (normalizedReviewer === undefined || normalizedOwners.includes(normalizedReviewer)) {
         return { valid: false, errors: ['INDEPENDENT_REVIEW_REQUIRED'] };
     }
     return { valid: true, errors: [] };

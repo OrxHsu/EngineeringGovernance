@@ -6,6 +6,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { parse } from 'yaml'
 
 import { governanceIdentity } from '../commands/adopt.js'
+import { implementationOwnersOf } from '../model/ownership.js'
 import { canonicalDigest } from '../model/digest.js'
 import { validateDocument } from '../policy/load.js'
 import { validateHardenedTaskContract } from '../policy/task-contract.js'
@@ -61,7 +62,8 @@ interface HardenedContract {
   policyDigest: string
   sopVersion: string
   contractDigest: string
-  implementationOwner: string
+  implementationOwner?: string
+  implementationOwners?: string[]
   repositories: Array<{ id: string; path: string }>
   acceptance: Array<{
     id: string
@@ -285,7 +287,7 @@ function readHardenedContract(input: HardenedCommandExecutionInput): {
     taskId: input.taskId,
     contractDigest,
     contractSha256: sha256(raw),
-    implementationOwner: contract.implementationOwner,
+    implementationOwners: implementationOwnersOf(contract),
   })
   if (!ledger.valid) throw new Error(`TASK_LEDGER_INVALID:${ledger.errors.join(',')}`)
   if (ledger.currentState !== 'DEFINED' && ledger.currentState !== 'IN_PROGRESS') {

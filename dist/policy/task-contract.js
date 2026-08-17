@@ -4,6 +4,8 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import { externalSourceMinimumRisk, validateExternalSourceTaskInput } from '../extensions/external-source.js';
 import { extensionDescriptor } from '../extensions/registry.js';
 import { canonicalDigest } from '../model/digest.js';
+import { implementationOwnersOf } from '../model/ownership.js';
+import { CURRENT_CONTRACT_READINESS_VERSION, CURRENT_SOP_VERSION } from '../model/version.js';
 import { classifyRisk, highestRisk } from './risk.js';
 import { validateDocument } from './load.js';
 const authorizationSignals = [
@@ -24,6 +26,17 @@ function duplicated(values) {
 }
 function semanticErrors(contract) {
     const errors = [];
+    let implementationOwners = [];
+    try {
+        implementationOwners = implementationOwnersOf(contract);
+        if (contract.implementationOwners !== undefined
+            && JSON.stringify(contract.implementationOwners) !== JSON.stringify(implementationOwners)) {
+            errors.push('TASK_IMPLEMENTATION_OWNERS_NOT_CANONICAL');
+        }
+    }
+    catch (error) {
+        errors.push(error instanceof Error ? error.message : 'TASK_IMPLEMENTATION_OWNERS_INVALID');
+    }
     const repositoryIds = contract.repositories.map((repository) => repository.id);
     const repositoryPaths = contract.repositories.map((repository) => repository.path);
     if (duplicated(repositoryIds))
@@ -66,9 +79,58 @@ function semanticErrors(contract) {
         if (contract.contractReadiness.reviewPath !== expectedPath) {
             errors.push('TASK_CONTRACT_READINESS_PATH_MISMATCH');
         }
-        if (contract.contractReadiness.gateVersion !== '2.1.0-beta.0') {
+        const expectedGateVersion = contract.sopVersion === CURRENT_SOP_VERSION
+            ? CURRENT_CONTRACT_READINESS_VERSION
+            : contract.selfReview !== undefined
+                ? '2.1.0-beta.2'
+                : contract.contractAuthor === undefined ? '2.1.0-beta.0' : '2.1.0-beta.1';
+        if (contract.contractReadiness.gateVersion !== expectedGateVersion) {
             errors.push('TASK_CONTRACT_READINESS_VERSION_MISMATCH');
         }
+    }
+    const beta1Contract = contract.contractAuthor !== undefined
+        || contract.contractPreflight !== undefined
+        || contract.designBindings !== undefined
+        || contract.predecessors !== undefined
+        || contract.selfReview !== undefined
+        || contract.knownIssues !== undefined;
+    if (beta1Contract) {
+        if (typeof contract.contractAuthor !== 'string' || contract.contractAuthor.length === 0)
+            errors.push('TASK_CONTRACT_AUTHOR_REQUIRED');
+        if (contract.contractPreflight === undefined || typeof contract.contractPreflight !== 'object' || contract.contractPreflight === null) {
+            errors.push('TASK_CONTRACT_PREFLIGHT_REQUIRED');
+        }
+        else {
+            const schema = validateDocument('contract-preflight', contract.contractPreflight);
+            if (!schema.valid)
+                errors.push(...schema.errors.map((error) => `TASK_CONTRACT_PREFLIGHT_INVALID:${error}`));
+            const preflight = contract.contractPreflight;
+            const { planDigest, ...unsignedPreflight } = preflight;
+            if (typeof planDigest !== 'string' || canonicalDigest(unsignedPreflight) !== planDigest)
+                errors.push('TASK_CONTRACT_PREFLIGHT_DIGEST_MISMATCH');
+            if (preflight.taskId !== contract.taskId || preflight.policyDigest !== contract.policyDigest)
+                errors.push('TASK_CONTRACT_PREFLIGHT_BINDING_MISMATCH');
+        }
+        if (contract.designBindings === undefined || typeof contract.designBindings !== 'object' || contract.designBindings === null)
+            errors.push('TASK_CONTRACT_DESIGN_BINDINGS_REQUIRED');
+        if (!Array.isArray(contract.predecessors))
+            errors.push('TASK_CONTRACT_PREDECESSORS_REQUIRED');
+        if ((contract.selfReview === undefined) !== (contract.knownIssues === undefined)) {
+            errors.push('TASK_CONTRACT_MUTUAL_REVIEW_INCOMPLETE');
+        }
+        if (contract.selfReview !== undefined) {
+            const subjectDigest = contract.contractPreflight?.selfReviewSubjectDigest;
+            if (typeof contract.selfReview.subjectDigest !== 'string'
+                || subjectDigest !== contract.selfReview.subjectDigest) {
+                errors.push('TASK_CONTRACT_SELF_REVIEW_BINDING_MISMATCH');
+            }
+        }
+        if ((contract.risk === 'R2' || contract.risk === 'R3')
+            && implementationOwners.includes(contract.contractAuthor ?? '')) {
+            errors.push('TASK_CONTRACT_AUTHOR_OWNER_NOT_DISTINCT');
+        }
+        if (contract.openChoices !== undefined && (!Array.isArray(contract.openChoices) || contract.openChoices.length !== 0))
+            errors.push('TASK_CONTRACT_OPEN_CHOICES_NOT_EMPTY');
     }
     const acceptanceIds = contract.acceptance.map((gate) => gate.id);
     if (duplicated(acceptanceIds))

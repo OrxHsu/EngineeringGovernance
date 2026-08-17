@@ -11,6 +11,9 @@ import { startTask } from '../../src/commands/task-start.js'
 import { canonicalDigest } from '../../src/model/digest.js'
 import { planTaskTransition } from '../../src/state/ledger.js'
 import { verifyContractReadinessArtifact } from '../../src/state/contract-readiness.js'
+import { generateReviewSummary } from '../../src/commands/task-review-summary.js'
+import { buildContractReviewRequest } from '../../src/review/contract-review-assist.js'
+import { SELF_REVIEW_DIMENSIONS } from '../../src/review/mutual-review.js'
 
 const temporaryDirectories: string[] = []
 
@@ -84,6 +87,98 @@ function fixture(): { root: string; taskId: string; contract: Record<string, unk
   return { root, taskId, contract, reviewPath }
 }
 
+function mutualReviewFixture(): ReturnType<typeof fixture> {
+  const result = fixture()
+  const contractPath = join(result.root, `.delivery/tasks/${result.taskId}/contract.yaml`)
+  const contract = parse(readFileSync(contractPath, 'utf8')) as Record<string, any>
+  const selfReviewSubjectDigest = 'a'.repeat(64)
+  const preflightUnsigned = {
+    schemaVersion: 1,
+    artifactType: 'engineering-governance-contract-preflight-v1',
+    taskId: result.taskId,
+    projectRoot: result.root,
+    policyVersion: contract.sopVersion,
+    policyDigest: contract.policyDigest,
+    inputRawSha256: 'b'.repeat(64),
+    inputSemanticDigest: 'c'.repeat(64),
+    contractSemanticDigest: 'd'.repeat(64),
+    repositoryBaselines: contract.repositories.map((repository: Record<string, any>) => ({
+      id: repository.id,
+      path: repository.path,
+      head: repository.baseline.head,
+      tree: repository.baseline.tree,
+      checkoutDigest: repository.baseline.checkoutDigest,
+    })),
+    checks: Array.from({ length: 14 }, (_, index) => ({ id: `check-${index}`, status: 'PASS', evidenceRefs: ['input.yaml'] })),
+    selfReviewSubjectDigest,
+  }
+  contract.contractAuthor = 'contract-author'
+  contract.contractPreflight = { ...preflightUnsigned, planDigest: canonicalDigest(preflightUnsigned) }
+  contract.designBindings = {}
+  contract.predecessors = []
+  contract.selfReview = {
+    schemaVersion: 1,
+    artifactType: 'engineering-governance-self-review-v1',
+    reviewId: `srv-${result.taskId}-${selfReviewSubjectDigest}`,
+    taskId: result.taskId,
+    author: 'contract-author',
+    subjectDigest: selfReviewSubjectDigest,
+    reviewedAt: '2026-08-16T00:00:00.000Z',
+    durationSeconds: 30,
+    attemptCount: 1,
+    effort: 'medium',
+    dimensions: SELF_REVIEW_DIMENSIONS.map((name) => ({ name, status: 'PASS', evidence: `${name} is covered.` })),
+    overallStatus: 'PASSED',
+  }
+  contract.knownIssues = []
+  contract.contractReadiness.gateVersion = '2.1.0-re'
+  delete contract.contractDigest
+  contract.contractDigest = canonicalDigest(contract)
+  writeFileSync(contractPath, stringify(contract))
+
+  const contractRaw = readFileSync(contractPath)
+  const evidenceRef = { id: 'E-001', kind: 'contract', path: `.delivery/tasks/${result.taskId}/contract.yaml`, sha256: sha256(contractRaw), digest: canonicalDigest(contract) }
+  const item = { status: 'PASS', evidenceRefs: [evidenceRef] }
+  const r3Item = { status: 'NA', applicabilityReason: 'risk-below-r3', evidenceRefs: [evidenceRef] }
+  const assistedItem = { status: 'PASS', observation: 'The exact contract evidence satisfies this dimension.', evidenceRefs: [evidenceRef] }
+  const review = {
+    schemaVersion: 2,
+    artifactType: 'sop-contract-review-v2',
+    reviewId: `crv-${result.taskId}-${contract.contractDigest}`,
+    taskId: result.taskId,
+    risk: 'R2',
+    reviewer: { id: 'independent-reviewer', trustLevel: 'local-claim' },
+    decision: 'ACCEPTED',
+    contract: { path: contractPath, rawSha256: sha256(contractRaw), digest: contract.contractDigest },
+    checklist: {
+      scope_non_goals: item, authority_dependencies: item, risk_owner_reviewer: item,
+      behavior_state_transitions: item, security_trust: item, evidence_environment: item,
+      external_source_provenance: item, rollout_recovery_compatibility: item,
+      unresolved_product_decisions: item,
+    },
+    r3Requirements: {
+      trust_threat_analysis: r3Item, migration_recovery_rollback: r3Item,
+      specialized_gates: r3Item, scoped_authorization: r3Item, production_observation: r3Item,
+    },
+    assistedReview: {
+      checklist: {
+        scope_coverage: assistedItem, acceptance_sufficiency: assistedItem,
+        authority_completeness: assistedItem, r3_dimensions: assistedItem,
+        compatibility_consideration: assistedItem, self_review_alignment: assistedItem,
+      },
+      selfReviewComparison: {
+        dimensions: SELF_REVIEW_DIMENSIONS.map((name) => ({ name, selfStatus: 'PASS', reviewerStatus: 'PASS', observation: 'The assessments agree.' })),
+        agreementRate: 100,
+        codexMissed: [],
+        codexOvercautious: [],
+      },
+    },
+    findings: [], nextStage: 'implementation', userActionRequired: false,
+  }
+  writeFileSync(result.reviewPath, stringify(review))
+  return { ...result, contract, reviewPath: result.reviewPath }
+}
+
 afterEach(() => {
   for (const path of temporaryDirectories.splice(0)) rmSync(path, { recursive: true, force: true })
 })
@@ -116,6 +211,35 @@ describe('contract readiness gate', () => {
     })
     expect(plan.event.artifactRefs).toHaveLength(1)
     expect(plan.event.artifactRefs[0]?.kind).toBe('contract-review')
+  })
+
+  it('renders an accepted review as a short confirmation summary', () => {
+    const { root, taskId } = fixture()
+    const summary = generateReviewSummary(root, taskId)
+    expect(summary.decision).toBe('ACCEPTED')
+    expect(summary.confirmationRequired).toBe(true)
+    expect(summary.nextAction).toContain('DEFINED to IN_PROGRESS')
+  })
+
+  it('requires exact independent assisted-review comparison for mutual-review contracts', () => {
+    const { root, taskId, reviewPath } = mutualReviewFixture()
+    expect(verifyContractReadinessArtifact(root, taskId, reviewPath).errors).toEqual([
+      'ACCOUNTABILITY_ACTOR_UNAVAILABLE',
+    ])
+    expect(buildContractReviewRequest(root, taskId).reviewerConstraints.independentFrom).toEqual([
+      'codex', 'contract-author',
+    ])
+    const review = parse(readFileSync(reviewPath, 'utf8')) as Record<string, any>
+    review.assistedReview.selfReviewComparison.agreementRate = 50
+    writeFileSync(reviewPath, stringify(review))
+    expect(verifyContractReadinessArtifact(root, taskId, reviewPath).errors)
+      .toContain('CONTRACT_REVIEW_COMPARISON_RATE_INVALID')
+
+    review.assistedReview.selfReviewComparison.agreementRate = 100
+    review.reviewer.id = 'contract-author'
+    writeFileSync(reviewPath, stringify(review))
+    expect(verifyContractReadinessArtifact(root, taskId, reviewPath).errors)
+      .toContain('CONTRACT_REVIEW_SELF_REVIEW_FORBIDDEN')
   })
 
   it('rejects self-review and stale contract bytes', () => {

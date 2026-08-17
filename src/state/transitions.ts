@@ -1,5 +1,6 @@
 import type { Risk, TaskState, ValidationResult } from '../model/types.js'
 import { normalizeActorId } from '../model/actor.js'
+import { implementationOwnersOf, type OwnershipFields } from '../model/ownership.js'
 
 const transitions: Record<TaskState, readonly TaskState[]> = {
   DEFINED: ['IN_PROGRESS', 'BLOCKED', 'CANCELLED', 'SUPERSEDED'],
@@ -19,20 +20,24 @@ export function canTransition(from: TaskState, to: TaskState): boolean {
 
 export function validateAcceptanceAuthority(
   risk: Risk,
-  implementationOwner: string,
+  ownership: string | string[] | OwnershipFields,
   reviewOwner?: string,
 ): ValidationResult {
   if (risk === 'R0' || risk === 'R1') return { valid: true, errors: [] }
 
-  let normalizedOwner: string
+  let normalizedOwners: string[]
   let normalizedReviewer: string | undefined
   try {
-    normalizedOwner = normalizeActorId(implementationOwner)
+    normalizedOwners = Array.isArray(ownership)
+      ? ownership.map(normalizeActorId)
+      : typeof ownership === 'string'
+        ? [normalizeActorId(ownership)]
+        : implementationOwnersOf(ownership)
     normalizedReviewer = reviewOwner === undefined ? undefined : normalizeActorId(reviewOwner)
   } catch {
     return { valid: false, errors: ['INDEPENDENT_REVIEW_REQUIRED'] }
   }
-  if (normalizedReviewer === undefined || normalizedReviewer === normalizedOwner) {
+  if (normalizedReviewer === undefined || normalizedOwners.includes(normalizedReviewer)) {
     return { valid: false, errors: ['INDEPENDENT_REVIEW_REQUIRED'] }
   }
 

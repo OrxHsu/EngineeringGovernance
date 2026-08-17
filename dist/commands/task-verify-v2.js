@@ -4,8 +4,10 @@ import { existsSync, lstatSync, readFileSync, realpathSync, writeFileSync } from
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { governanceIdentity } from './adopt.js';
+import { isRemediationBridgeContract, remediationBridgeErrors } from '../accountability/enforce.js';
 import { verifyGitIdentity } from '../evidence/git-identity.js';
 import { canonicalDigest } from '../model/digest.js';
+import { implementationOwnersOf, primaryImplementationOwner } from '../model/ownership.js';
 import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { readTaskLedger } from '../state/ledger.js';
@@ -223,7 +225,7 @@ function authorizationErrors(input) {
             continue;
         }
         const schema = validateDocument('authorization', authorization);
-        if (!schema.valid || authorization.schemaVersion !== 2) {
+        if (!schema.valid || authorization.schemaVersion !== 2 || authorization.artifactType !== 'sop-authorization-v2') {
             errors.push(`AUTHORIZATION_SCHEMA_INVALID:${requirement.id}`);
             continue;
         }
@@ -349,7 +351,7 @@ export function verifyHardenedCandidate(input, context = {}) {
         taskId: input.taskId,
         contractDigest: contract.contractDigest,
         contractSha256: input.contract.sha256,
-        implementationOwner: contract.implementationOwner,
+        implementationOwners: implementationOwnersOf(contract),
     });
     if (!ledger.valid) {
         errors.push(...ledger.errors.map((error) => `TASK_LEDGER_INVALID:${error}`));
@@ -499,6 +501,18 @@ export function verifyHardenedCandidate(input, context = {}) {
         verificationTime,
     });
     errors.push(...authorization.errors);
+    if (isRemediationBridgeContract(contract)) {
+        const bridge = remediationBridgeErrors({
+            projectRoot,
+            taskId: contract.taskId,
+            actorId: primaryImplementationOwner(contract),
+            role: 'implementation-owner',
+            enforceExpiry: true,
+            ledgerEvents: ledger.events,
+            requireConsumption: true,
+        });
+        errors.push(...bridge.errors.map((error) => `REMEDIATION_BRIDGE_INVALID:${error}`));
+    }
     const extensionResults = [];
     const implementationChanges = changedPaths(contract, input.implementationIdentities);
     errors.push(...implementationChanges.errors);

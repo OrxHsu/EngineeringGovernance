@@ -34,6 +34,17 @@
         "path": { "type": "string", "pattern": "^\\.delivery/runtime/engineering-governance-[A-Za-z0-9._-]+\\.tgz$" },
         "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
+    },
+    "accountability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleset", "registryPath", "eventsPath", "genesisDigest"],
+      "properties": {
+        "ruleset": { "const": "strict-v1" },
+        "registryPath": { "const": ".delivery/accountability/actors.jsonl" },
+        "eventsPath": { "const": ".delivery/accountability/events.jsonl" },
+        "genesisDigest": { "const": "c6043b1735ad12fa345400d16a9d34c722cea5952821d5e8f00023841d5a9071" }
+      }
     }
   }
 }

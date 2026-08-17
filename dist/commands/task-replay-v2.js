@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { captureRepositorySet } from '../evidence/checkout-snapshot.js';
 import { canonicalDigest } from '../model/digest.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 import { validateDocument } from '../policy/load.js';
 import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { readTaskLedger } from '../state/ledger.js';
@@ -73,7 +74,7 @@ function loadCandidate(candidatePathInput, requireCandidateState = true) {
         taskId: contract.taskId,
         contractDigest: contract.contractDigest,
         contractSha256: candidate.contract.sha256,
-        implementationOwner: contract.implementationOwner,
+        implementationOwners: implementationOwnersOf(contract),
     });
     if (!ledger.valid || (requireCandidateState && ledger.currentState !== 'CANDIDATE')) {
         throw new Error(`TASK_NOT_REPLAYABLE:${ledger.currentState ?? 'INVALID'}`);

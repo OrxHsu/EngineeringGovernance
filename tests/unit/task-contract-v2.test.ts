@@ -75,7 +75,7 @@ describe('hardened task contracts', () => {
     expect(contract).toMatchObject({
       schemaVersion: 2,
       taskId: 'bounded-local-edit',
-      implementationOwner: 'codex',
+      implementationOwners: ['codex'],
       repositories: [{
         id: 'root',
         path: realpathSync(repository),

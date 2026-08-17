@@ -39,11 +39,16 @@
       "required": ["id", "severity", "classification", "observation"],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
-        "severity": { "enum": ["P0", "P1", "P2", "P3"] },
+        "severity": { "enum": ["P0", "P1", "P2", "P3", "BLOCKER", "HIGH", "MEDIUM", "LOW"] },
         "classification": { "enum": ["contract_violation", "newly_discovered_defect", "new_requirement"] },
         "observation": { "type": "string", "minLength": 1 },
         "defectClass": { "type": "string", "minLength": 1 },
-        "permanentGateId": { "type": "string", "minLength": 1 }
+        "permanentGateId": { "type": "string", "minLength": 1 },
+        "responsibleRole": { "enum": ["contract_author", "implementation_owner", "contract_reviewer", "implementation_reviewer", "tool", "none"] },
+        "responsibleActorId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "culpability": { "enum": ["culpable", "non_culpable_new_requirement", "non_culpable_tool_defect", "missed_existing_blocker"] },
+        "origin": { "type": "object", "additionalProperties": false, "required": ["taskId", "artifactPath", "rawSha256", "semanticDigest", "reviewId", "evidenceRefs"], "properties": { "taskId": { "type": "string", "minLength": 1 }, "artifactPath": { "type": "string", "minLength": 1 }, "rawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "reviewId": { "type": "string", "minLength": 1 }, "evidenceRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } } } },
+        "scoreDelta": { "type": "integer", "minimum": 0 }
       }
     },
     "legacy": {

@@ -3,6 +3,7 @@ import { readFileSync, realpathSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { readTaskLedger } from '../state/ledger.js';
 import { verifyContractReadinessArtifact } from '../state/contract-readiness.js';
+import { implementationOwnersOf } from '../model/ownership.js';
 export function verifyContractReview(reviewPathInput) {
     let reviewPath;
     try {
@@ -21,7 +22,7 @@ export function verifyContractReview(reviewPathInput) {
             taskId,
             contractDigest: result.contract.contractDigest,
             contractSha256: createHash('sha256').update(readFileSync(resolve(taskRoot, 'contract.yaml'))).digest('hex'),
-            implementationOwner: result.contract.implementationOwner,
+            implementationOwners: implementationOwnersOf(result.contract),
         });
         if (!ledger.valid)
             return { ...result, errors: [...result.errors, ...ledger.errors.map((error) => `CONTRACT_REVIEW_LEDGER_INVALID:${error}`)], valid: false };
