@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "engineering-governance-release-record-v1",
+  "taskId": "sop-2-1-0-release-v1",
+  "contract": {
+    "path": "releases/sop-2.1.0-release-v1/release-contract.yaml",
+    "rawSha256": "2466072e5aa0c8bf029ee3af0a280dae533b56417658df1390255ab1e2dbf897",
+    "digest": "93773ab3673f0cc79acca417d6c7a3c0756c2b7e604b1e9ede2f7bf5c815cf4f"
+  },
+  "sourceRange": {
+    "baseCommit": "9cd03bb2bb528741de0748884c10deeefa5a4b4c",
+    "baseTree": "d3a9f647ad66a4036ebdc7f68b51394327d33bd5",
+    "commits": [
+      {
+        "commit": "e8839d72bdbca34e845020604e193abc7c343d1d",
+        "tree": "a31f9bea4bf134bace9a7ab9d190bd451810a1c4"
+      },
+      {
+        "commit": "8315a924bc4b2ebc0dace3a97360a1adcafb4ae7",
+        "tree": "782a149bb0967171adeb05667186fadbe5a80bbd"
+      }
+    ],
+    "candidateCommit": "37017527edb1934caba4a06531b20bf6db0e6689",
+    "candidateTree": "26099b5e73fb0cffc9d8e8c0c4e26f5e0a50283c"
+  },
+  "archive": {
+    "filename": "engineering-governance-2.1.0.tgz",
+    "path": "releases/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz",
+    "sha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+    "version": "2.1.0",
+    "verificationReceipt": {
+      "path": "releases/sop-2.1.0-release-v1/archive-verification.json",
+      "rawSha256": "13f60745ec3a3a3b78291c4af8ddd72fdb068d541fd86e439505b56cd238f142",
+      "digest": "9236172a2927de871d0fb2c03dbaf502224118f80ee3db016bc9bd5f2a4f05f9",
+      "archivePath": "releases/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz",
+      "sha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+      "firstBuildSha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+      "secondBuildSha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+      "candidateCommit": "37017527edb1934caba4a06531b20bf6db0e6689",
+      "candidateTree": "26099b5e73fb0cffc9d8e8c0c4e26f5e0a50283c",
+      "version": "2.1.0",
+      "identical": true
+    }
+  },
+  "sourceIdentity": {
+    "packageVersion": "2.1.0",
+    "versionFile": "2.1.0"
+  },
+  "publicationStatus": "prepared-private",
+  "priorFinding": {
+    "path": "releases/sop-2.1.0-release-v1/prior-finding.yaml",
+    "rawSha256": "1089d7d5e0871c14b28c637ab604978ed224df4677f322fe5d3c4b237f0f9c05",
+    "digest": "0463e5e7dccbe3b74e861e0af0e48c2a1ed3579f069d150b60065bf1235a90aa"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "archivePath": "releases/sop-2.1.0-release-v1/engineering-governance-2.1.0.tgz",
+  "sha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+  "firstBuildSha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+  "secondBuildSha256": "c61ccec8eaa46a90fa8aca55fde65b2778667369946386e4287a101f09451237",
+  "candidateCommit": "37017527edb1934caba4a06531b20bf6db0e6689",
+  "candidateTree": "26099b5e73fb0cffc9d8e8c0c4e26f5e0a50283c",
+  "version": "2.1.0",
+  "identical": true
+}
