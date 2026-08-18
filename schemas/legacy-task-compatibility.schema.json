@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/legacy-task-compatibility.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "projectId", "manifestDigest", "entries"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-legacy-task-compatibility-v1" },
+    "projectId": { "type": "string", "minLength": 1 },
+    "manifestDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "taskId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "sopVersion": { "type": "string", "pattern": "^2\\.1\\.0(?:-beta\\.[0-3])?$" },
+    "relativePath": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*//)[^\\u0000]+$"
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "path", "sha256"],
+      "properties": {
+        "version": { "$ref": "#/$defs/sopVersion" },
+        "path": { "type": "string", "pattern": "^\\.delivery/runtime/engineering-governance-[A-Za-z0-9._-]+\\.tgz$" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rawSha256", "digest"],
+      "properties": {
+        "rawSha256": { "$ref": "#/$defs/sha256" },
+        "digest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rawSha256", "finalState", "finalEventDigest"],
+      "properties": {
+        "rawSha256": { "$ref": "#/$defs/sha256" },
+        "finalState": { "enum": ["DEFINED", "IN_PROGRESS", "CANDIDATE", "ACCEPTED", "CLOSED", "REPAIR_REQUIRED", "BLOCKED", "CANCELLED", "SUPERSEDED"] },
+        "finalEventDigest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "successor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taskId", "contractRawSha256", "contractDigest", "reviewRawSha256", "decision", "findingIds"],
+      "properties": {
+        "taskId": { "$ref": "#/$defs/taskId" },
+        "contractRawSha256": { "$ref": "#/$defs/sha256" },
+        "contractDigest": { "$ref": "#/$defs/sha256" },
+        "reviewRawSha256": { "$ref": "#/$defs/sha256" },
+        "decision": { "const": "REPAIR_REQUIRED" },
+        "findingIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" } }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taskId", "classification", "reason", "source", "contract", "ledger", "files"],
+      "properties": {
+        "taskId": { "$ref": "#/$defs/taskId" },
+        "classification": { "enum": ["beta0-beta3-history", "superseded-readiness-history"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sopVersion", "policyDigest", "runner"],
+          "properties": {
+            "sopVersion": { "$ref": "#/$defs/sopVersion" },
+            "policyDigest": { "$ref": "#/$defs/sha256" },
+            "runner": { "$ref": "#/$defs/runner" }
+          }
+        },
+        "contract": { "$ref": "#/$defs/contract" },
+        "ledger": { "$ref": "#/$defs/ledger" },
+        "successor": { "$ref": "#/$defs/successor" },
+        "files": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/file" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "classification": { "const": "superseded-readiness-history" } } },
+          "then": {
+            "required": ["successor"],
+            "properties": { "successor": { "$ref": "#/$defs/successor" }, "source": { "type": "object", "properties": { "sopVersion": { "const": "2.1.0" } } }, "ledger": { "type": "object", "properties": { "finalState": { "enum": ["DEFINED", "REPAIR_REQUIRED"] } } } }
+          }
+        },
+        {
+          "if": { "properties": { "classification": { "const": "beta0-beta3-history" } } },
+          "then": { "properties": { "successor": false, "source": { "type": "object", "properties": { "sopVersion": { "type": "string", "pattern": "^2\\.1\\.0-beta\\.[0-3]$" } } } } }
+        }
+      ]
+    }
+  }
+}

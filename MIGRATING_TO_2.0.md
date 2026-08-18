@@ -124,3 +124,45 @@ contracts or ledgers:
 Adopted projects receive these behaviors only through a separately reviewed
 runner upgrade. Existing beta0-beta3 task artifacts retain their original
 version and ownership fields.
+
+## Beta0-beta3 schema-v2 history compatibility
+
+Some projects adopted schema-v2 during the 2.1.0 beta line. A current runner
+must not rewrite those records, but current readiness and policy rules may be
+stricter than the runner that created them. Projects can opt into exact
+inspect-only compatibility with both policy mappings below:
+
+```yaml
+artifactMapping:
+  taskGraph.legacySchemaV2ManifestPath: .delivery/compatibility/beta-history.yaml
+  taskGraph.legacySchemaV2ManifestSha256: <raw manifest SHA-256>
+```
+
+Both keys are required together. The manifest is validated by
+`legacy-task-compatibility.schema.json`, binds its own canonical digest, and
+lists every task by exact ID. Each entry binds the source SOP and policy,
+preserved runner archive, contract, ledger tail, and a complete sorted file
+inventory. The runner scans and hashes every listed file; it does not skip a
+directory or accept a version string by itself. Missing, extra, changed,
+reordered, duplicated, symlinked, or unsafe content fails the project check.
+
+`beta0-beta3-history` is restricted to the four prerelease versions. The narrow
+`superseded-readiness-history` class is restricted to a rejected 2.1.0
+readiness record and must bind a current-schema successor whose predecessor
+record exactly names the historical contract, rejected review, decision, and
+finding IDs. A successor cannot be another compatibility entry.
+
+Contract-readiness evidence may bind the exact pre-transition bytes of its own
+append-only `ledger.jsonl`. After valid task events are appended, that reference
+remains valid only when the recorded bytes are a non-empty, whole-event JSONL
+prefix ending at a line boundary. The ordinary ledger validator still checks
+the complete current chain. Empty, mid-line, reordered, replaced, truncated,
+or corrupt suffixes are rejected.
+
+A reviewed governance upgrade can also preserve exact authority evidence used
+by a still-canonical readiness review. The policy binds both
+`taskGraph.historicalEvidenceManifestPath` and
+`taskGraph.historicalEvidenceManifestSha256`. Each strict manifest entry binds
+the original path, raw SHA, semantic digest, and a byte-identical snapshot below
+`.delivery/compatibility/evidence/`. Only exact `authority` references can use
+this path; absent, changed, unlisted, wrong-kind, or hash-only records fail.

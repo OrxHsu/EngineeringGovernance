@@ -10,6 +10,8 @@ import { validateHardenedTaskContract } from '../policy/task-contract.js';
 import { actorEligibilityErrors, isAccountabilityContract } from '../accountability/enforce.js';
 import { accountabilityFindingErrors } from '../accountability/policy.js';
 import { SELF_REVIEW_DIMENSIONS } from '../review/mutual-review.js';
+import { canTransition } from './transitions.js';
+import { historicalEvidenceKey, loadHistoricalEvidence, } from '../project/historical-evidence.js';
 const checklistKeys = [
     'scope_non_goals',
     'authority_dependencies',
@@ -111,6 +113,91 @@ function evidenceDigest(path) {
     }
     return canonicalDigest(raw.toString('utf8'));
 }
+function ledgerStructureValid(projectRoot, taskId, expectedContractDigest, raw) {
+    if (raw.length === 0 || raw.at(-1) !== 0x0a)
+        return false;
+    const lines = raw.toString('utf8').split('\n').filter((line) => line.length > 0);
+    if (lines.length === 0)
+        return false;
+    let contractDigest;
+    let previous;
+    try {
+        for (const [index, line] of lines.entries()) {
+            const event = JSON.parse(line);
+            if (!validateDocument('task-event', event).valid)
+                return false;
+            const { eventDigest, ...unsigned } = event;
+            if (canonicalDigest(unsigned) !== eventDigest || event.sequence !== index + 1)
+                return false;
+            contractDigest ??= event.contractDigest;
+            if (event.contractDigest !== contractDigest || event.contractDigest !== expectedContractDigest)
+                return false;
+            if (index === 0) {
+                const ref = event.artifactRefs.length === 1 ? event.artifactRefs[0] : undefined;
+                if (event.previousEventDigest !== null || event.from !== null || event.to !== 'DEFINED'
+                    || ref?.kind !== 'contract'
+                    || ref.path !== `.delivery/tasks/${taskId}/contract.yaml`)
+                    return false;
+            }
+            else if (previous !== undefined) {
+                if (event.previousEventDigest !== previous.eventDigest
+                    || event.from !== previous.to
+                    || !canTransition(previous.to, event.to))
+                    return false;
+            }
+            for (const ref of event.artifactRefs) {
+                if (typeof ref.path !== 'string' || typeof ref.sha256 !== 'string')
+                    return false;
+                const unresolved = resolve(projectRoot, ref.path);
+                if (relative(projectRoot, unresolved) !== ref.path)
+                    return false;
+                const canonical = safeRegularFile(unresolved);
+                if (canonical === undefined || canonical !== unresolved || sha256(readFileSync(canonical)) !== ref.sha256)
+                    return false;
+            }
+            previous = event;
+        }
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
+function ledgerPrefixEvidenceMatches(path, ref) {
+    if (ref.kind !== 'record' || ref.path !== `.delivery/tasks/${currentTaskId}/ledger.jsonl`)
+        return false;
+    const raw = readFileSync(path);
+    if (!ledgerStructureValid(currentProjectRoot, currentTaskId, currentContractDigest, raw))
+        return false;
+    let offset = 0;
+    while (offset < raw.length) {
+        const newline = raw.indexOf(0x0a, offset);
+        if (newline < 0 || newline === raw.length - 1)
+            break;
+        const prefixEnd = newline + 1;
+        const prefix = raw.subarray(0, prefixEnd);
+        if (sha256(prefix) === ref.sha256 && canonicalDigest(prefix.toString('utf8')) === ref.digest) {
+            if (prefixEnd === raw.length
+                || !ledgerStructureValid(currentProjectRoot, currentTaskId, currentContractDigest, prefix))
+                return false;
+            return true;
+        }
+        offset = prefixEnd;
+    }
+    return false;
+}
+function historicalEvidenceMatches(ref) {
+    if (ref.kind !== 'authority')
+        return false;
+    const entry = currentHistoricalEvidence.get(historicalEvidenceKey(ref));
+    if (entry === undefined)
+        return false;
+    const path = resolve(currentProjectRoot, entry.snapshotPath);
+    const canonical = safeRegularFile(path);
+    return canonical === path
+        && sha256(readFileSync(canonical)) === ref.sha256
+        && evidenceDigest(canonical) === ref.digest;
+}
 function evidenceErrors(projectRoot, refs, label) {
     const errors = [];
     if (!sortedIds(refs) || new Set(refs.map((ref) => ref.id)).size !== refs.length) {
@@ -129,7 +216,23 @@ function evidenceErrors(projectRoot, refs, label) {
             continue;
         }
         const raw = readFileSync(canonical);
-        if (sha256(raw) !== ref.sha256 || evidenceDigest(canonical) !== ref.digest) {
+        const identityMatches = sha256(raw) === ref.sha256 && evidenceDigest(canonical) === ref.digest;
+        const ownLedgerPath = ref.path === `.delivery/tasks/${currentTaskId}/ledger.jsonl`;
+        if (ownLedgerPath && ref.kind !== 'record') {
+            errors.push(`${label}_EVIDENCE_IDENTITY_MISMATCH:${ref.id}`);
+            continue;
+        }
+        const ownLedger = ownLedgerPath;
+        if (ownLedger) {
+            if (identityMatches
+                && ledgerStructureValid(currentProjectRoot, currentTaskId, currentContractDigest, raw))
+                continue;
+            if (!identityMatches && ledgerPrefixEvidenceMatches(canonical, ref))
+                continue;
+            errors.push(`${label}_EVIDENCE_IDENTITY_MISMATCH:${ref.id}`);
+            continue;
+        }
+        if (!identityMatches && !historicalEvidenceMatches(ref)) {
             errors.push(`${label}_EVIDENCE_IDENTITY_MISMATCH:${ref.id}`);
         }
     }
@@ -147,6 +250,9 @@ function checkItemErrors(item, label) {
     return errors;
 }
 let currentProjectRoot = '';
+let currentTaskId = '';
+let currentContractDigest = '';
+let currentHistoricalEvidence = new Map();
 function r3Applicability(contract) {
     if (contract.risk !== 'R3') {
         return {
@@ -178,6 +284,12 @@ export function verifyContractReadinessArtifact(projectRootInput, taskId, review
     const errors = [];
     const projectRoot = realpathSync(resolve(projectRootInput));
     currentProjectRoot = projectRoot;
+    currentTaskId = taskId;
+    const historicalEvidence = loadHistoricalEvidence(projectRoot);
+    errors.push(...historicalEvidence.errors);
+    currentHistoricalEvidence = historicalEvidence.valid
+        ? historicalEvidence.entries
+        : new Map();
     const taskRoot = join(projectRoot, '.delivery', 'tasks', taskId);
     const contractPath = join(taskRoot, 'contract.yaml');
     const canonicalReviewPath = join(taskRoot, 'contract-review.yaml');
@@ -216,6 +328,7 @@ export function verifyContractReadinessArtifact(projectRootInput, taskId, review
     catch {
         return { valid: false, errors: [...errors, 'CONTRACT_REVIEW_CONTRACT_UNREADABLE'] };
     }
+    currentContractDigest = contract.contractDigest;
     const contractSchema = validateHardenedTaskContract(contract);
     if (!contractSchema.valid)
         errors.push(...contractSchema.errors.map((error) => `CONTRACT_REVIEW_CONTRACT_INVALID:${error}`));

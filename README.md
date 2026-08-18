@@ -148,6 +148,10 @@ Build a portable, dependency-bundled runner archive for project CI:
 pnpm bundle:runner -- --output /absolute/path/to/output
 ```
 
+The local `2.1.0` release candidate is built from the complete source identity
+listed by the runner and is consumed only through a separately reviewed archive
+SHA and project migration.
+
 The project adapter records that archive's version, project-relative path, and
 SHA-256 in `.delivery/policy.yaml`, then installs
 `.delivery/bin/check-delivery-policy.sh`. The wrapper verifies the digest before

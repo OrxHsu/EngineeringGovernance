@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-governance.local/schemas/historical-evidence-compatibility.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactType", "projectId", "manifestDigest", "entries"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "artifactType": { "const": "engineering-governance-historical-evidence-compatibility-v1" },
+    "projectId": { "type": "string", "minLength": 1 },
+    "manifestDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "digest", "snapshotPath", "snapshotSha256"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*//)[^\\u0000]+$" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "snapshotPath": { "type": "string", "pattern": "^\\.delivery/compatibility/evidence/[A-Za-z0-9._/-]+$" },
+          "snapshotSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    }
+  }
+}

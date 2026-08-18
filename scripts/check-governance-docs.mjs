@@ -59,12 +59,12 @@ const assertions = [
   {
     name: 'task template declares readiness',
     file: 'templates/task-contract.yaml',
-    test: (value) => /contractReadiness:[\s\S]{0,140}gateVersion:\s*2\.1\.0-re/u.test(value),
+    test: (value) => /contractReadiness:[\s\S]{0,140}gateVersion:\s*2\.1\.0/u.test(value),
   },
   {
     name: 're source identity is documented',
     file: 'README.md',
-    test: (value) => /local `2\.1\.0-re` release candidate/u.test(value)
+    test: (value) => /local `2\.1\.0` release candidate/u.test(value)
       && /task preflight --project/u.test(value)
       && /accountability status --project/u.test(value),
   },

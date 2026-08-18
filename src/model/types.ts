@@ -41,6 +41,8 @@ export type DocumentKind =
   | 'self-review'
   | 'known-issues'
   | 'accountability-incident'
+  | 'legacy-task-compatibility'
+  | 'historical-evidence-compatibility'
 
 export interface ValidationResult {
   valid: boolean

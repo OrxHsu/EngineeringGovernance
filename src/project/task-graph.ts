@@ -17,6 +17,11 @@ import { readTaskLedger, type TaskEvent } from '../state/ledger.js'
 import { PRE_GATE_POLICY_DIGEST, verifyContractReadinessArtifact } from '../state/contract-readiness.js'
 import { readAccountabilityEvents, withAccountabilityReadScope } from '../accountability/derive.js'
 import { policyDigestAllowedForProject } from '../accountability/registry.js'
+import {
+  legacyManifestTaskIds,
+  loadLegacyCompatibilityManifest,
+  verifyLegacyTaskCompatibility,
+} from './legacy-compatibility.js'
 
 export interface TaskGraphTaskReport {
   taskId: string
@@ -280,6 +285,18 @@ function validateContractReadinessGraph(input: {
     input.errors.push(...verification.errors.map((error) => `TASK_GRAPH_CONTRACT_REVIEW_INVALID:${input.taskId}:${error}`))
   } else if (stateRequiresReview && verification.review?.decision !== 'ACCEPTED') {
     input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_NOT_ACCEPTED:${input.taskId}`)
+  }
+  const containsOwnLedgerReference = (value: unknown): boolean => {
+    if (Array.isArray(value)) return value.some(containsOwnLedgerReference)
+    if (typeof value !== 'object' || value === null) return false
+    const record = value as Record<string, unknown>
+    if (record.kind === 'record' && record.path === `.delivery/tasks/${input.taskId}/ledger.jsonl`) return true
+    return Object.values(record).some(containsOwnLedgerReference)
+  }
+  if (!stateRequiresReview
+    && verification.review?.decision === 'ACCEPTED'
+    && containsOwnLedgerReference(artifact.value)) {
+    input.errors.push(`TASK_GRAPH_CONTRACT_REVIEW_LEDGER_PREFIX_NOT_ADVANCED:${input.taskId}`)
   }
   if (!stateRequiresReview) return
   const inProgress = input.events.find((event) => event.to === 'IN_PROGRESS')
@@ -682,15 +699,16 @@ function validateProjectTaskGraphWithinAccountabilityScope(projectPath: string):
   const projectRoot = realpathSync(resolve(projectPath))
   const policyIdentity = projectPolicyIdentity(projectRoot)
   const tasksRoot = join(projectRoot, '.delivery', 'tasks')
-  if (!existsSync(tasksRoot)) return { valid: true, errors: [], tasks: [] }
-  if (lstatSync(tasksRoot).isSymbolicLink() || !lstatSync(tasksRoot).isDirectory()) {
+  if (existsSync(tasksRoot) && (lstatSync(tasksRoot).isSymbolicLink() || !lstatSync(tasksRoot).isDirectory())) {
     return { valid: false, errors: ['TASK_GRAPH_ROOT_UNSAFE'], tasks: [] }
   }
 
   const errors: string[] = []
+  let policy: Record<string, unknown> | undefined
+  let legacyManifest: ReturnType<typeof loadLegacyCompatibilityManifest>
   try {
     const policyPath = join(projectRoot, '.delivery', 'policy.yaml')
-    const policy = existsSync(policyPath) ? parse(readFileSync(policyPath, 'utf8')) as Record<string, unknown> : undefined
+    policy = existsSync(policyPath) ? parse(readFileSync(policyPath, 'utf8')) as Record<string, unknown> : undefined
     const mapping = policy?.artifactMapping
     if (typeof mapping === 'object' && mapping !== null && !Array.isArray(mapping)
       && (mapping as Record<string, unknown>)['accountability.ruleset'] !== undefined) {
@@ -699,6 +717,14 @@ function validateProjectTaskGraphWithinAccountabilityScope(projectPath: string):
   } catch (error) {
     errors.push(`TASK_GRAPH_ACCOUNTABILITY_INVALID:${error instanceof Error ? error.message : 'UNKNOWN'}`)
   }
+  legacyManifest = loadLegacyCompatibilityManifest(projectRoot, policy)
+  errors.push(...legacyManifest.errors)
+  if (!existsSync(tasksRoot)) {
+    if (legacyManifest.entries.size > 0) errors.push('TASK_GRAPH_LEGACY_TASK_ROOT_MISSING')
+    const uniqueErrors = [...new Set(errors)].sort()
+    return { valid: uniqueErrors.length === 0, errors: uniqueErrors, tasks: [] }
+  }
+  const compatibilityTaskIds = new Set<string>()
   const tasks: TaskGraphTaskReport[] = []
   const entries = readdirSync(tasksRoot, { withFileTypes: true })
     .sort((left, right) => left.name.localeCompare(right.name))
@@ -718,14 +744,49 @@ function validateProjectTaskGraphWithinAccountabilityScope(projectPath: string):
       continue
     }
 
-    let contract: TaskContractV2
+    let contractRecord: Record<string, unknown>
     const contractRaw = readFileSync(contractPath)
     try {
-      contract = parse(contractRaw.toString('utf8')) as TaskContractV2
+      const parsed = parse(contractRaw.toString('utf8')) as unknown
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('invalid')
+      contractRecord = parsed as Record<string, unknown>
     } catch {
       errors.push(`TASK_GRAPH_CONTRACT_UNREADABLE:${entry.name}`)
       continue
     }
+    const legacyEntry = legacyManifest.valid ? legacyManifest.entries.get(entry.name) : undefined
+    if (legacyEntry !== undefined) {
+      let compatibility: ReturnType<typeof verifyLegacyTaskCompatibility>
+      try {
+        compatibility = verifyLegacyTaskCompatibility({
+          projectRoot,
+          taskId: entry.name,
+          taskRoot,
+          contract: contractRecord,
+          contractRaw,
+          entry: legacyEntry,
+          compatibilityTaskIds: new Set(legacyManifest.entries.keys()),
+        })
+      } catch {
+        compatibility = { valid: false, errors: ['LEGACY_COMPATIBILITY_UNREADABLE'] }
+      }
+      if (legacyEntry.successor !== undefined && legacyManifest.entries.has(legacyEntry.successor.taskId)) {
+        compatibility.valid = false
+        compatibility.errors.push('SUCCESSOR_COMPATIBILITY_CYCLE')
+      }
+      if (compatibility.valid) {
+        compatibilityTaskIds.add(entry.name)
+        tasks.push({
+          taskId: entry.name,
+          schemaVersion: 2,
+          mode: 'legacy-inspect-only',
+          state: 'INSPECT_ONLY',
+        })
+        continue
+      }
+      errors.push(...compatibility.errors.map((error) => `TASK_GRAPH_LEGACY_COMPATIBILITY_INVALID:${entry.name}:${error}`))
+    }
+    const contract = contractRecord as unknown as TaskContractV2
     const schema = validateDocument('task-contract', contract)
     if (!schema.valid) {
       errors.push(...schema.errors.map((error) => (
@@ -733,7 +794,6 @@ function validateProjectTaskGraphWithinAccountabilityScope(projectPath: string):
       )))
       continue
     }
-    const contractRecord = contract as unknown as Record<string, unknown>
     const { contractDigest: recordedDigest, ...unsignedContract } = contractRecord
     if (canonicalDigest(unsignedContract) !== recordedDigest) {
       errors.push(`TASK_GRAPH_CONTRACT_DIGEST_MISMATCH:${entry.name}`)
@@ -846,6 +906,14 @@ function validateProjectTaskGraphWithinAccountabilityScope(projectPath: string):
         mode: 'canonical',
         state: ledger.currentState,
       })
+    }
+  }
+
+  if (legacyManifest.valid) {
+    for (const taskId of legacyManifestTaskIds(legacyManifest)) {
+      if (!compatibilityTaskIds.has(taskId)) {
+        errors.push(`TASK_GRAPH_LEGACY_MANIFEST_TASK_UNVERIFIED:${taskId}`)
+      }
     }
   }
 

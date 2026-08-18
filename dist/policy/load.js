@@ -30,6 +30,8 @@ const schemaPaths = {
     'self-review': new URL('../../schemas/self-review.schema.json', import.meta.url),
     'known-issues': new URL('../../schemas/known-issues.schema.json', import.meta.url),
     'accountability-incident': new URL('../../schemas/accountability-incident.schema.json', import.meta.url),
+    'legacy-task-compatibility': new URL('../../schemas/legacy-task-compatibility.schema.json', import.meta.url),
+    'historical-evidence-compatibility': new URL('../../schemas/historical-evidence-compatibility.schema.json', import.meta.url),
 };
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 const validators = new Map();
